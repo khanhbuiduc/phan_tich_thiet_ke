@@ -1,0 +1,71 @@
+﻿\section{Thiết kế bảo mật và phân quyền tổng thể}
+
+Bảo mật và phân quyền là yêu cầu quan trọng trong hệ thống trợ lý ảo tuyển sinh, đặc biệt khi hệ thống có phân hệ quản trị, dữ liệu người dùng và kho tài liệu RAG.
+
+\subsection*{a. Xác thực người dùng}
+
+Hệ thống có thể sử dụng JWT hoặc session-based authentication.
+
+Yêu cầu chính:
+\begin{itemize}
+    \item Mật khẩu được băm an toàn, không lưu plaintext.
+    \item Access token có thời hạn sử dụng.
+    \item Có cơ chế đăng xuất và thu hồi phiên.
+    \item API quản trị bắt buộc xác thực.
+\end{itemize}
+
+\subsection*{b. Phân quyền người dùng}
+
+Các vai trò điển hình:
+\begin{itemize}
+    \item Guest: hỏi đáp tuyển sinh cơ bản.
+    \item User: hỏi đáp và xem lịch sử hội thoại cá nhân.
+    \item Admission Staff: quản lý dữ liệu tuyển sinh.
+    \item Admin: quản lý toàn bộ hệ thống.
+    \item Super Admin: quản lý tài khoản quản trị cấp cao và cấu hình hệ thống.
+\end{itemize}
+
+\subsection*{c. Bảo vệ API}
+
+\begin{itemize}
+    \item Kiểm tra token và kiểm tra vai trò trước khi truy cập API nhạy cảm.
+    \item Validate dữ liệu đầu vào, giới hạn kích thước upload.
+    \item Giới hạn tần suất request.
+    \item Không trả lỗi chứa thông tin nhạy cảm.
+    \item Sử dụng HTTPS khi triển khai thực tế.
+\end{itemize}
+
+\subsection*{d. Bảo mật dữ liệu RAG}
+
+\begin{itemize}
+    \item Chỉ quản trị viên có quyền tải lên/xóa tài liệu.
+    \item Kiểm tra định dạng tài liệu trước xử lý.
+    \item Không cho người dùng thường truy cập trực tiếp Document Store và Vector Store.
+    \item Lưu metadata người tải, thời gian tải, trạng thái xử lý.
+    \item Câu trả lời RAG phải dựa trên tài liệu đã kiểm duyệt.
+\end{itemize}
+
+\subsection*{e. Kiểm soát dữ liệu đầu vào}
+
+\begin{itemize}
+    \item Giới hạn độ dài câu hỏi và loại bỏ ký tự nguy hiểm.
+    \item Kiểm tra nội dung trước khi gửi tới mô hình sinh.
+    \item Ngăn prompt injection ở mức cơ bản.
+    \item Từ chối yêu cầu tiết lộ thông tin hệ thống nội bộ.
+\end{itemize}
+
+\subsection*{f. Ghi log và giám sát}
+
+Các nhóm log cần lưu:
+\begin{itemize}
+    \item Log đăng nhập.
+    \item Log thao tác quản trị.
+    \item Log upload/indexing tài liệu.
+    \item Log câu hỏi và câu trả lời.
+    \item Log lỗi khi gọi Rasa, Action Server, RAG.
+    \item Log thời gian phản hồi.
+\end{itemize}
+
+\subsection*{g. Tổng kết thiết kế bảo mật}
+
+Thiết kế bảo mật tổng thể dựa trên nguyên tắc: đúng quyền, đúng phạm vi truy cập, Backend API làm lớp kiểm soát trung tâm, dữ liệu nhạy cảm được bảo vệ, thao tác quan trọng được ghi log và hệ thống có cơ chế xử lý lỗi an toàn.

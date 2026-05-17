@@ -1,0 +1,46 @@
+﻿\section{Thiết kế hai luồng vận hành chính}
+
+Phân hệ RAG được chia thành hai luồng vận hành chính: \textbf{Indexing Flow} và \textbf{Query Flow}. Indexing Flow hoạt động ngoại tuyến hoặc định kỳ để đưa tài liệu mới vào kho tri thức. Query Flow hoạt động trực tuyến khi người dùng đặt câu hỏi.
+
+\subsection{Indexing Flow - luồng sản xuất tri thức}
+
+Indexing Flow biến tài liệu tuyển sinh thô thành tri thức có thể truy hồi. Đầu vào là PDF, DOCX, HTML, website hoặc văn bản nhập tay; đầu ra là các chunk đã gắn metadata và embedding.
+
+Các bước chính:
+\begin{itemize}
+    \item Tải tài liệu lên, kiểm tra định dạng và dung lượng.
+    \item Tính checksum để phát hiện trùng lặp.
+    \item Trích xuất văn bản (kèm OCR nếu là ảnh/PDF scan).
+    \item Làm sạch, chuẩn hóa và chia chunk.
+    \item Gán metadata, sinh embedding, lưu vào các lớp lưu trữ.
+    \item Cập nhật trạng thái tài liệu thành đã lập chỉ mục.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/hình 5.2 Sơ đồ Indexing Flow..png}}
+    \caption{Sơ đồ Indexing Flow}
+    \label{fig:indexing-flow}
+\end{figure}
+
+\subsection{Query Flow - luồng tiêu thụ tri thức}
+
+Query Flow xử lý câu hỏi tự nhiên của người dùng và trả về câu trả lời có trích dẫn hoặc thông báo không đủ dữ liệu.
+
+Các bước chính:
+\begin{itemize}
+    \item Người dùng gửi câu hỏi qua chatbot.
+    \item Rasa phân tích intent/entity, sau đó gọi Custom Action.
+    \item Custom Action gửi truy vấn đến RAG Query API.
+    \item RAG chuẩn hóa câu hỏi, truy hồi hybrid (Vector Search + BM25), reranking.
+    \item Context Builder chọn bằng chứng, Prompt Assembly tạo prompt.
+    \item LLM sinh câu trả lời, Citation Module gắn nguồn.
+    \item Trả kết quả về Rasa để hiển thị cho người dùng.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/hình 5.3 Sơ đồ Query Flow..png}}
+    \caption{Sơ đồ Query Flow}
+    \label{fig:query-flow}
+\end{figure}

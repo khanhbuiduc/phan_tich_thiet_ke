@@ -1,0 +1,633 @@
+﻿\chapter{PHÂN TÍCH VÀ THIẾT KẾ PHÂN HỆ QUẢN TRỊ}
+
+\section{Vai trò của phân hệ quản trị}
+
+Phân hệ quản trị là thành phần quan trọng trong hệ thống KMA Chatbot tuyển sinh, có nhiệm vụ hỗ trợ người quản trị kiểm soát dữ liệu, tài liệu, người dùng, quyền truy cập, thống kê vận hành và kho tri thức phục vụ hỏi đáp. Nếu giao diện hội thoại là nơi người dùng cuối đặt câu hỏi và nhận câu trả lời, thì phân hệ quản trị là nơi duy trì dữ liệu nền, kiểm soát trạng thái xử lý tài liệu, theo dõi chất lượng vận hành và đảm bảo hệ thống hoạt động đúng phạm vi được cấu hình.
+
+Từ giao diện hệ thống đã quan sát, phân hệ quản trị bao gồm các nhóm chức năng chính: quản lý tài liệu và biểu mẫu, quản lý tài liệu ngữ cảnh RAG, báo cáo thống kê, quản lý chatbot theo ngữ cảnh đang chọn, quản lý vai trò, quản lý quyền và quản lý người dùng. Các nhóm chức năng này cho thấy hệ thống không chỉ dừng lại ở một chatbot hỏi đáp đơn giản, mà đã được mở rộng thành một nền tảng quản trị tri thức và vận hành chatbot phục vụ tư vấn tuyển sinh.
+
+Trong bài toán tuyển sinh, dữ liệu thường xuyên thay đổi theo từng năm như phương thức xét tuyển, điểm chuẩn, chương trình đào tạo, biểu mẫu, quy chế, lịch tuyển sinh và các thông báo mới. Vì vậy, phân hệ quản trị đóng vai trò cầu nối giữa người quản trị nội dung và các thành phần kỹ thuật phía sau như Backend API, Rasa, RAG service, cơ sở dữ liệu, kho tài liệu và vector database.
+
+Các mục tiêu chính của phân hệ quản trị gồm:
+
+\begin{itemize}
+    \item Quản lý tài liệu, biểu mẫu phục vụ sinh viên, thí sinh và cán bộ.
+    \item Quản lý tài liệu ngữ cảnh được đưa vào kho tri thức RAG.
+    \item Theo dõi trạng thái xử lý tài liệu như processed, pending, failed.
+    \item Hỗ trợ upload, scan, retry pipeline và làm mới dữ liệu tài liệu.
+    \item Quản lý chatbot theo ngữ cảnh được chọn.
+    \item Theo dõi các báo cáo thống kê về người dùng, hội thoại, chatbot và tài liệu.
+    \item Quản lý vai trò, quyền và tài khoản người dùng theo mô hình RBAC.
+    \item Đảm bảo chỉ người dùng có quyền phù hợp mới được truy cập các chức năng quản trị.
+\end{itemize}
+
+Như vậy, phân hệ quản trị vừa có vai trò nghiệp vụ, vừa có vai trò kỹ thuật. Về mặt nghiệp vụ, phân hệ giúp cập nhật dữ liệu và tài liệu tư vấn. Về mặt kỹ thuật, phân hệ giúp kiểm soát trạng thái xử lý dữ liệu, phân quyền truy cập và theo dõi hiệu quả vận hành của chatbot.
+
+\section{Tổng quan giao diện quản trị}
+
+Giao diện quản trị được tổ chức theo dạng sidebar, cho phép người dùng truy cập nhanh đến các nhóm chức năng chính. Các route đã quan sát gồm \texttt{/docs}, \texttt{/context-docs}, \texttt{/statistics/users}, \texttt{/statistics/conversations}, \texttt{/statistics/chatbots}, \texttt{/statistics/documents}, \texttt{/roles}, \texttt{/permissions} và \texttt{/users}. Ngoài ra, khu vực giao diện còn hiển thị trường chọn chatbot với giá trị quan sát được là \textit{Chatbot tuyen sinh}.
+
+Việc có trường chọn chatbot trên nhiều màn hình quản trị cho thấy hệ thống được thiết kế theo hướng có thể vận hành theo ngữ cảnh chatbot. Khi người quản trị chọn một chatbot cụ thể, các dữ liệu như tài liệu, ngữ cảnh RAG, thống kê và phân quyền có thể được khoanh vùng theo chatbot đó. Cách thiết kế này phù hợp với hệ thống có khả năng mở rộng để quản lý nhiều chatbot trong tương lai, ví dụ chatbot tuyển sinh, chatbot hỗ trợ sinh viên hoặc chatbot tư vấn học vụ.
+
+Các nhóm màn hình chính trong phân hệ quản trị gồm:
+
+\begin{itemize}
+    \item \textbf{Documents \& Forms}: quản lý tài liệu và biểu mẫu.
+    \item \textbf{Context Documents}: quản lý tài liệu ngữ cảnh cho RAG.
+    \item \textbf{Statistics}: thống kê người dùng, hội thoại, chatbot và tài liệu.
+    \item \textbf{RBAC}: quản lý vai trò và quyền.
+    \item \textbf{Users Management}: quản lý tài khoản người dùng.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/admin-overview.png}
+    \caption{Tổng quan giao diện phân hệ quản trị}
+    \label{fig:admin-overview}
+\end{figure}
+
+\section{Thiết kế dashboard và nhóm báo cáo quản trị}
+
+Dashboard và nhóm báo cáo quản trị có nhiệm vụ cung cấp góc nhìn tổng quan về tình trạng hoạt động của hệ thống. Trong giao diện đã phân tích, hệ thống có các màn hình thống kê chính gồm User Report, Conversation Report, Chatbot Report và Document Report. Riêng route \texttt{/statistics/nlp} trong phiên quan sát hiện tại chưa tải được đầy đủ, do đó phần thiết kế chỉ mô tả theo hướng chức năng cần có và không khẳng định số liệu NLP cụ thể.
+
+\subsection{Báo cáo người dùng}
+
+Báo cáo người dùng giúp người quản trị theo dõi số lượng tài khoản và trạng thái hoạt động của người dùng trong hệ thống. Các chỉ số cần hiển thị gồm tổng số người dùng, số người dùng đang hoạt động, số người dùng bị khóa, số người dùng chờ duyệt và số người dùng mới trong một khoảng thời gian.
+
+Báo cáo này có ý nghĩa quan trọng trong vận hành vì nó giúp Admin kiểm soát quy mô người dùng, phát hiện tài khoản bất thường và đánh giá mức độ sử dụng hệ thống.
+
+\subsection{Báo cáo hội thoại}
+
+Báo cáo hội thoại phục vụ theo dõi hoạt động hỏi đáp giữa người dùng và chatbot. Màn hình Conversation Report đã quan sát có các thẻ thống kê và biểu đồ xu hướng hội thoại. Về mặt thiết kế, báo cáo hội thoại cần hiển thị các thông tin như tổng số hội thoại, số lượng tin nhắn trung bình, người dùng đang hoạt động và xu hướng hội thoại theo thời gian.
+
+Các chỉ số này giúp người quản trị biết thời điểm hệ thống được sử dụng nhiều, nhóm câu hỏi nào phát sinh thường xuyên và mức độ tương tác của người dùng với chatbot.
+
+\subsection{Báo cáo chatbot}
+
+Báo cáo chatbot tập trung vào các chatbot đang được quản lý trong hệ thống. Màn hình Chatbot Report đã xác minh có nhóm thông tin về tổng số chatbot, tổng số người dùng và số lượng intent đang hoạt động. Điều này cho thấy backend đã có nhóm thống kê riêng cho đối tượng chatbot.
+
+Trong thiết kế, báo cáo chatbot cần cung cấp các thông tin:
+
+\begin{itemize}
+    \item Tổng số chatbot đang có trong hệ thống.
+    \item Chatbot đang được chọn làm ngữ cảnh quản trị.
+    \item Số người dùng liên quan đến chatbot.
+    \item Số intent hoặc nhóm nghiệp vụ mà chatbot hỗ trợ.
+    \item Trạng thái hoạt động của chatbot.
+\end{itemize}
+
+Tuy nhiên, trong phạm vi dữ liệu UI hiện có, chưa xác minh được màn hình tạo, sửa, xóa chatbot riêng biệt. Vì vậy, chương này chỉ mô tả quản lý chatbot ở mức chọn ngữ cảnh và theo dõi thống kê, không khẳng định đầy đủ chức năng CRUD chatbot.
+
+\subsection{Báo cáo tài liệu}
+
+Báo cáo tài liệu giúp theo dõi tình trạng kho tài liệu của hệ thống. Màn hình Document Report đã quan sát có các chỉ số như tổng số tài liệu, số tài liệu public, số tài liệu private và tổng dung lượng file. Ngoài ra, màn hình còn có các biểu đồ phân bố theo loại file, dung lượng và trạng thái public/private.
+
+Báo cáo tài liệu giúp Admin đánh giá quy mô kho tài liệu, loại file đang được sử dụng nhiều và mức độ công khai của tài liệu. Đây là cơ sở để kiểm soát chất lượng dữ liệu đầu vào cho hệ thống hỏi đáp và kho tri thức.
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/statistics-document-report.png}
+    \caption{Màn hình báo cáo tài liệu}
+    \label{fig:statistics-document-report}
+\end{figure}
+
+\section{Phân hệ quản lý chatbot}
+
+Phân hệ quản lý chatbot trong giao diện hiện tại được thể hiện thông qua trường chọn chatbot trên nhiều màn hình quản trị như tài liệu, tài liệu ngữ cảnh, thống kê, vai trò, quyền và người dùng. Giá trị quan sát được là \textit{Chatbot tuyen sinh}. Điều này cho thấy hệ thống có khả năng khoanh vùng dữ liệu theo chatbot đang được chọn.
+
+\subsection{Chọn ngữ cảnh chatbot}
+
+Khi người quản trị chọn một chatbot, các thao tác tiếp theo trong khu vực quản trị có thể được hiểu là đang áp dụng cho chatbot đó. Ví dụ, khi chọn \textit{Chatbot tuyen sinh}, danh sách tài liệu, tài liệu ngữ cảnh, thống kê và quyền truy cập có thể được lọc theo phạm vi chatbot tuyển sinh.
+
+Thiết kế này có ưu điểm là giúp hệ thống mở rộng tốt hơn. Trong tương lai, nếu nhà trường triển khai thêm nhiều chatbot khác nhau, ví dụ chatbot học vụ, chatbot thư viện hoặc chatbot hỗ trợ kỹ thuật, Admin có thể chuyển đổi ngữ cảnh quản trị mà không cần xây dựng một hệ thống riêng cho từng chatbot.
+
+\subsection{Thống kê theo chatbot}
+
+Route \texttt{/statistics/chatbots} và quyền \texttt{GET /api/v1/statistic/chatbots} cho thấy hệ thống đã có nhóm thống kê dành riêng cho chatbot. Điều này giúp Admin theo dõi hiệu quả hoạt động của từng chatbot thay vì chỉ xem thống kê tổng thể toàn hệ thống.
+
+Các chỉ số nên được quản lý theo chatbot gồm:
+
+\begin{itemize}
+    \item Số lượng người dùng tương tác với chatbot.
+    \item Số lượng hội thoại phát sinh từ chatbot.
+    \item Số intent đang hoạt động.
+    \item Số tài liệu hoặc tài liệu ngữ cảnh được gắn với chatbot.
+    \item Trạng thái hoạt động của chatbot.
+\end{itemize}
+
+\subsection{Giới hạn phạm vi đã xác minh}
+
+Trong phiên phân tích UI hiện tại, chưa ghi nhận được màn hình tạo, sửa, xóa chatbot riêng biệt. Vì vậy, chức năng quản lý chatbot trong chương này được mô tả theo phạm vi đã xác minh gồm chọn ngữ cảnh chatbot và xem thống kê chatbot. Các chức năng CRUD chatbot nếu có sẽ cần được kiểm chứng thêm trong quá trình phát triển hoặc kiểm thử hệ thống.
+
+\section{Phân hệ quản lý tài liệu và biểu mẫu}
+
+Phân hệ quản lý tài liệu và biểu mẫu được truy cập thông qua route \texttt{/docs}. Màn hình này hiển thị danh sách tài liệu biểu mẫu với các cột như Document Name, Description, Tags, File Type, File Size, Created At và Actions. Các tài liệu quan sát được gồm nhiều loại biểu mẫu như đơn hủy học phần, giấy giới thiệu thực tập, đơn xin đăng ký đồ án lần 2, đơn xin cấp lại thẻ bảo hiểm y tế, đơn xin bảo lưu điểm thi lại, đơn xin phúc khảo bài thi, đơn xin hoãn thi, thanh toán ra trường và đơn xin thôi học.
+
+\subsection{Mục đích của quản lý tài liệu và biểu mẫu}
+
+Chức năng này giúp nhà trường tập trung quản lý các biểu mẫu thường dùng để người dùng có thể tra cứu, tải xuống hoặc được chatbot hướng dẫn sử dụng khi cần. Trong bối cảnh tuyển sinh và đào tạo, biểu mẫu là nhóm tài liệu có tần suất sử dụng cao, đặc biệt đối với sinh viên, thí sinh và cán bộ xử lý hồ sơ.
+
+Việc đưa biểu mẫu vào hệ thống quản trị giúp giảm thao tác thủ công, hạn chế tình trạng sử dụng biểu mẫu cũ và tạo nền tảng để chatbot có thể trả lời các câu hỏi như: ``Em muốn xin hoãn thi thì dùng mẫu nào?'', ``Mẫu đơn xin phúc khảo ở đâu?'' hoặc ``Có giấy giới thiệu thực tập không?''.
+
+\subsection{Thông tin tài liệu cần quản lý}
+
+Mỗi tài liệu hoặc biểu mẫu cần lưu các thông tin chính sau:
+
+\begin{itemize}
+    \item Tên tài liệu.
+    \item Mô tả tài liệu.
+    \item Danh sách tag.
+    \item Loại file.
+    \item Dung lượng file.
+    \item Thời điểm tạo.
+    \item Trạng thái public/private nếu có.
+    \item Các thao tác quản trị như xem, sửa, tải xuống, khôi phục hoặc xóa mềm.
+\end{itemize}
+
+Các trường này phù hợp với các cột đã quan sát trên màn hình \texttt{/docs}. Trong đó, tag giúp phân loại tài liệu theo nhóm nghiệp vụ, loại file giúp người dùng biết định dạng tài liệu và dung lượng file giúp kiểm soát lưu trữ.
+
+\subsection{Tìm kiếm, lọc và thao tác tài liệu}
+
+Màn hình quản lý tài liệu cần hỗ trợ tìm kiếm theo tên tài liệu, mô tả và tag. Ngoài ra, hệ thống cần cho phép lọc theo loại file, trạng thái public/private hoặc thời gian tạo. Đối với danh sách tài liệu lớn, cần có phân trang để đảm bảo giao diện dễ sử dụng.
+
+Các thao tác cơ bản gồm:
+
+\begin{itemize}
+    \item Thêm tài liệu mới.
+    \item Cập nhật thông tin mô tả hoặc tag.
+    \item Tải xuống tài liệu.
+    \item Xóa mềm tài liệu.
+    \item Khôi phục tài liệu đã xóa mềm.
+\end{itemize}
+
+Việc xuất hiện quyền \texttt{POST /api/v1/documents/:id/restore} và \texttt{DELETE /api/v1/documents/:id/soft} cho thấy hệ thống đã tính đến cơ chế khôi phục và xóa mềm tài liệu. Đây là thiết kế phù hợp vì tài liệu quản trị không nên bị xóa vĩnh viễn ngay lập tức, nhằm đảm bảo khả năng truy vết và phục hồi khi thao tác nhầm.
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/docs.png}
+    \caption{Màn hình quản lý tài liệu và biểu mẫu}
+    \label{fig:docs-management}
+\end{figure}
+
+\section{Phân hệ quản lý tài liệu ngữ cảnh RAG}
+
+Phân hệ quản lý tài liệu ngữ cảnh RAG được truy cập thông qua route \texttt{/context-docs}. Đây là một trong những chức năng quan trọng nhất của hệ thống vì nó quyết định nguồn tri thức mà RAG sử dụng để truy hồi và sinh câu trả lời.
+
+\subsection{Mục đích của tài liệu ngữ cảnh}
+
+Tài liệu ngữ cảnh là các tài liệu được đưa vào pipeline xử lý của RAG. Sau khi upload hoặc scan, tài liệu được trích xuất nội dung, chia thành chunks, sinh embedding và lưu vào các lớp lưu trữ phục vụ truy hồi. Khi người dùng đặt câu hỏi, RAG sẽ tìm các chunks liên quan và sử dụng chúng làm ngữ cảnh để sinh câu trả lời.
+
+Trong hệ thống KMA Chatbot tuyển sinh, các tài liệu ngữ cảnh đã quan sát gồm quy chế tuyển sinh, điểm chuẩn, chương trình đào tạo, quy định đào tạo, kế hoạch hoạt động và các tài liệu liên quan đến học viện. Đây là nguồn tri thức quan trọng để chatbot trả lời các câu hỏi có nội dung dài, phức tạp hoặc cần bám sát tài liệu gốc.
+
+\subsection{Các thao tác trên màn hình Context Documents}
+
+Màn hình \texttt{/context-docs} hiển thị các nút chức năng như Scan New Docs, Retry Pipeline, Pipeline, Refresh, Clear All, Upload Documents, bộ lọc trạng thái và bảng danh sách tài liệu. Các thao tác này thể hiện rõ vai trò vận hành của phân hệ RAG.
+
+Ý nghĩa của các thao tác chính như sau:
+
+\begin{itemize}
+    \item \textbf{Scan New Docs}: quét tài liệu mới từ thư mục hoặc nguồn đầu vào đã cấu hình.
+    \item \textbf{Upload Documents}: tải tài liệu mới lên hệ thống.
+    \item \textbf{Retry Pipeline}: xử lý lại các tài liệu bị lỗi.
+    \item \textbf{Pipeline}: xem hoặc kiểm tra trạng thái pipeline xử lý tài liệu.
+    \item \textbf{Refresh}: làm mới danh sách tài liệu và trạng thái xử lý.
+    \item \textbf{Clear All}: xóa hoặc làm sạch danh sách tài liệu trong phạm vi được phép.
+    \item \textbf{Bộ lọc trạng thái}: lọc tài liệu theo trạng thái như processed, pending hoặc failed.
+\end{itemize}
+
+Việc có nút Retry Pipeline và trạng thái Failed cho thấy hệ thống đã tính đến các lỗi có thể xảy ra trong quá trình ingest, OCR, trích xuất văn bản, chia chunks hoặc sinh embedding. Đây là yêu cầu quan trọng đối với hệ thống RAG vận hành thực tế.
+
+\subsection{Trạng thái xử lý tài liệu}
+
+Mỗi tài liệu ngữ cảnh cần có trạng thái xử lý rõ ràng để người quản trị biết tài liệu đã sẵn sàng được sử dụng hay chưa. Các trạng thái chính gồm:
+
+\begin{itemize}
+    \item \textbf{Processed}: tài liệu đã được xử lý thành công và có thể phục vụ truy hồi.
+    \item \textbf{Pending}: tài liệu đang chờ xử lý.
+    \item \textbf{Processing}: tài liệu đang được pipeline xử lý.
+    \item \textbf{Failed}: tài liệu xử lý lỗi, cần kiểm tra hoặc retry.
+\end{itemize}
+
+Ngoài trạng thái, bảng tài liệu cần hiển thị số chunks, tóm tắt nội dung và thời điểm cập nhật. Đây là các thông tin giúp Admin đánh giá tài liệu đã được ingest đúng hay chưa.
+
+\subsection{Luồng xử lý tài liệu RAG}
+
+Luồng xử lý tài liệu RAG trong phân hệ quản trị có thể mô tả như sau:
+
+\begin{enumerate}
+    \item Admin hoặc Editor upload tài liệu mới.
+    \item Hệ thống kiểm tra định dạng file và dung lượng.
+    \item Tài liệu được đưa vào hàng đợi xử lý.
+    \item Pipeline trích xuất văn bản từ file.
+    \item Nội dung được làm sạch và chuẩn hóa.
+    \item Văn bản được chia thành các chunks.
+    \item Hệ thống sinh embedding cho từng chunk.
+    \item Chunks và metadata được lưu vào kho dữ liệu tương ứng.
+    \item Trạng thái tài liệu được cập nhật trên giao diện quản trị.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/context-docs.png}
+    \caption{Màn hình quản lý tài liệu ngữ cảnh RAG}
+    \label{fig:context-docs}
+\end{figure}
+
+\subsection{Thiết kế kiểm soát lỗi pipeline}
+
+Do pipeline xử lý tài liệu có nhiều bước, hệ thống cần thiết kế cơ chế kiểm soát lỗi rõ ràng. Khi một tài liệu bị lỗi, hệ thống cần lưu nguyên nhân lỗi, thời điểm lỗi và bước xử lý xảy ra lỗi. Người quản trị có thể nhấn Retry Pipeline để xử lý lại tài liệu sau khi nguyên nhân được khắc phục.
+
+Các lỗi có thể gặp gồm:
+
+\begin{itemize}
+    \item File không đúng định dạng.
+    \item File quá lớn hoặc bị hỏng.
+    \item Không trích xuất được văn bản từ PDF.
+    \item Lỗi encoding tiếng Việt.
+    \item Lỗi chia chunks.
+    \item Lỗi gọi mô hình embedding.
+    \item Lỗi ghi dữ liệu vào vector database.
+\end{itemize}
+
+Thiết kế này giúp phân hệ quản trị không chỉ là nơi upload tài liệu mà còn là nơi vận hành, giám sát và khắc phục sự cố của toàn bộ pipeline RAG.
+
+\section{Phân hệ báo cáo thống kê}
+
+Phân hệ báo cáo thống kê được tổ chức trong nhóm route \texttt{/statistics/*}. Các màn hình đã xác minh gồm User Report, Conversation Report, Chatbot Report và Document Report. Mục tiêu của phân hệ này là cung cấp số liệu phục vụ quản trị, đánh giá mức độ sử dụng và theo dõi tình trạng dữ liệu.
+
+\subsection{Thống kê người dùng}
+
+Thống kê người dùng cho phép Admin theo dõi số lượng người dùng trong hệ thống, tình trạng tài khoản và mức độ hoạt động. Các chỉ số cần có gồm:
+
+\begin{itemize}
+    \item Tổng số người dùng.
+    \item Số người dùng đang hoạt động.
+    \item Số người dùng chờ duyệt.
+    \item Số người dùng bị khóa hoặc bị cấm.
+    \item Số người dùng mới theo thời gian.
+\end{itemize}
+
+Nhóm thống kê này giúp Admin phát hiện bất thường trong hệ thống tài khoản, đồng thời hỗ trợ đánh giá quy mô người dùng thực tế.
+
+\subsection{Thống kê hội thoại}
+
+Thống kê hội thoại giúp theo dõi hoạt động tương tác giữa người dùng và chatbot. Các chỉ số cần có gồm:
+
+\begin{itemize}
+    \item Tổng số hội thoại.
+    \item Tổng số tin nhắn.
+    \item Số tin nhắn trung bình trên mỗi hội thoại.
+    \item Số người dùng đang hội thoại.
+    \item Xu hướng hội thoại theo ngày hoặc theo tháng.
+\end{itemize}
+
+Đây là nhóm thống kê quan trọng để đánh giá mức độ sử dụng chatbot trong từng giai đoạn tuyển sinh. Nếu số lượng hội thoại tăng mạnh ở một thời điểm, nhà trường có thể dự đoán đó là giai đoạn người dùng có nhu cầu tư vấn cao.
+
+\subsection{Thống kê chatbot}
+
+Thống kê chatbot cho phép theo dõi số lượng chatbot và các chỉ số liên quan đến chatbot đang hoạt động. Trong hệ thống hiện tại, thống kê chatbot có ý nghĩa đặc biệt vì nhiều màn hình quản trị đều gắn với trường chọn chatbot.
+
+Các chỉ số cần có gồm:
+
+\begin{itemize}
+    \item Tổng số chatbot.
+    \item Chatbot đang hoạt động.
+    \item Số người dùng liên quan đến từng chatbot.
+    \item Số intent hoặc nghiệp vụ được cấu hình.
+    \item Trạng thái hoạt động của chatbot.
+\end{itemize}
+
+\subsection{Thống kê tài liệu}
+
+Thống kê tài liệu giúp Admin đánh giá quy mô và cấu trúc kho tài liệu. Các chỉ số đã quan sát gồm tổng số tài liệu, số tài liệu public, số tài liệu private và tổng dung lượng file.
+
+Ngoài ra, hệ thống nên thống kê thêm:
+
+\begin{itemize}
+    \item Phân bố tài liệu theo loại file.
+    \item Phân bố tài liệu theo dung lượng.
+    \item Danh sách tài liệu có dung lượng lớn.
+    \item Danh sách tài liệu mới được upload.
+    \item Tỷ lệ tài liệu public/private.
+\end{itemize}
+
+Các số liệu này hỗ trợ việc kiểm soát kho tài liệu và đánh giá khả năng mở rộng lưu trữ của hệ thống.
+
+\subsection{Thống kê NLP và RAG}
+
+Route \texttt{/statistics/nlp} trong phiên quan sát hiện tại chưa tải xong, do đó chưa có số liệu NLP chi tiết. Tuy nhiên, về mặt thiết kế, đây là nhóm thống kê nên được bổ sung vì nó phản ánh chất lượng hiểu ngôn ngữ và chất lượng trả lời của chatbot.
+
+Các chỉ số NLP/RAG nên có gồm:
+
+\begin{itemize}
+    \item Tỷ lệ intent được nhận diện chính xác.
+    \item Intent phổ biến nhất.
+    \item Các câu hỏi có confidence thấp.
+    \item Số lượt fallback.
+    \item Số lượt gọi RAG.
+    \item Tài liệu được truy hồi nhiều nhất.
+    \item Câu hỏi không tìm thấy ngữ cảnh phù hợp.
+    \item Tỷ lệ câu trả lời có nguồn trích dẫn.
+\end{itemize}
+
+Các chỉ số này giúp người quản trị biết chatbot đang yếu ở nhóm câu hỏi nào và cần bổ sung dữ liệu huấn luyện hoặc tài liệu ngữ cảnh nào.
+
+\section{Phân hệ RBAC và quản lý quyền}
+
+RBAC là viết tắt của Role-Based Access Control, tức là mô hình kiểm soát truy cập dựa trên vai trò. Trong hệ thống KMA Chatbot, nhóm chức năng RBAC được thể hiện qua các route \texttt{/roles} và \texttt{/permissions}. Đây là thành phần bảo mật quan trọng vì phân hệ quản trị có nhiều thao tác ảnh hưởng trực tiếp đến dữ liệu và cấu hình hệ thống.
+
+\subsection{Quản lý vai trò}
+
+Màn hình \texttt{/roles} hiển thị danh sách vai trò trong hệ thống. Các vai trò đã quan sát gồm USER, MANAGER và ADMIN. Mỗi vai trò có mô tả, số lượng quyền được gán, thời điểm tạo và các thao tác quản trị.
+
+Vai trò USER đại diện cho nhóm người dùng cơ bản với quyền truy cập hạn chế. Vai trò MANAGER đại diện cho nhóm quản lý hoặc biên tập nội dung với quyền ở mức trung bình. Vai trò ADMIN là vai trò có quyền cao nhất, có thể quản lý nhiều chức năng hệ thống.
+
+\begin{table}[H]
+\centering
+\caption{Các vai trò quan sát được trong hệ thống}
+\label{tab:roles-observed}
+\begin{tabular}{|p{3cm}|p{6cm}|p{4cm}|}
+\hline
+\textbf{Vai trò} & \textbf{Mô tả} & \textbf{Mức quyền} \\ \hline
+USER & Người dùng cơ bản & Thấp \\ \hline
+MANAGER & Người quản lý hoặc biên tập nội dung & Trung bình \\ \hline
+ADMIN & Người quản trị hệ thống & Cao \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Quản lý quyền}
+
+Màn hình \texttt{/permissions} hiển thị danh sách quyền theo từng API hoặc chức năng. Các quyền quan sát được gồm các quyền thống kê như \texttt{GET /api/v1/statistic/system}, \texttt{GET /api/v1/statistic/documents}, \texttt{GET /api/v1/statistic/nlp}, \texttt{GET /api/v1/statistic/chatbots}, \texttt{GET /api/v1/statistic/conversations}, \texttt{GET /api/v1/statistic/users}, cùng với các quyền thao tác tài liệu như khôi phục hoặc xóa mềm tài liệu.
+
+Cách thiết kế quyền theo endpoint giúp hệ thống kiểm soát truy cập chi tiết. Mỗi quyền gắn với một hành động cụ thể, một module cụ thể và trạng thái cho phép hay không cho phép. Khi người dùng gọi API, backend có thể kiểm tra xem vai trò của người dùng có quyền tương ứng hay không.
+
+\subsection{Thiết kế quan hệ vai trò và quyền}
+
+Quan hệ giữa vai trò và quyền là quan hệ nhiều-nhiều. Một vai trò có thể có nhiều quyền, và một quyền có thể được gán cho nhiều vai trò khác nhau. Vì vậy, trong cơ sở dữ liệu cần có bảng trung gian \texttt{RolePermissions} để lưu quan hệ này.
+
+Mô hình dữ liệu đề xuất gồm:
+
+\begin{itemize}
+    \item \texttt{Roles}: lưu thông tin vai trò.
+    \item \texttt{Permissions}: lưu thông tin quyền.
+    \item \texttt{RolePermissions}: lưu quan hệ giữa vai trò và quyền.
+    \item \texttt{Users}: lưu thông tin người dùng.
+    \item \texttt{UserRoles}: lưu quan hệ giữa người dùng và vai trò.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/roles.png}
+    \caption{Màn hình quản lý vai trò}
+    \label{fig:roles-management}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/permissions.png}
+    \caption{Màn hình quản lý quyền}
+    \label{fig:permissions-management}
+\end{figure}
+
+\section{Phân hệ quản lý người dùng}
+
+Phân hệ quản lý người dùng được truy cập thông qua route \texttt{/users}. Màn hình này hiển thị danh sách tài khoản trong hệ thống với các thông tin như tên, email, ngày sinh, giới tính, trạng thái xác thực, trạng thái tài khoản và các thao tác quản trị.
+
+Các trạng thái người dùng quan sát được gồm ACTIVE, PENDING và BANNED. Điều này cho thấy hệ thống có cơ chế quản lý vòng đời tài khoản, từ chờ duyệt, đang hoạt động đến bị cấm truy cập.
+
+\subsection{Danh sách người dùng}
+
+Danh sách người dùng giúp Admin theo dõi toàn bộ tài khoản đang tồn tại trong hệ thống. Các thông tin cần hiển thị gồm:
+
+\begin{itemize}
+    \item Họ tên người dùng.
+    \item Email.
+    \item Ngày sinh.
+    \item Giới tính.
+    \item Trạng thái xác thực email hoặc tài khoản.
+    \item Trạng thái hoạt động.
+    \item Vai trò được gán.
+    \item Các thao tác quản trị.
+\end{itemize}
+
+Màn hình cần hỗ trợ tìm kiếm theo tên hoặc email, lọc theo trạng thái và phân trang để dễ quản lý khi số lượng người dùng tăng.
+
+\subsection{Trạng thái tài khoản}
+
+Các trạng thái tài khoản có ý nghĩa như sau:
+
+\begin{itemize}
+    \item \textbf{ACTIVE}: tài khoản đang hoạt động và có thể sử dụng hệ thống.
+    \item \textbf{PENDING}: tài khoản đang chờ xác nhận hoặc chờ duyệt.
+    \item \textbf{BANNED}: tài khoản bị cấm hoặc bị khóa quyền truy cập.
+\end{itemize}
+
+Việc phân biệt trạng thái giúp Admin kiểm soát truy cập tốt hơn. Ví dụ, tài khoản PENDING có thể chưa được phép truy cập đầy đủ, còn tài khoản BANNED cần bị chặn đăng nhập hoặc chặn thao tác trong hệ thống.
+
+\subsection{Thao tác quản trị người dùng}
+
+Các thao tác quản trị người dùng cần có gồm:
+
+\begin{itemize}
+    \item Tạo tài khoản mới.
+    \item Cập nhật thông tin tài khoản.
+    \item Gán hoặc thay đổi vai trò.
+    \item Khóa hoặc mở khóa tài khoản.
+    \item Đặt lại mật khẩu nếu cần.
+    \item Xóa mềm tài khoản.
+\end{itemize}
+
+Mọi thao tác quan trọng trên tài khoản cần được ghi log để phục vụ truy vết. Đặc biệt, các thao tác như gán quyền Admin, khóa tài khoản hoặc xóa tài khoản cần yêu cầu quyền cao và có hộp thoại xác nhận.
+
+\begin{figure}[H]
+    \centering
+    % \includegraphics[width=0.9\textwidth]{images/users.png}
+    \caption{Màn hình quản lý người dùng}
+    \label{fig:users-management}
+\end{figure}
+
+\section{Thiết kế luồng nghiệp vụ phân hệ quản trị}
+
+\subsection{Luồng quản lý tài liệu biểu mẫu}
+
+Luồng quản lý tài liệu biểu mẫu bắt đầu khi Admin hoặc Manager cần thêm mới hoặc cập nhật một biểu mẫu. Người quản trị truy cập màn hình \texttt{/docs}, tải file lên, nhập mô tả, gán tag và lưu thông tin. Backend kiểm tra định dạng file, lưu metadata và cập nhật danh sách tài liệu.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Người quản trị đăng nhập hệ thống.
+    \item Truy cập màn hình Documents.
+    \item Thêm mới hoặc chỉnh sửa tài liệu.
+    \item Nhập tên, mô tả, tag và chọn file.
+    \item Backend kiểm tra dữ liệu.
+    \item File và metadata được lưu vào hệ thống.
+    \item Giao diện cập nhật danh sách tài liệu.
+\end{enumerate}
+
+\subsection{Luồng quản lý tài liệu RAG}
+
+Luồng quản lý tài liệu RAG bắt đầu từ màn hình \texttt{/context-docs}. Người quản trị upload tài liệu hoặc scan tài liệu mới. Sau đó pipeline xử lý tài liệu, sinh chunks và cập nhật trạng thái.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Người quản trị chọn chatbot cần thao tác.
+    \item Truy cập màn hình Context Documents.
+    \item Upload tài liệu hoặc scan tài liệu mới.
+    \item Hệ thống đưa tài liệu vào pipeline xử lý.
+    \item Pipeline trích xuất văn bản, chia chunks và sinh embedding.
+    \item Trạng thái tài liệu được cập nhật thành processed hoặc failed.
+    \item Nếu failed, người quản trị có thể retry pipeline.
+\end{enumerate}
+
+\subsection{Luồng phân quyền người dùng}
+
+Luồng phân quyền bắt đầu khi Admin cần cấp quyền cho một nhóm người dùng. Admin tạo hoặc cập nhật vai trò, sau đó gán các quyền cần thiết cho vai trò đó. Cuối cùng, Admin gán vai trò cho tài khoản người dùng.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Admin truy cập màn hình Roles.
+    \item Tạo hoặc chỉnh sửa vai trò.
+    \item Chọn danh sách quyền từ màn hình Permissions.
+    \item Gán quyền cho vai trò.
+    \item Truy cập màn hình Users.
+    \item Gán vai trò cho người dùng.
+    \item Backend áp dụng kiểm tra quyền khi người dùng truy cập API.
+\end{enumerate}
+
+\subsection{Luồng xem báo cáo thống kê}
+
+Luồng xem báo cáo thống kê cho phép Admin hoặc Manager theo dõi tình trạng hệ thống theo từng nhóm dữ liệu.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Người quản trị chọn chatbot cần xem báo cáo.
+    \item Truy cập nhóm Statistics.
+    \item Chọn loại báo cáo: Users, Conversations, Chatbots hoặc Documents.
+    \item Frontend gọi API thống kê tương ứng.
+    \item Backend tổng hợp dữ liệu.
+    \item Giao diện hiển thị số liệu, biểu đồ và bảng chi tiết.
+\end{enumerate}
+
+\section{Thiết kế cơ sở dữ liệu phục vụ phân hệ quản trị}
+
+Để hỗ trợ phân hệ quản trị, hệ thống cần tổ chức các nhóm bảng dữ liệu phục vụ người dùng, vai trò, quyền, tài liệu, tài liệu RAG, chatbot và thống kê.
+
+\begin{table}[H]
+\centering
+\caption{Các bảng dữ liệu đề xuất cho phân hệ quản trị}
+\label{tab:admin-db}
+\begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Nhóm dữ liệu} & \textbf{Bảng đề xuất} & \textbf{Mục đích} \\ \hline
+Người dùng & \texttt{Users} & Lưu thông tin tài khoản người dùng \\ \hline
+Vai trò & \texttt{Roles} & Lưu danh sách vai trò trong hệ thống \\ \hline
+Quyền & \texttt{Permissions} & Lưu danh sách quyền theo module hoặc endpoint \\ \hline
+Người dùng -- vai trò & \texttt{UserRoles} & Gán vai trò cho người dùng \\ \hline
+Vai trò -- quyền & \texttt{RolePermissions} & Gán quyền cho vai trò \\ \hline
+Chatbot & \texttt{Chatbots} & Lưu thông tin chatbot và trạng thái hoạt động \\ \hline
+Tài liệu biểu mẫu & \texttt{Documents} & Lưu thông tin tài liệu, biểu mẫu \\ \hline
+Tag tài liệu & \texttt{DocumentTags} & Phân loại tài liệu theo tag \\ \hline
+Tài liệu RAG & \texttt{ContextDocuments} & Lưu tài liệu ngữ cảnh phục vụ RAG \\ \hline
+Chunks & \texttt{DocumentChunks} & Lưu các đoạn văn bản sau khi chia nhỏ \\ \hline
+Trạng thái pipeline & \texttt{PipelineLogs} & Lưu trạng thái và lỗi xử lý tài liệu \\ \hline
+Hội thoại & \texttt{Conversations} & Lưu phiên hội thoại của người dùng \\ \hline
+Tin nhắn & \texttt{Messages} & Lưu câu hỏi và câu trả lời \\ \hline
+Thống kê & \texttt{StatisticSnapshots} & Lưu số liệu thống kê theo thời gian nếu cần \\ \hline
+Nhật ký thao tác & \texttt{AuditLogs} & Lưu lịch sử thao tác quản trị \\ \hline
+\end{tabular}
+\end{table}
+
+Quan hệ dữ liệu cơ bản được mô tả như sau: một người dùng có thể có nhiều vai trò, một vai trò có thể có nhiều quyền, một chatbot có thể có nhiều tài liệu, một tài liệu RAG có thể sinh ra nhiều chunks, một hội thoại có thể có nhiều tin nhắn và mỗi thao tác quản trị quan trọng cần được ghi vào audit log.
+
+\section{Yêu cầu bảo mật và kiểm soát truy cập}
+
+Phân hệ quản trị có quyền thay đổi dữ liệu quan trọng của hệ thống, do đó cần thiết kế bảo mật chặt chẽ. Các yêu cầu bảo mật chính gồm:
+
+\begin{itemize}
+    \item Người dùng phải đăng nhập trước khi truy cập khu vực quản trị.
+    \item Backend phải kiểm tra token hợp lệ đối với mọi API quản trị.
+    \item Mỗi API cần được gắn với quyền cụ thể.
+    \item Người dùng chỉ được thao tác nếu vai trò của họ có quyền tương ứng.
+    \item Các thao tác quan trọng như xóa mềm, khôi phục, thay đổi quyền cần ghi audit log.
+    \item Thông tin nhạy cảm như token, secret key hoặc API key không được hiển thị trực tiếp trên giao diện.
+    \item Tài khoản BANNED không được phép đăng nhập hoặc thao tác.
+    \item Tài khoản PENDING cần bị giới hạn quyền cho đến khi được duyệt.
+    \item Cần có cơ chế chống truy cập trái phép vào các route như \texttt{/roles}, \texttt{/permissions} và \texttt{/users}.
+\end{itemize}
+
+Mô hình RBAC giúp hệ thống kiểm soát truy cập theo vai trò thay vì kiểm tra thủ công từng người dùng. Điều này giúp hệ thống dễ mở rộng và dễ quản lý hơn khi số lượng tài khoản tăng.
+
+\section{Yêu cầu giao diện người dùng}
+
+Giao diện quản trị cần đảm bảo dễ sử dụng, rõ ràng và phù hợp với người quản trị nội dung không chuyên sâu kỹ thuật. Các màn hình cần thống nhất về bố cục, màu sắc, vị trí nút thao tác và cách hiển thị trạng thái.
+
+Các yêu cầu giao diện gồm:
+
+\begin{itemize}
+    \item Có sidebar để truy cập nhanh đến các nhóm chức năng.
+    \item Có trường chọn chatbot để khoanh vùng dữ liệu quản trị.
+    \item Các bảng dữ liệu cần hỗ trợ tìm kiếm, lọc và phân trang.
+    \item Trạng thái tài liệu cần hiển thị bằng nhãn dễ nhận biết.
+    \item Các thao tác nguy hiểm như xóa cần có hộp thoại xác nhận.
+    \item Màn hình thống kê cần có thẻ số liệu tổng quan và biểu đồ trực quan.
+    \item Màn hình context documents cần hiển thị trạng thái pipeline rõ ràng.
+    \item Màn hình roles và permissions cần cho phép xem nhanh số quyền, module và endpoint.
+    \item Màn hình users cần hiển thị trạng thái tài khoản rõ ràng như ACTIVE, PENDING, BANNED.
+\end{itemize}
+
+\section{Đánh giá hiện trạng phân hệ quản trị}
+
+Dựa trên giao diện đã quan sát, phân hệ quản trị của hệ thống KMA Chatbot đã có các nhóm chức năng nền tảng để vận hành hệ thống chatbot tuyển sinh. Các chức năng quản lý tài liệu, quản lý tài liệu ngữ cảnh, thống kê, RBAC và quản lý người dùng đã được thể hiện rõ qua UI.
+
+\subsection{Điểm mạnh}
+
+Các điểm mạnh của phân hệ quản trị gồm:
+
+\begin{itemize}
+    \item Có màn hình quản lý tài liệu và biểu mẫu riêng.
+    \item Có màn hình quản lý tài liệu ngữ cảnh phục vụ RAG.
+    \item Có cơ chế scan, upload, retry pipeline và lọc trạng thái tài liệu.
+    \item Có trường chọn chatbot trên nhiều màn hình, hỗ trợ quản trị theo ngữ cảnh chatbot.
+    \item Có nhóm báo cáo thống kê cho người dùng, hội thoại, chatbot và tài liệu.
+    \item Có RBAC với vai trò và quyền chi tiết theo endpoint.
+    \item Có màn hình quản lý người dùng với nhiều trạng thái tài khoản.
+    \item Có dấu hiệu hỗ trợ xóa mềm và khôi phục tài liệu.
+\end{itemize}
+
+\subsection{Hạn chế}
+
+Một số hạn chế hoặc điểm cần kiểm tra thêm gồm:
+
+\begin{itemize}
+    \item Chưa xác minh được màn hình tạo, sửa, xóa chatbot riêng biệt.
+    \item Route thống kê NLP chưa tải được trong phiên quan sát hiện tại.
+    \item Cần bổ sung thống kê chất lượng RAG như tỷ lệ câu trả lời có citation, tài liệu được truy hồi nhiều nhất và câu hỏi không tìm thấy nguồn.
+    \item Cần kiểm tra kỹ cơ chế phân quyền thực tế khi người dùng không đủ quyền truy cập route quản trị.
+    \item Cần bổ sung audit log rõ ràng cho các thao tác quan trọng.
+\end{itemize}
+
+\section{Định hướng hoàn thiện phân hệ quản trị}
+
+Để phân hệ quản trị hoàn thiện hơn, hệ thống có thể phát triển thêm các nhóm chức năng sau:
+
+\begin{itemize}
+    \item Bổ sung màn hình quản lý chatbot đầy đủ nếu hệ thống định hướng hỗ trợ nhiều chatbot.
+    \item Hoàn thiện màn hình thống kê NLP và RAG.
+    \item Bổ sung dashboard chất lượng RAG với các chỉ số về retrieval, citation và feedback.
+    \item Bổ sung quy trình duyệt tài liệu trước khi đưa vào kho tri thức.
+    \item Tách rõ vai trò người quản trị hệ thống, người quản trị nội dung và người duyệt tài liệu.
+    \item Bổ sung lịch sử phiên bản tài liệu để phục hồi khi cập nhật sai.
+    \item Chuẩn hóa tên file, encoding tiếng Việt và metadata tài liệu.
+    \item Bổ sung bộ kiểm thử định kỳ cho các câu hỏi tuyển sinh trọng yếu.
+\end{itemize}
+
+\section{Kết luận chương}
+
+Chương này đã trình bày phân tích và thiết kế phân hệ quản trị của hệ thống KMA Chatbot tuyển sinh dựa trên giao diện UI đã quan sát. Phân hệ quản trị bao gồm các nhóm chức năng chính như quản lý tài liệu và biểu mẫu, quản lý tài liệu ngữ cảnh RAG, quản lý chatbot theo ngữ cảnh, báo cáo thống kê, RBAC và quản lý người dùng.
+
+Thông qua phân hệ quản trị, Admin và người quản trị nội dung có thể cập nhật tài liệu, theo dõi trạng thái xử lý RAG, kiểm soát người dùng, phân quyền truy cập và đánh giá tình trạng vận hành của chatbot. Đây là nền tảng quan trọng giúp hệ thống có khả năng vận hành thực tế, mở rộng theo nhiều chatbot và cải thiện chất lượng tư vấn tuyển sinh dựa trên dữ liệu được quản lý tập trung.
+
+Mặc dù một số chức năng như thống kê NLP hoặc CRUD chatbot riêng biệt chưa được xác minh đầy đủ trong phiên quan sát hiện tại, hệ thống đã thể hiện rõ kiến trúc quản trị cần thiết cho một chatbot tư vấn tuyển sinh có tích hợp Rasa và RAG. Trong các giai đoạn tiếp theo, trọng tâm cần tập trung vào hoàn thiện thống kê chất lượng NLP/RAG, kiểm soát pipeline tài liệu, bổ sung audit log và tăng cường phân quyền chi tiết theo vai trò.

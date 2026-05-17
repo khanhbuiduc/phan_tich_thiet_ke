@@ -1,0 +1,23 @@
+﻿\section{Thiết kế mô hình dữ liệu cho phân hệ RAG}
+
+Phân hệ RAG sử dụng các thực thể cốt lõi: \textbf{Document}, \textbf{Chunk}, \textbf{Embedding}, \textbf{Citation}, \textbf{Retrieval Log}.
+
+\subsection{Mô hình Document}
+
+Thuộc tính chính: \texttt{id, title, file\_name, source\_type, source\_url, admission\_year, version, checksum, status, uploaded\_by, created\_at, updated\_at}.
+
+\subsection{Mô hình Chunk}
+
+Thuộc tính chính: \texttt{id, document\_id, content, chunk\_index, page\_number, section\_title, content\_type, token\_count, metadata, created\_at}.
+
+\subsection{Mô hình Embedding}
+
+Thuộc tính chính: \texttt{id, chunk\_id, embedding\_model, vector, dimension, created\_at}. Trong triển khai thực tế, vector có thể lưu trực tiếp tại Vector Store.
+
+\subsection{Mô hình Citation}
+
+Thuộc tính chính: \texttt{id, chunk\_id, document\_title, page\_number, section\_title, source\_url, admission\_year}.
+
+\subsection{Mô hình Retrieval Log}
+
+Thuộc tính chính: \texttt{id, user\_question, normalized\_question, retrieved\_chunk\_ids, answer, confidence\_score, response\_time\_ms, created\_at}.

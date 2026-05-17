@@ -1,0 +1,17 @@
+﻿\section{Thiết kế cơ chế kiểm soát độ tin cậy}
+
+\subsection{Kiểm soát hallucination}
+
+Áp dụng nguyên tắc trả lời theo context, bắt buộc citation, từ chối khi thiếu bằng chứng, và ghi log các câu trả lời điểm tin cậy thấp.
+
+\subsection{Kiểm tra độ liên quan của bằng chứng}
+
+Dùng các tín hiệu: Similarity Score, Keyword Match, Metadata Match, Rerank Score, Source Reliability.
+
+\subsection{Kiểm tra năm tuyển sinh và phiên bản tài liệu}
+
+Nếu câu hỏi có năm cụ thể thì lọc đúng năm; nếu không có năm thì ưu tiên tài liệu mới nhất còn hiệu lực.
+
+\subsection{Cảnh báo khi dữ liệu có thể đã lỗi thời}
+
+Khi chỉ có tài liệu cũ, câu trả lời cần kèm cảnh báo để người dùng chủ động kiểm tra thông báo mới nhất.

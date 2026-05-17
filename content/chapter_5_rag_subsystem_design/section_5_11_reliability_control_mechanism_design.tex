@@ -1,0 +1,17 @@
+﻿\section{Thiết kế Prompt Assembly}
+
+\subsection{Cấu trúc prompt cho câu hỏi tuyển sinh}
+
+Prompt gồm: vai trò trợ lý tuyển sinh, nhiệm vụ, quy tắc, ngữ cảnh truy hồi, câu hỏi người dùng và yêu cầu đầu ra có trích dẫn.
+
+\subsection{Ràng buộc LLM chỉ sử dụng ngữ cảnh được cung cấp}
+
+LLM không được tự bổ sung số liệu, học phí, mã ngành, điều kiện xét tuyển nếu không có trong context.
+
+\subsection{Cơ chế bắt buộc sinh câu trả lời kèm trích dẫn}
+
+Có thể yêu cầu đầu ra JSON gồm \texttt{answer, citations, confidence\_score} để dễ hậu xử lý và kiểm chứng.
+
+\subsection{Cơ chế từ chối trả lời khi không đủ bằng chứng}
+
+Nếu bằng chứng không đủ, hệ thống trả lời an toàn và gợi ý người dùng liên hệ phòng tuyển sinh hoặc xem thông báo chính thức mới nhất.

@@ -1,0 +1,96 @@
+﻿\section{Thiết kế xử lý fallback}
+
+Fallback là cơ chế xử lý khi chatbot không hiểu câu hỏi hoặc không đủ tự tin để đưa ra câu trả lời. Trong hệ thống tư vấn tuyển sinh, fallback rất quan trọng vì nếu chatbot trả lời sai thông tin tuyển sinh có thể gây ảnh hưởng đến quyết định của thí sinh.
+
+Fallback được chia thành ba mức:
+
+\subsection*{Mức 1: Fallback do NLU không tự tin}
+
+Trường hợp này xảy ra khi intent confidence thấp hơn ngưỡng cấu hình.
+
+Ví dụ cấu hình:
+
+\begin{verbatim}
+- name: FallbackClassifier
+  threshold: 0.45
+  ambiguity_threshold: 0.1
+\end{verbatim}
+
+Nếu mô hình không xác định chắc chắn intent, Rasa sẽ gán intent là \texttt{nlu\_fallback}.
+
+\subsection*{Mức 2: Fallback do thiếu dữ liệu}
+
+Trường hợp này xảy ra khi intent đã đúng nhưng thiếu slot cần thiết.
+
+Ví dụ người dùng hỏi: \textit{Điểm chuẩn là bao nhiêu?}
+
+Câu hỏi trên thiếu ngành và năm. Khi đó chatbot không nên trả lời ngay mà cần hỏi lại: \textit{Bạn muốn hỏi điểm chuẩn của ngành nào?}
+
+\subsection*{Mức 3: Fallback sang RAG}
+
+Nếu câu hỏi không thuộc nhóm intent cố định nhưng vẫn liên quan đến tuyển sinh, hệ thống sẽ chuyển câu hỏi sang RAG để truy xuất từ tài liệu.
+
+Ví dụ: \textit{Quy định xét tuyển thẳng đối với học sinh giỏi cấp tỉnh như thế nào?}
+
+\subsection*{Thiết kế action\_handle\_fallback}
+
+\begin{verbatim}
+class ActionHandleFallback(Action):
+
+    def name(self) -> Text:
+        return "action_handle_fallback"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any]
+    ) -> List[Dict[Text, Any]]:
+
+        user_message = tracker.latest_message.get("text")
+
+        if self.is_admission_related(user_message):
+            # Chuyển sang RAG nếu câu hỏi có liên quan tuyển sinh
+            return [FollowupAction("action_call_rag")]
+
+        dispatcher.utter_message(
+            text=(
+                "Mình chưa hiểu rõ câu hỏi của bạn. "
+                "Bạn có thể hỏi về ngành đào tạo, điểm chuẩn, học phí, "
+                "phương thức xét tuyển, hồ sơ hoặc thời gian tuyển sinh."
+            )
+        )
+
+        return [
+            SlotSet("last_answer_type", "fallback")
+        ]
+
+    def is_admission_related(self, message: Text) -> bool:
+        admission_keywords = [
+            "tuyển sinh",
+            "xét tuyển",
+            "ngành",
+            "điểm chuẩn",
+            "học phí",
+            "hồ sơ",
+            "tổ hợp",
+            "phương thức",
+            "học bổng",
+            "ký túc xá"
+        ]
+
+        message = message.lower()
+
+        return any(keyword in message for keyword in admission_keywords)
+\end{verbatim}
+
+\subsection*{Nguyên tắc xử lý fallback}
+
+Khi xử lý fallback, hệ thống cần tuân thủ các nguyên tắc sau:
+\begin{itemize}
+    \item Không trả lời bịa khi không có dữ liệu chắc chắn.
+    \item Ưu tiên hỏi lại nếu câu hỏi thiếu thông tin.
+    \item Nếu câu hỏi liên quan tuyển sinh nhưng không khớp intent, chuyển sang RAG.
+    \item Nếu câu hỏi ngoài phạm vi, phản hồi lịch sự và gợi ý các chủ đề có thể hỗ trợ.
+    \item Lưu lại các câu hỏi fallback để quản trị viên bổ sung dữ liệu huấn luyện về sau.
+\end{itemize}

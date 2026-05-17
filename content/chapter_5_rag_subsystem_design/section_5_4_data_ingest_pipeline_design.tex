@@ -1,0 +1,46 @@
+﻿\section{Thiết kế quy trình ingest và tiền xử lý tài liệu}
+
+\subsection{Thu thập tài liệu tuyển sinh}
+
+Nguồn dữ liệu gồm đề án tuyển sinh, thông báo theo năm, danh mục ngành, quy chế, học phí, học bổng, FAQ website và nội dung nhập thủ công. Tài liệu cần được phân loại theo năm tuyển sinh, loại tài liệu, nguồn phát hành, trạng thái hiệu lực.
+
+\subsection{Kiểm tra định dạng tài liệu}
+
+Hệ thống hỗ trợ PDF, DOCX, HTML/Website, TXT/Markdown và Image. Tài liệu không thuộc định dạng hỗ trợ sẽ bị từ chối ingest và gửi thông báo lỗi cho admin.
+
+\subsection{Kiểm tra checksum để phát hiện trùng lặp}
+
+Mỗi tài liệu được tính checksum (ví dụ SHA-256), sau đó so sánh với kho hiện có:
+\begin{itemize}
+    \item Trùng checksum: cảnh báo admin hoặc bỏ qua tài liệu.
+    \item Không trùng: tiếp tục xử lý.
+\end{itemize}
+
+\subsection{Trích xuất văn bản từ PDF, DOCX và Website}
+
+PDF được ưu tiên trích xuất trực tiếp; nếu là scan thì chuyển OCR. DOCX được tách theo đoạn, bảng, heading. Website được crawl nội dung chính và loại bỏ header/footer/menu/quảng cáo, đồng thời lưu URL nguồn để trích dẫn.
+
+\subsection{Kiểm tra chất lượng OCR bằng ocr\_confidence}
+
+Ngưỡng xử lý đề xuất:
+\begin{itemize}
+    \item $\ge 0.90$: chấp nhận tự động.
+    \item $0.75$ -- $0.89$: chấp nhận nhưng đánh dấu kiểm tra.
+    \item $<0.75$: không lập chỉ mục tự động, chờ kiểm duyệt.
+\end{itemize}
+
+\subsection{Làm sạch và chuẩn hóa dữ liệu}
+
+Loại bỏ ký tự thừa, chuẩn hóa Unicode tiếng Việt, loại header/footer lặp, chuẩn hóa ngày tháng, tên ngành, mã ngành, tổ hợp xét tuyển; giữ lại cấu trúc quan trọng như tiêu đề, bảng và danh sách.
+
+\subsection{Phân đoạn tài liệu thành chunks}
+
+Chiến lược chunking ưu tiên theo cấu trúc tài liệu (heading, bảng ngành, FAQ, điều khoản), có overlap để hạn chế mất ngữ cảnh giữa các chunk.
+
+\subsection{Gán metadata cho tài liệu và chunks}
+
+Metadata tài liệu: \texttt{document\_id, title, source\_type, source\_url, admission\_year, version, issued\_date, uploaded\_by, status, checksum}. Metadata chunk: \texttt{chunk\_id, document\_id, chunk\_index, page\_number, section\_title, content\_type, admission\_year, citation}.
+
+\subsection{Kiểm duyệt dữ liệu trước khi lập chỉ mục}
+
+Trạng thái vòng đời tài liệu gồm: \texttt{Uploaded, Extracted, Pending Review, Approved, Indexed, Rejected, Archived}. Chỉ tài liệu đã duyệt mới được đưa vào kho tri thức chính thức.

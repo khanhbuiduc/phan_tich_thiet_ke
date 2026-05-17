@@ -1,0 +1,66 @@
+﻿\section{Thiết kế tổng quan phân hệ RAG}
+
+\subsection{Kiến trúc tổng quan của phân hệ RAG}
+
+Phân hệ RAG được thiết kế như một dịch vụ độc lập, có nhiệm vụ tiếp nhận tài liệu tuyển sinh, xử lý tài liệu, lập chỉ mục tri thức và cung cấp API truy vấn cho các thành phần khác như Rasa, Backend API và phân hệ quản trị.
+
+Các nhóm thành phần chính gồm:
+\begin{itemize}
+    \item Data Ingest Pipeline.
+    \item Preprocessing Module.
+    \item Embedding Module.
+    \item Storage Layer.
+    \item Retrieval Module và Reranking Module.
+    \item Context Builder và Prompt Assembly.
+    \item Generation Module và Citation Module.
+    \item Monitoring and Logging.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/hình 5.1. Sơ đồ kiến trúc tổng quan phân hệ RAG..png}}
+    \caption{Sơ đồ kiến trúc tổng quan phân hệ RAG}
+    \label{fig:rag-overall-architecture}
+\end{figure}
+
+\subsection{Các thành phần chính trong phân hệ RAG}
+
+\begin{table}[H]
+\centering
+\caption{Các thành phần chính và vai trò}
+\begin{tabular}{|p{4.2cm}|p{9.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Vai trò} \\
+\hline
+Data Ingest Pipeline & Tiếp nhận và kiểm tra tài liệu trước khi đưa vào hệ thống \\
+\hline
+Text Extraction & Trích xuất nội dung từ PDF, DOCX, website hoặc văn bản thô \\
+\hline
+Chunking Module & Chia tài liệu thành các đoạn nhỏ để phục vụ truy hồi \\
+\hline
+Embedding Module & Chuyển đổi nội dung chunk thành vector embedding \\
+\hline
+Vector Store & Lưu trữ embedding và hỗ trợ tìm kiếm theo ngữ nghĩa \\
+\hline
+Document Store & Lưu tài liệu gốc hoặc nội dung đã xử lý \\
+\hline
+Metadata Database & Lưu thông tin mô tả tài liệu, chunk, phiên bản và trạng thái \\
+\hline
+Retriever / Reranker & Truy hồi và sắp xếp lại kết quả truy hồi \\
+\hline
+Context Builder / Prompt Assembly & Xây dựng ngữ cảnh và tạo prompt cho LLM \\
+\hline
+LLM / Citation Module & Sinh câu trả lời và gắn nguồn trích dẫn \\
+\hline
+Monitoring & Theo dõi chất lượng, log truy vấn và lỗi hệ thống \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Quan hệ giữa RAG, Rasa, Backend API và Admin}
+
+Rasa tiếp nhận tin nhắn người dùng, nhận diện intent và điều phối hội thoại. Khi câu hỏi thuộc nhóm cần tra cứu tài liệu, Rasa gọi Custom Action để gửi truy vấn đến RAG Service.
+
+Backend API là lớp trung gian quản lý dữ liệu hệ thống, xác thực người dùng, lưu lịch sử hội thoại, quản lý tài liệu và cung cấp API cho frontend hoặc admin.
+
+Admin có quyền tải tài liệu, kiểm duyệt, kích hoạt lập chỉ mục, xóa tài liệu lỗi thời và theo dõi chất lượng trả lời. RAG Service là phân hệ xử lý tri thức, tiếp nhận tài liệu từ admin, lập chỉ mục và trả lời truy vấn có căn cứ.

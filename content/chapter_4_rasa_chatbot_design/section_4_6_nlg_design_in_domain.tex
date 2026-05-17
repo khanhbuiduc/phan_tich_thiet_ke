@@ -1,0 +1,95 @@
+﻿\section{Thiết kế NLG trong domain.yml}
+
+NLG, viết tắt của Natural Language Generation, là thành phần sinh phản hồi cho người dùng. Trong Rasa Classic, NLG thường được thể hiện thông qua các response template trong file \texttt{domain.yml}.
+
+Đối với chatbot tư vấn tuyển sinh, NLG được chia thành ba loại chính:
+\begin{itemize}
+    \item Câu trả lời tĩnh.
+    \item Câu trả lời có biến.
+    \item Câu trả lời sinh từ Custom Action hoặc RAG.
+\end{itemize}
+
+\subsection*{Câu trả lời tĩnh}
+
+Câu trả lời tĩnh phù hợp với các intent đơn giản như chào hỏi, cảm ơn, tạm biệt.
+
+\begin{verbatim}
+responses:
+  utter_greet:
+    - text: "Xin chào! Mình là chatbot tư vấn tuyển sinh. Bạn cần tìm hiểu thông tin về ngành học, điểm chuẩn, học phí hay phương thức xét tuyển?"
+
+  utter_goodbye:
+    - text: "Tạm biệt bạn! Chúc bạn lựa chọn được ngành học phù hợp."
+
+  utter_thank:
+    - text: "Rất vui được hỗ trợ bạn. Nếu còn thắc mắc về tuyển sinh, bạn có thể tiếp tục đặt câu hỏi."
+
+  utter_iamabot:
+    - text: "Mình là chatbot tư vấn tuyển sinh, được xây dựng bằng nền tảng Rasa và tích hợp hệ thống truy xuất tri thức RAG."
+\end{verbatim}
+
+\subsection*{Câu trả lời yêu cầu bổ sung thông tin}
+
+Khi người dùng hỏi thiếu thông tin quan trọng, chatbot sẽ hỏi lại.
+
+\begin{verbatim}
+  utter_ask_major:
+    - text: "Bạn muốn hỏi thông tin của ngành nào?"
+
+  utter_ask_year:
+    - text: "Bạn muốn tra cứu thông tin cho năm tuyển sinh nào?"
+
+  utter_ask_subject_combination:
+    - text: "Bạn đang quan tâm đến tổ hợp xét tuyển nào, ví dụ A00, A01 hoặc D01?"
+
+  utter_ask_score:
+    - text: "Bạn có thể cho mình biết mức điểm dự kiến của bạn không?"
+\end{verbatim}
+
+\subsection*{Câu trả lời fallback}
+
+\begin{verbatim}
+  utter_default:
+    - text: "Mình chưa hiểu rõ câu hỏi của bạn. Bạn có thể diễn đạt lại hoặc hỏi về ngành học, điểm chuẩn, học phí, phương thức xét tuyển."
+
+  utter_out_of_scope:
+    - text: "Câu hỏi này nằm ngoài phạm vi tư vấn tuyển sinh. Mình có thể hỗ trợ bạn các thông tin như ngành đào tạo, điểm chuẩn, học phí, hồ sơ xét tuyển và thời gian tuyển sinh."
+\end{verbatim}
+
+\subsection*{Khai báo actions trong domain.yml}
+
+\begin{verbatim}
+actions:
+  - action_get_major_list
+  - action_get_major_detail
+  - action_get_benchmark_score
+  - action_get_tuition_fee
+  - action_get_admission_method
+  - action_get_subject_combination
+  - action_get_admission_time
+  - action_call_rag
+  - action_handle_fallback
+  - action_save_conversation_log
+  - action_collect_unanswered_question
+\end{verbatim}
+
+\subsection*{Cơ chế sinh câu trả lời trong hệ thống}
+
+Trong hệ thống này, NLG không chỉ nằm ở \texttt{domain.yml}, mà được tổ chức theo ba tầng:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Loại phản hồi} & \textbf{Nơi sinh phản hồi} & \textbf{Ví dụ} \\
+\hline
+Phản hồi tĩnh & domain.yml & Chào hỏi, cảm ơn, tạm biệt \\
+\hline
+Phản hồi động & Custom Action + Backend API & Điểm chuẩn, học phí, danh sách ngành \\
+\hline
+Phản hồi RAG & RAG Service + LLM & Câu hỏi dài, câu hỏi mở, chính sách chi tiết \\
+\hline
+\end{tabular}
+\end{table}
+
+Thiết kế này giúp chatbot vừa có khả năng phản hồi nhanh với các câu hỏi phổ biến, vừa có khả năng trả lời linh hoạt với các câu hỏi phức tạp.

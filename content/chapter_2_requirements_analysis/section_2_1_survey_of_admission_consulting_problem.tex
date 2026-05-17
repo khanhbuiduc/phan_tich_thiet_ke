@@ -1,0 +1,97 @@
+\section{Khảo sát bài toán tư vấn tuyển sinh}
+\subsection{Bối cảnh bài toán}
+
+Tuyển sinh là một trong những hoạt động quan trọng của các trường đại học, cao đẳng và cơ sở đào tạo. Trong mỗi mùa tuyển sinh, thí sinh và phụ huynh thường có nhu cầu tìm hiểu nhiều thông tin liên quan như ngành đào tạo, mã ngành, tổ hợp xét tuyển, phương thức xét tuyển, học phí, điểm chuẩn, chỉ tiêu, thời gian đăng ký, hồ sơ cần chuẩn bị và cơ hội nghề nghiệp sau khi tốt nghiệp.
+
+Hiện nay, các thông tin tuyển sinh thường được công bố trên nhiều kênh khác nhau như website chính thức của trường, fanpage, file PDF đề án tuyển sinh, bài viết thông báo, email, hotline hoặc các buổi tư vấn trực tiếp. Việc thông tin bị phân tán ở nhiều nguồn khiến người dùng mất nhiều thời gian tìm kiếm, đặc biệt khi họ không biết chính xác thông tin mình cần nằm ở đâu.
+
+Bên cạnh đó, trong giai đoạn cao điểm tuyển sinh, số lượng câu hỏi gửi đến bộ phận tư vấn thường tăng mạnh. Nhiều câu hỏi có nội dung lặp lại, ví dụ như: ``Ngành Công nghệ thông tin xét tổ hợp nào?'', ``Điểm chuẩn năm trước là bao nhiêu?'', ``Trường có xét học bạ không?'', ``Học phí một năm khoảng bao nhiêu?''. Nếu toàn bộ các câu hỏi này đều được xử lý thủ công bởi cán bộ tuyển sinh, hệ thống tư vấn có thể bị quá tải, thời gian phản hồi chậm và chất lượng tư vấn không đồng đều.
+
+Vì vậy, việc xây dựng một hệ thống chatbot tư vấn tuyển sinh có khả năng tiếp nhận câu hỏi tự nhiên, phân tích nội dung câu hỏi, truy xuất dữ liệu từ nguồn tri thức tuyển sinh và đưa ra câu trả lời phù hợp là cần thiết. Hệ thống này giúp thí sinh và phụ huynh tiếp cận thông tin nhanh hơn, đồng thời hỗ trợ nhà trường giảm tải công việc tư vấn lặp lại.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{content/source/Hình 2.1 Mô hình tư vấn tuyển sinh truyền thống và mô hình có chatbot hỗ trợ..png}
+    \caption{Mô hình tư vấn tuyển sinh truyền thống và mô hình có chatbot hỗ trợ}
+    \label{fig:admission_consulting_model}
+\end{figure}
+
+\subsection{Thực trạng tư vấn tuyển sinh hiện nay}
+
+Qua khảo sát bài toán, hoạt động tư vấn tuyển sinh hiện nay thường được triển khai theo các hình thức chính sau:
+
+Thứ nhất, người dùng tự tìm kiếm thông tin trên website chính thức của trường. Đây là nguồn dữ liệu có độ tin cậy cao, tuy nhiên thông tin thường được trình bày dưới dạng bài viết dài, bảng biểu hoặc file PDF. Người dùng phải tự đọc, tự tìm và tự đối chiếu thông tin, gây mất thời gian.
+
+Thứ hai, người dùng đặt câu hỏi qua fanpage, email hoặc hotline. Hình thức này cho phép người dùng nhận được phản hồi từ cán bộ tuyển sinh, tuy nhiên vào mùa cao điểm, số lượng câu hỏi lớn có thể khiến thời gian phản hồi bị kéo dài. Ngoài ra, các câu hỏi lặp lại nhiều lần làm tăng khối lượng công việc cho bộ phận tư vấn.
+
+Thứ ba, một số trường sử dụng mục câu hỏi thường gặp (FAQ). Cách này giúp người dùng tra cứu một số vấn đề phổ biến, nhưng còn hạn chế vì người dùng phải tìm đúng câu hỏi tương ứng. Nếu câu hỏi được diễn đạt khác với mẫu có sẵn, hệ thống khó hỗ trợ hiệu quả.
+
+Thứ tư, một số chatbot truyền thống được xây dựng theo kịch bản cố định. Các chatbot này có thể xử lý các câu hỏi đơn giản nhưng thường gặp khó khăn với câu hỏi tự nhiên, câu hỏi thiếu ngữ cảnh hoặc câu hỏi yêu cầu trích xuất thông tin từ tài liệu tuyển sinh.
+
+Từ thực trạng trên, có thể thấy bài toán tư vấn tuyển sinh cần một hệ thống có khả năng kết hợp giữa xử lý ngôn ngữ tự nhiên, quản lý hội thoại, truy xuất dữ liệu có cấu trúc và truy xuất tri thức từ tài liệu.
+
+\begin{table}[H]
+    \centering
+    \caption{So sánh các hình thức tư vấn tuyển sinh hiện nay}
+    \label{tab:comparison_admission_consulting_methods}
+    \begin{tabular}{|p{3.4cm}|p{5.2cm}|p{5.2cm}|}
+        \hline
+        \textbf{Hình thức tư vấn} & \textbf{Ưu điểm} & \textbf{Hạn chế} \\ \hline
+        Website trường & Chính thống, đầy đủ thông tin & Khó tìm kiếm, nhiều tài liệu dài \\ \hline
+        Fanpage/Email & Có người tư vấn trực tiếp & Phản hồi chậm khi quá tải \\ \hline
+        Hotline & Nhanh, trực tiếp & Phụ thuộc thời gian làm việc \\ \hline
+        FAQ & Dễ triển khai & Chỉ hỗ trợ câu hỏi cố định \\ \hline
+        Chatbot kịch bản & Tự động hóa một phần & Khó xử lý câu hỏi tự nhiên \\ \hline
+        Chatbot Rasa + RAG & Tự động, linh hoạt, truy xuất tài liệu & Cần xây dựng dữ liệu và quản trị tri thức \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Đặc điểm của bài toán tư vấn tuyển sinh}
+
+Bài toán tư vấn tuyển sinh có một số đặc điểm riêng biệt so với các bài toán hỏi đáp thông thường:
+
+Thứ nhất, thông tin tuyển sinh có tính thời vụ và thay đổi theo từng năm. Các dữ liệu như chỉ tiêu, học phí, điểm chuẩn, phương thức tuyển sinh và thời gian xét tuyển có thể được cập nhật hằng năm. Vì vậy, hệ thống cần hỗ trợ quản lý dữ liệu theo năm tuyển sinh và có cơ chế cập nhật thông tin.
+
+Thứ hai, câu hỏi của người dùng thường ngắn, thiếu ngữ cảnh và sử dụng ngôn ngữ tự nhiên. Ví dụ: ``CNTT lấy bao nhiêu điểm?'', ``Có xét học bạ không?'', ``Học phí bao nhiêu?''. Với những câu hỏi này, hệ thống cần xác định được ý định của người dùng và các thông tin còn thiếu để hỏi lại khi cần.
+
+Thứ ba, người dùng thường sử dụng từ viết tắt hoặc cách gọi không chính thức. Ví dụ: ``CNTT'', ``ATTT'', ``IT'', ``an toàn mạng'', ``xét học bạ'', ``khối A00''. Do đó, hệ thống cần có khả năng chuẩn hóa các cách diễn đạt này về dữ liệu chính thức trong hệ thống.
+
+Thứ tư, nhiều câu hỏi cần truy xuất dữ liệu chính xác từ tài liệu hoặc cơ sở dữ liệu. Các câu hỏi như ``Điểm chuẩn ngành An toàn thông tin năm 2024 là bao nhiêu?'' hoặc ``Ngành Công nghệ thông tin xét những tổ hợp nào?'' cần được trả lời dựa trên nguồn dữ liệu chính thống, không nên trả lời suy đoán.
+
+Thứ năm, một số câu hỏi mang tính tư vấn gợi ý. Ví dụ: ``Em được 24 điểm thì nên chọn ngành nào?'', ``Em học khối A01 thì có thể đăng ký ngành gì?''. Các câu hỏi này đòi hỏi hệ thống không chỉ truy xuất dữ liệu mà còn phải phân tích điều kiện của người dùng để đưa ra gợi ý phù hợp.
+
+\begin{table}[H]
+    \centering
+    \caption{Một số ví dụ câu hỏi tuyển sinh và dạng xử lý tương ứng}
+    \label{tab:admission_question_examples}
+    \begin{tabular}{|p{4.1cm}|p{3.2cm}|p{3.1cm}|p{3.8cm}|}
+        \hline
+        \textbf{Câu hỏi người dùng} & \textbf{Ý định} & \textbf{Thực thể cần nhận diện} & \textbf{Hướng xử lý} \\ \hline
+        CNTT xét khối nào? & Hỏi tổ hợp xét tuyển & CNTT & Tra cứu ngành và tổ hợp \\ \hline
+        Điểm chuẩn ATTT 2024? & Hỏi điểm chuẩn & ATTT, 2024 & Tra cứu điểm chuẩn theo năm \\ \hline
+        Trường có xét học bạ không? & Hỏi phương thức & Học bạ & Tra cứu phương thức tuyển sinh \\ \hline
+        Em được 24 điểm nên chọn ngành nào? & Tư vấn ngành & 24 điểm & Gợi ý ngành phù hợp \\ \hline
+        Học phí ngành CNTT bao nhiêu? & Hỏi học phí & CNTT & Tra cứu học phí \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Mục tiêu xây dựng hệ thống}
+
+Mục tiêu của hệ thống chatbot tư vấn tuyển sinh là xây dựng một công cụ hỗ trợ tự động, giúp người dùng tra cứu và nhận tư vấn tuyển sinh một cách nhanh chóng, chính xác và thuận tiện.
+
+Các mục tiêu chính gồm:
+\begin{itemize}
+    \item Hỗ trợ người dùng đặt câu hỏi bằng ngôn ngữ tự nhiên, không cần thao tác qua nhiều menu phức tạp.
+    \item Tự động nhận diện ý định và thông tin quan trọng trong câu hỏi.
+    \item Cung cấp câu trả lời dựa trên dữ liệu tuyển sinh chính thống.
+    \item Tích hợp hệ thống RAG để truy xuất thông tin từ tài liệu dài như đề án tuyển sinh, quy chế xét tuyển, thông báo tuyển sinh hoặc file PDF.
+    \item Cung cấp phân hệ quản trị để cập nhật và kiểm soát dữ liệu (ngành học, phương thức xét tuyển, điểm chuẩn, học phí, tài liệu RAG, lịch sử hỏi đáp).
+    \item Nâng cao chất lượng tư vấn và giảm tải cho cán bộ tuyển sinh thông qua tự động hóa các câu hỏi phổ biến.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{content/source/Hình 2.2 Mục tiêu tổng quát của hệ thống chatbot tuyển sinh..png}
+    \caption{Mục tiêu tổng quát của hệ thống chatbot tuyển sinh}
+    \label{fig:chatbot_system_objectives}
+\end{figure}

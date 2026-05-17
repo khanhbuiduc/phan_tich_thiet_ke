@@ -1,0 +1,832 @@
+﻿\chapter{PHÂN TÍCH VÀ THIẾT KẾ PHÂN HỆ RAG}
+
+\section{Vai trò của RAG trong hệ thống tư vấn tuyển sinh}
+
+Trong hệ thống KMA Chatbot tuyển sinh, RAG đóng vai trò là phân hệ truy xuất tri thức dựa trên tài liệu. Nếu Rasa phù hợp với các câu hỏi có luồng cố định, intent rõ ràng hoặc câu trả lời đã được định nghĩa trước, thì RAG được sử dụng cho các câu hỏi cần khai thác thông tin từ kho tài liệu tuyển sinh, đào tạo, quy chế, điểm chuẩn, biểu mẫu và các văn bản liên quan.
+
+Đặc thù của bài toán tư vấn tuyển sinh là thông tin thường xuyên thay đổi theo từng năm. Các dữ liệu như phương thức xét tuyển, ngành đào tạo, mã ngành, tổ hợp xét tuyển, điểm chuẩn, học phí, lịch đăng ký, hướng dẫn nhập học và quy chế đào tạo đều cần được cập nhật từ tài liệu chính thức. Nếu chatbot chỉ sử dụng dữ liệu huấn luyện tĩnh, hệ thống dễ trả lời thiếu chính xác hoặc lỗi thời. Vì vậy, RAG được thiết kế để giúp chatbot truy hồi thông tin từ tài liệu đã được đưa vào kho tri thức, sau đó sinh câu trả lời dựa trên các đoạn nội dung liên quan.
+
+Theo dữ liệu hệ thống đã thu thập, KMA Chatbot không chỉ có chức năng hội thoại với Rasa mà còn có chức năng hỏi đáp RAG dựa trên tài liệu đã upload và xử lý thành chunks. Hệ thống cũng có các màn hình quản lý tài liệu, tài liệu ngữ cảnh, thống kê, RBAC và quản lý người dùng, cho thấy RAG được đặt trong một hệ sinh thái quản trị đầy đủ chứ không hoạt động độc lập. \textit{[Nguồn: Báo cáo phân tích kỹ thuật KMA Chatbot]}
+
+RAG trong hệ thống có các vai trò chính sau:
+
+\begin{itemize}
+    \item Bổ sung khả năng trả lời các câu hỏi nằm ngoài kịch bản cố định của Rasa.
+    \item Khai thác trực tiếp tài liệu tuyển sinh, đào tạo, quy chế và điểm chuẩn đã được xử lý.
+    \item Giảm nguy cơ sinh câu trả lời không có căn cứ bằng cách dựa trên các chunks truy hồi.
+    \item Hỗ trợ câu trả lời có nguồn, có thể kiểm tra lại từ tài liệu gốc.
+    \item Cho phép cập nhật tri thức bằng cách upload, scan, xử lý lại và lập chỉ mục tài liệu mới.
+    \item Hỗ trợ người quản trị theo dõi trạng thái tài liệu, số chunks và quá trình xử lý pipeline.
+\end{itemize}
+
+Nhờ có RAG, hệ thống chatbot tuyển sinh có thể kết hợp hai hướng xử lý: Rasa đảm nhiệm điều phối hội thoại, còn RAG đảm nhiệm truy xuất và tổng hợp tri thức từ tài liệu.
+
+\section{Kiến trúc tổng quan phân hệ RAG}
+
+\subsection{Vị trí của RAG trong kiến trúc hệ thống}
+
+Kiến trúc hệ thống quan sát được gồm frontend web, backend API của KMA Chatbot, Rasa và RAG service. Frontend cung cấp hai trải nghiệm hội thoại chính: hội thoại thường với Rasa và hội thoại RAG dựa trên tài liệu. Backend chatbot quản lý tài khoản, vai trò, tài liệu biểu mẫu, dữ liệu phục vụ Rasa và các chức năng quản trị. RAG service phụ trách ingest tài liệu, chunking, indexing, retrieval và sinh câu trả lời theo ngữ cảnh tài liệu.
+
+Trong kiến trúc này, RAG được thiết kế như một service độc lập, giao tiếp với các thành phần khác thông qua API. Việc tách RAG thành một service riêng giúp hệ thống dễ mở rộng, dễ thay đổi mô hình embedding, dễ thay thế vector database và dễ tích hợp thêm các cơ chế đánh giá chất lượng truy hồi.
+
+Có thể mô tả vị trí của RAG như sau:
+
+\begin{center}
+\texttt{Người dùng} $\rightarrow$ \texttt{Frontend} $\rightarrow$ \texttt{Rasa/Backend} $\rightarrow$ \texttt{RAG Service} $\rightarrow$ \texttt{Kho tri thức}
+\end{center}
+
+Trong đó, Rasa xử lý hội thoại và gọi RAG khi cần truy xuất tài liệu; Backend API quản lý dữ liệu, phân quyền và tài liệu; còn RAG Service thực hiện truy hồi tri thức, xây dựng ngữ cảnh và sinh câu trả lời.
+
+\subsection{Các thành phần chính của phân hệ RAG}
+
+Phân hệ RAG được chia thành các thành phần chính sau:
+
+\begin{longtable}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Thành phần} & \textbf{Vai trò} \\
+\midrule
+\endhead
+Document Management & Quản lý tài liệu đầu vào, trạng thái xử lý, số chunks và thời điểm cập nhật. \\
+Data Ingest Pipeline & Tiếp nhận tài liệu, kiểm tra, trích xuất văn bản, chuẩn hóa và chia chunks. \\
+Embedding Module & Sinh vector embedding cho các chunks bằng mô hình embedding. \\
+Vector Store & Lưu trữ embedding và hỗ trợ truy hồi ngữ nghĩa. \\
+Document Status Store & Lưu trạng thái xử lý tài liệu như processed, pending, failed. \\
+Graph Storage & Lưu quan hệ tri thức, hỗ trợ Graph Based RAG hoặc truy hồi theo quan hệ. \\
+Context Builder & Chọn các chunks liên quan để tạo ngữ cảnh cho LLM. \\
+Prompt Assembly & Ghép câu hỏi, context và ràng buộc hệ thống thành prompt hoàn chỉnh. \\
+LLM Generation & Sinh câu trả lời dựa trên ngữ cảnh đã truy hồi. \\
+Citation/Source Tracking & Gắn nguồn tài liệu cho các thông tin được sử dụng trong câu trả lời. \\
+Monitoring Pipeline & Theo dõi trạng thái pipeline, retry lỗi, clear cache và kiểm tra sức khỏe service. \\
+\bottomrule
+\end{longtable}
+
+Theo cấu hình health của hệ thống, RAG service đang sử dụng embedding model \texttt{BAAI/bge-m3}, lưu vector bằng \texttt{QdrantVectorDBStorage}, lưu key-value bằng \texttt{RedisKVStorage}, lưu trạng thái tài liệu bằng \texttt{RedisDocStatusStorage} và lưu quan hệ tri thức bằng \texttt{MemgraphStorage}. Điều này cho thấy hệ thống đã được thiết kế theo hướng lưu trữ đa tầng, tách riêng metadata, trạng thái xử lý, vector và quan hệ tri thức. \textit{[Nguồn: Báo cáo phân tích kỹ thuật KMA Chatbot]}
+
+\section{Hiện trạng kho tài liệu RAG}
+
+\subsection{Tình trạng tài liệu đã xử lý}
+
+Từ endpoint \texttt{/documents} của RAG, hệ thống hiện có 21 tài liệu ở trạng thái \texttt{processed}. Tổng số chunks là 171, tổng content length là 545229, trung bình xấp xỉ 3188 ký tự trên mỗi chunk. Trong dữ liệu đã thu thập, chưa ghi nhận tài liệu ở trạng thái pending, processing hoặc failed. Đây là cơ sở cho thấy phân hệ RAG đã có kho tri thức thực tế, không chỉ dừng ở mức thiết kế lý thuyết. \textit{[Nguồn: tài liệu phân tích RAG từ dữ liệu thật]} :contentReference[oaicite:1]{index=1}
+
+Một số tài liệu tiêu biểu trong kho RAG gồm:
+
+\begin{longtable}{p{0.06\textwidth}p{0.54\textwidth}p{0.14\textwidth}p{0.10\textwidth}p{0.10\textwidth}}
+\toprule
+\textbf{STT} & \textbf{Tài liệu} & \textbf{Trạng thái} & \textbf{Chunks} & \textbf{Độ dài} \\
+\midrule
+\endhead
+1 & QUY CHẾ tuyển sinh 2026 HVKTMM (19.3).docx & processed & 11 & 39949 \\
+2 & Diem\_chuan\_KMA\_2017\_2025.pdf & processed & 2 & 2410 \\
+3 & Chuong-trinh-dao-tao-CNTT.docx & processed & 12 & 26741 \\
+4 & Thông tin dự kiến các phương thức tuyển sinh 2026.docx & processed & 3 & 7802 \\
+5 & Chuong-trinh-dao-tao-DTVT.docx & processed & 3 & 6368 \\
+6 & Ke-hoach-hoc-tap-nganh-ATTT-CHUAN.docx & processed & 7 & 16722 \\
+7 & Tuyển sinh.xlsx & processed & 60 & 218006 \\
+\bottomrule
+\end{longtable}
+
+Trong các tài liệu trên, file \texttt{Tuyển sinh.xlsx} có 60 chunks và content length 218006, là tài liệu có dung lượng nội dung lớn nhất trong kho. Vì vậy, đây là nguồn dữ liệu trọng tâm cho các câu hỏi tuyển sinh. Bên cạnh đó, các tài liệu như quy chế tuyển sinh, điểm chuẩn, chương trình đào tạo CNTT, DTVT và ATTT đóng vai trò quan trọng trong việc trả lời các câu hỏi chuyên sâu về ngành học, điểm chuẩn và chương trình đào tạo.
+
+\subsection{Nhóm tài liệu tuyển sinh và đào tạo}
+
+Kho tài liệu RAG hiện bao gồm nhiều nhóm thông tin khác nhau. Trong phạm vi bài toán tư vấn tuyển sinh, có thể chia thành các nhóm chính sau:
+
+\begin{itemize}
+    \item \textbf{Nhóm quy chế và phương thức tuyển sinh}: gồm quy chế tuyển sinh 2026, thông tin dự kiến các phương thức tuyển sinh 2026.
+    \item \textbf{Nhóm điểm chuẩn}: gồm tài liệu điểm chuẩn KMA qua các năm 2017--2025.
+    \item \textbf{Nhóm chương trình đào tạo}: gồm chương trình đào tạo Công nghệ thông tin, Điện tử viễn thông và kế hoạch học tập ngành An toàn thông tin.
+    \item \textbf{Nhóm quy chế đào tạo và khảo thí}: gồm quy chế đào tạo trình độ đại học, quy định khảo thí, chuẩn đầu ra tiếng Anh.
+    \item \textbf{Nhóm tài liệu hoạt động học viện}: gồm kế hoạch chào tân sinh viên, kế hoạch văn hóa đọc, hoạt động văn hóa văn nghệ và một số văn bản nội bộ khác.
+\end{itemize}
+
+Việc phân nhóm tài liệu giúp hệ thống có thể ưu tiên truy hồi theo ngữ cảnh. Ví dụ, khi người dùng hỏi về điểm chuẩn, hệ thống nên ưu tiên tài liệu \texttt{Diem\_chuan\_KMA\_2017\_2025.pdf} và \texttt{Tuyển sinh.xlsx}. Khi người dùng hỏi về chương trình học ngành Công nghệ thông tin, hệ thống nên ưu tiên \texttt{Chuong-trinh-dao-tao-CNTT.docx}. Khi người dùng hỏi về quy chế xét tuyển năm 2026, hệ thống nên ưu tiên \texttt{QUY CHẾ tuyển sinh 2026 HVKTMM (19.3).docx}.
+
+\section{Thiết kế hai luồng vận hành chính}
+
+Phân hệ RAG được thiết kế xoay quanh hai luồng vận hành chính: \textbf{Indexing Flow} và \textbf{Query Flow}. Hai luồng này tương ứng với hai giai đoạn: sản xuất tri thức và tiêu thụ tri thức.
+
+\subsection{Indexing Flow -- luồng sản xuất tri thức}
+
+Indexing Flow là luồng xử lý tài liệu đầu vào để biến tài liệu thô thành dữ liệu có thể truy hồi. Luồng này thường được kích hoạt khi admin upload tài liệu mới, scan thư mục input hoặc xử lý lại các tài liệu lỗi.
+
+Luồng Indexing Flow gồm các bước:
+
+\begin{enumerate}
+    \item Admin upload tài liệu hoặc sử dụng chức năng scan tài liệu mới.
+    \item RAG service tiếp nhận tài liệu từ thư mục input.
+    \item Pipeline đọc file PDF, DOCX, XLSX hoặc các định dạng được hỗ trợ.
+    \item Hệ thống trích xuất văn bản từ tài liệu.
+    \item Nội dung được chuẩn hóa, làm sạch và chia thành chunks.
+    \item Hệ thống sinh embedding cho từng chunk bằng mô hình \texttt{BAAI/bge-m3}.
+    \item Vector embedding được lưu vào \texttt{QdrantVectorDBStorage}.
+    \item Trạng thái tài liệu được lưu vào \texttt{RedisDocStatusStorage}.
+    \item Quan hệ tri thức, nếu có, được lưu vào \texttt{MemgraphStorage}.
+    \item UI \texttt{/context-docs} hiển thị trạng thái processed, pending, failed, số chunks và thời điểm cập nhật.
+\end{enumerate}
+
+Luồng ingest quan sát được từ hệ thống thật cho thấy pipeline đã hỗ trợ upload, scan tài liệu, retry failed documents và theo dõi trạng thái pipeline. Các thao tác này giúp người quản trị có thể kiểm soát vòng đời xử lý tài liệu thay vì phụ thuộc hoàn toàn vào thao tác thủ công.
+
+\begin{figure}[H]
+    \centering
+    \begin{verbatim}
+Admin Upload/Scan
+        |
+        v
+Validate Document
+        |
+        v
+Text Extraction
+        |
+        v
+Clean and Normalize
+        |
+        v
+Chunking
+        |
+        v
+Embedding BAAI/bge-m3
+        |
+        v
+Qdrant + Redis + Memgraph
+        |
+        v
+Processed Document
+    \end{verbatim}
+    \caption{Luồng Indexing Flow của phân hệ RAG}
+    \label{fig:rag-indexing-flow}
+\end{figure}
+
+\subsection{Query Flow -- luồng tiêu thụ tri thức}
+
+Query Flow là luồng xử lý khi người dùng đặt câu hỏi và hệ thống cần truy hồi tài liệu để trả lời. Luồng này có thể bắt đầu từ giao diện RAG Chat hoặc từ Rasa thông qua Custom Action.
+
+Luồng Query Flow gồm các bước:
+
+\begin{enumerate}
+    \item Người dùng đặt câu hỏi trên giao diện chatbot.
+    \item Frontend gửi câu hỏi đến Rasa hoặc trực tiếp đến RAG Chat tùy chế độ sử dụng.
+    \item Nếu câu hỏi cần truy xuất tài liệu, hệ thống gọi RAG service.
+    \item RAG service sinh embedding cho câu hỏi.
+    \item Hệ thống tìm kiếm các chunks liên quan trong vector database.
+    \item Hệ thống có thể kết hợp thêm graph context nếu dữ liệu quan hệ phù hợp.
+    \item Các chunks liên quan được đưa vào context.
+    \item Prompt được lắp ghép từ câu hỏi, context và các ràng buộc trả lời.
+    \item LLM sinh câu trả lời dựa trên context.
+    \item Frontend hiển thị câu trả lời cho người dùng, kèm nguồn hoặc context nếu có.
+\end{enumerate}
+
+Theo tài liệu kỹ thuật, luồng RAG Chat hiện sử dụng API chat completion, tìm chunks liên quan bằng embedding/vector search và có thể kết hợp graph context. Prompt được lắp từ câu hỏi, các chunks liên quan và cấu hình summary/context trước khi LLM sinh câu trả lời. \textit{[Nguồn: Báo cáo phân tích kỹ thuật KMA Chatbot]}
+
+\begin{figure}[H]
+    \centering
+    \begin{verbatim}
+User Question
+      |
+      v
+Rasa / RAG Chat
+      |
+      v
+RAG Query API
+      |
+      v
+Question Embedding
+      |
+      v
+Retrieve Related Chunks
+      |
+      v
+Build Context
+      |
+      v
+Prompt Assembly
+      |
+      v
+LLM Generation
+      |
+      v
+Answer with Source
+    \end{verbatim}
+    \caption{Luồng Query Flow của phân hệ RAG}
+    \label{fig:rag-query-flow}
+\end{figure}
+
+\section{Thiết kế quy trình ingest và tiền xử lý tài liệu}
+
+\subsection{Tiếp nhận tài liệu}
+
+Tài liệu đầu vào của RAG có thể đến từ hai nguồn chính: tài liệu do admin upload trên giao diện quản trị và tài liệu được scan từ thư mục input của RAG service. Màn hình \texttt{/context-docs} có các thao tác như \texttt{Scan New Docs}, \texttt{Retry Pipeline}, \texttt{Pipeline}, \texttt{Refresh}, \texttt{Clear All} và \texttt{Upload Documents}. Điều này cho thấy hệ thống đã có cơ chế vận hành tài liệu tương đối đầy đủ.
+
+Các loại tài liệu hiện xuất hiện trong kho gồm PDF, DOCX và XLSX. Đây là các định dạng phù hợp với dữ liệu tuyển sinh vì thông tin thường được công bố dưới dạng văn bản quy chế, file chương trình đào tạo, bảng điểm chuẩn hoặc bảng dữ liệu tuyển sinh.
+
+\subsection{Trích xuất và chuẩn hóa văn bản}
+
+Sau khi tài liệu được tiếp nhận, pipeline thực hiện trích xuất văn bản. Đối với tài liệu PDF và DOCX, hệ thống cần lấy nội dung văn bản, tiêu đề, bảng và các đoạn có ý nghĩa. Đối với file XLSX như \texttt{Tuyển sinh.xlsx}, hệ thống cần chuyển dữ liệu bảng thành dạng văn bản có cấu trúc để phục vụ truy hồi.
+
+Quá trình chuẩn hóa dữ liệu cần xử lý các vấn đề sau:
+
+\begin{itemize}
+    \item Loại bỏ ký tự thừa, khoảng trắng thừa và dòng rỗng.
+    \item Chuẩn hóa Unicode tiếng Việt để tránh lỗi hiển thị hoặc khác biệt tên file.
+    \item Giữ lại các thông tin quan trọng như mã ngành, tên ngành, tổ hợp xét tuyển, điểm chuẩn, năm tuyển sinh.
+    \item Tách phần nội dung chính khỏi phần header, footer hoặc nội dung lặp.
+    \item Chuẩn hóa bảng thành các dòng có ngữ nghĩa hoàn chỉnh.
+\end{itemize}
+
+Trong phần đánh giá hiện trạng, tài liệu kỹ thuật cũng ghi nhận một số tên file có dấu ở dạng Unicode tổ hợp, do đó nên chuẩn hóa NFC khi hiển thị hoặc xuất báo cáo để tránh khác biệt tên file. Đây là một vấn đề cần được xử lý trong pipeline để đảm bảo dữ liệu nhất quán.
+
+\subsection{Chia tài liệu thành chunks}
+
+Chunking là bước chia tài liệu thành các đơn vị nhỏ để phục vụ truy hồi. Mỗi chunk cần đủ ngắn để đưa vào context nhưng cũng đủ dài để giữ được ngữ nghĩa. Với kho RAG hiện tại, 21 tài liệu đã được chia thành 171 chunks, trung bình khoảng 3188 ký tự mỗi chunk. Con số này cho thấy hệ thống đang sử dụng mức chunk tương đối lớn, phù hợp với các tài liệu quy chế hoặc văn bản dài.
+
+Chiến lược chunking cần được thiết kế theo từng loại tài liệu:
+
+\begin{longtable}{p{0.28\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Loại tài liệu} & \textbf{Chiến lược chunking đề xuất} \\
+\midrule
+\endhead
+Quy chế tuyển sinh & Chia theo chương, mục, điều hoặc nhóm điều khoản. \\
+Điểm chuẩn & Chia theo năm, ngành hoặc bảng điểm. \\
+Chương trình đào tạo & Chia theo ngành, học kỳ, khối kiến thức hoặc học phần. \\
+File Excel tuyển sinh & Chia theo sheet, nhóm ngành, dòng dữ liệu hoặc nhóm thông tin. \\
+FAQ hoặc hướng dẫn & Chia theo từng cặp câu hỏi -- câu trả lời hoặc từng mục hướng dẫn. \\
+\bottomrule
+\end{longtable}
+
+Đối với dữ liệu tuyển sinh, chunk không nên cắt rời các thông tin có quan hệ chặt chẽ. Ví dụ, tên ngành, mã ngành, tổ hợp xét tuyển và điểm chuẩn nên nằm trong cùng một chunk hoặc được liên kết bằng metadata để tránh truy hồi thiếu thông tin.
+
+\subsection{Gán metadata cho tài liệu và chunks}
+
+Metadata đóng vai trò quan trọng trong việc lọc và ưu tiên kết quả truy hồi. Với hệ thống tư vấn tuyển sinh, metadata cần thể hiện rõ nguồn tài liệu, năm tuyển sinh, loại tài liệu, trạng thái xử lý và vị trí của chunk trong tài liệu.
+
+Metadata tài liệu nên gồm:
+
+\begin{itemize}
+    \item \texttt{document\_id}: mã tài liệu.
+    \item \texttt{document\_name}: tên tài liệu.
+    \item \texttt{file\_type}: loại file, ví dụ PDF, DOCX, XLSX.
+    \item \texttt{admission\_year}: năm tuyển sinh.
+    \item \texttt{status}: trạng thái xử lý, ví dụ processed, pending, failed.
+    \item \texttt{chunk\_count}: số chunks.
+    \item \texttt{content\_length}: độ dài nội dung.
+    \item \texttt{updated\_at}: thời điểm cập nhật.
+    \item \texttt{source}: nguồn tài liệu hoặc đường dẫn nếu có.
+\end{itemize}
+
+Metadata chunk nên gồm:
+
+\begin{itemize}
+    \item \texttt{chunk\_id}: mã chunk.
+    \item \texttt{document\_id}: mã tài liệu gốc.
+    \item \texttt{chunk\_index}: thứ tự chunk.
+    \item \texttt{content}: nội dung chunk.
+    \item \texttt{section\_title}: tiêu đề mục nếu có.
+    \item \texttt{page\_number}: số trang nếu trích xuất được.
+    \item \texttt{admission\_year}: năm tuyển sinh.
+    \item \texttt{retrieval\_score}: điểm truy hồi.
+\end{itemize}
+
+Việc gán metadata giúp hệ thống xử lý các câu hỏi như ``điểm chuẩn năm 2025'', ``phương thức tuyển sinh năm 2026'' hoặc ``chương trình đào tạo ngành CNTT'' chính xác hơn.
+
+\section{Thiết kế kiến trúc lưu trữ đa tầng}
+
+\subsection{RedisKVStorage}
+
+\texttt{RedisKVStorage} được sử dụng để lưu dữ liệu key-value phục vụ cache và các trạng thái xử lý nhanh. Trong hệ thống RAG, Redis có thể được dùng để lưu cache truy vấn, cache cấu hình hoặc các thông tin tạm thời trong pipeline.
+
+Vai trò của RedisKVStorage gồm:
+
+\begin{itemize}
+    \item Tăng tốc độ truy xuất dữ liệu tạm thời.
+    \item Lưu cache kết quả hoặc thông tin trung gian.
+    \item Hỗ trợ vận hành pipeline nhanh hơn.
+    \item Giảm tải cho các thành phần lưu trữ dài hạn.
+\end{itemize}
+
+\subsection{RedisDocStatusStorage}
+
+\texttt{RedisDocStatusStorage} được sử dụng để lưu trạng thái xử lý tài liệu. Đây là thành phần quan trọng giúp giao diện \texttt{/context-docs} hiển thị trạng thái processed, pending, failed, số chunks và thời điểm cập nhật.
+
+Các trạng thái tài liệu có thể gồm:
+
+\begin{longtable}{p{0.24\textwidth}p{0.66\textwidth}}
+\toprule
+\textbf{Trạng thái} & \textbf{Ý nghĩa} \\
+\midrule
+\endhead
+Uploaded & Tài liệu đã được upload vào hệ thống. \\
+Processing & Tài liệu đang được pipeline xử lý. \\
+Processed & Tài liệu đã được xử lý thành công và có thể truy hồi. \\
+Pending & Tài liệu đang chờ xử lý hoặc chờ duyệt. \\
+Failed & Tài liệu xử lý lỗi, cần retry hoặc kiểm tra thủ công. \\
+Archived & Tài liệu được lưu trữ, không ưu tiên truy hồi. \\
+\bottomrule
+\end{longtable}
+
+\subsection{QdrantVectorDBStorage}
+
+\texttt{QdrantVectorDBStorage} là nơi lưu trữ vector embedding của các chunks. Khi người dùng đặt câu hỏi, hệ thống sinh embedding cho câu hỏi và tìm các vector gần nhất trong Qdrant để lấy ra các chunks liên quan.
+
+Qdrant phù hợp với phân hệ RAG vì hỗ trợ tìm kiếm vector hiệu quả, có thể lưu kèm metadata và phục vụ truy hồi semantic. Với dữ liệu tuyển sinh, vector search giúp hệ thống hiểu được các câu hỏi diễn đạt tự nhiên, ví dụ:
+
+\begin{quote}
+``Ngành an toàn thông tin lấy bao nhiêu điểm?''
+
+``Điểm chuẩn ATTT năm 2025 là bao nhiêu?''
+\end{quote}
+
+Hai câu hỏi này có cách diễn đạt khác nhau nhưng cùng hướng đến một loại thông tin, vì vậy vector search có thể hỗ trợ truy hồi tốt hơn so với tìm kiếm từ khóa thuần túy.
+
+\subsection{MemgraphStorage}
+
+\texttt{MemgraphStorage} được sử dụng để lưu quan hệ tri thức, hỗ trợ Graph Based RAG. Trong bài toán tuyển sinh, có nhiều quan hệ có thể biểu diễn dưới dạng đồ thị:
+
+\begin{itemize}
+    \item Ngành học -- có mã ngành -- mã ngành.
+    \item Ngành học -- xét tuyển bằng -- tổ hợp môn.
+    \item Ngành học -- thuộc -- lĩnh vực đào tạo.
+    \item Phương thức xét tuyển -- áp dụng cho -- năm tuyển sinh.
+    \item Ngành học -- có điểm chuẩn -- từng năm.
+    \item Tài liệu -- chứa thông tin về -- ngành học hoặc quy chế.
+\end{itemize}
+
+Việc sử dụng graph storage giúp hệ thống có khả năng mở rộng sang các truy vấn quan hệ phức tạp hơn, ví dụ:
+
+\begin{quote}
+``Những ngành nào xét tuyển tổ hợp A00 và có điểm chuẩn trên 24 trong năm 2025?''
+\end{quote}
+
+Nếu chỉ sử dụng vector search, hệ thống có thể tìm được các đoạn liên quan nhưng khó tổng hợp quan hệ chính xác. Graph storage giúp tăng khả năng truy vấn có cấu trúc và hỗ trợ suy luận trên quan hệ giữa các thực thể.
+
+\section{Thiết kế embedding và lập chỉ mục}
+
+\subsection{Mô hình embedding}
+
+Hệ thống hiện sử dụng mô hình embedding \texttt{BAAI/bge-m3}. Đây là mô hình embedding đa ngôn ngữ, phù hợp với dữ liệu tiếng Việt và các tài liệu có nội dung hành chính, tuyển sinh, đào tạo. Việc lựa chọn embedding model có ảnh hưởng trực tiếp đến chất lượng truy hồi, vì toàn bộ quá trình tìm kiếm semantic phụ thuộc vào khả năng biểu diễn ngữ nghĩa của câu hỏi và chunks.
+
+Mô hình embedding cần đáp ứng các yêu cầu:
+
+\begin{itemize}
+    \item Hỗ trợ tốt tiếng Việt.
+    \item Biểu diễn được câu hỏi và tài liệu trong cùng không gian vector.
+    \item Phù hợp với tài liệu dài, có nhiều thuật ngữ tuyển sinh.
+    \item Có tốc độ sinh embedding đủ nhanh cho ingest và query.
+    \item Có thể triển khai ổn định trong hệ thống backend.
+\end{itemize}
+
+\subsection{Quy trình lập chỉ mục}
+
+Quy trình lập chỉ mục embedding gồm:
+
+\begin{enumerate}
+    \item Lấy danh sách chunks sau khi tài liệu được xử lý.
+    \item Chuẩn hóa nội dung chunk.
+    \item Sinh embedding bằng \texttt{BAAI/bge-m3}.
+    \item Gắn embedding với \texttt{chunk\_id} và metadata.
+    \item Lưu vector vào Qdrant.
+    \item Cập nhật trạng thái tài liệu trong RedisDocStatusStorage.
+\end{enumerate}
+
+Mỗi vector nên được lưu cùng các trường metadata như \texttt{document\_id}, \texttt{document\_name}, \texttt{chunk\_index}, \texttt{admission\_year}, \texttt{file\_type} và \texttt{status}. Điều này giúp hệ thống vừa tìm kiếm theo ngữ nghĩa vừa lọc theo điều kiện.
+
+\subsection{Cập nhật và xóa chỉ mục}
+
+Thông tin tuyển sinh thay đổi theo từng năm, do đó hệ thống cần hỗ trợ cập nhật và xóa chỉ mục. Khi tài liệu mới được upload hoặc tài liệu cũ bị thay thế, các chunks và vector cũ cần được đánh dấu hoặc xóa khỏi kho truy hồi để tránh trả lời bằng dữ liệu lỗi thời.
+
+Quy trình cập nhật chỉ mục gồm:
+
+\begin{enumerate}
+    \item Phát hiện tài liệu mới hoặc tài liệu được cập nhật.
+    \item So sánh nội dung, checksum hoặc phiên bản tài liệu.
+    \item Xóa hoặc vô hiệu hóa vector cũ liên quan đến tài liệu.
+    \item Sinh lại chunks và embedding mới.
+    \item Cập nhật vector store và trạng thái tài liệu.
+    \item Ghi log thao tác để phục vụ truy vết.
+\end{enumerate}
+
+\section{Thiết kế chiến lược truy hồi}
+
+\subsection{Truy hồi semantic bằng vector search}
+
+Truy hồi semantic là phương pháp chính của RAG. Khi người dùng đặt câu hỏi, hệ thống chuyển câu hỏi thành embedding và tìm các chunks có embedding gần nhất. Phương pháp này phù hợp với câu hỏi tự nhiên, không cần trùng khớp chính xác từ khóa.
+
+Ví dụ, câu hỏi:
+
+\begin{quote}
+``Ngành CNTT năm 2025 lấy bao nhiêu điểm?''
+\end{quote}
+
+có thể truy hồi được chunk chứa nội dung:
+
+\begin{quote}
+``Công nghệ thông tin (Hà Nội), mã ngành 7480201KMA, tổ hợp A00, A01, D01, điểm chuẩn năm 2025 là 24.42.''
+\end{quote}
+
+Dữ liệu quan sát được từ tài liệu \texttt{Diem\_chuan\_KMA\_2017\_2025.pdf} có chứa thông tin điểm chuẩn năm 2025 cho ngành An toàn thông tin, Công nghệ thông tin và Kỹ thuật điện tử viễn thông. Vì vậy, nhóm tài liệu này cần được ưu tiên trong các câu hỏi liên quan đến điểm chuẩn.
+
+\subsection{Truy hồi theo từ khóa}
+
+Bên cạnh vector search, hệ thống nên hỗ trợ truy hồi theo từ khóa cho các thông tin có tính định danh chính xác như mã ngành, tổ hợp xét tuyển, tên file, số quyết định hoặc năm tuyển sinh.
+
+Ví dụ:
+
+\begin{itemize}
+    \item \texttt{7480201KMA}
+    \item \texttt{A00}
+    \item \texttt{D01}
+    \item \texttt{2025}
+    \item \texttt{QUY CHẾ tuyển sinh 2026}
+\end{itemize}
+
+Tìm kiếm từ khóa giúp cải thiện kết quả trong những câu hỏi mà vector search có thể bỏ sót do thông tin quá ngắn hoặc mang tính ký hiệu.
+
+\subsection{Kết hợp truy hồi}
+
+Chiến lược phù hợp cho hệ thống là kết hợp semantic search với keyword search và metadata filtering. Công thức điểm tổng hợp có thể mô tả như sau:
+
+\begin{center}
+\texttt{final\_score = alpha * semantic\_score + beta * keyword\_score + gamma * metadata\_score}
+\end{center}
+
+Trong đó:
+
+\begin{itemize}
+    \item \texttt{semantic\_score}: điểm tương đồng vector.
+    \item \texttt{keyword\_score}: điểm khớp từ khóa.
+    \item \texttt{metadata\_score}: điểm ưu tiên theo năm tuyển sinh, loại tài liệu, trạng thái tài liệu.
+\end{itemize}
+
+Với bài toán tuyển sinh, metadata score rất quan trọng. Ví dụ, nếu người dùng hỏi năm 2026, hệ thống cần ưu tiên tài liệu \texttt{QUY CHẾ tuyển sinh 2026 HVKTMM} và \texttt{Thông tin dự kiến các phương thức tuyển sinh 2026}. Nếu người dùng hỏi điểm chuẩn năm 2025, hệ thống cần ưu tiên tài liệu điểm chuẩn 2017--2025.
+
+\subsection{Reranking kết quả truy hồi}
+
+Theo nhận xét kỹ thuật từ tài liệu hệ thống, hiện trạng \texttt{enable\_rerank=false} là điểm cần theo dõi. Khi số lượng tài liệu tăng, hệ thống có thể cần bật rerank hoặc bổ sung đánh giá retrieval để giảm nhiễu trong top chunks. :contentReference[oaicite:2]{index=2}
+
+Reranking có vai trò sắp xếp lại các chunks đã truy hồi theo mức độ phù hợp thực sự với câu hỏi. Trong giai đoạn đầu, hệ thống có thể dùng trực tiếp top chunks từ vector search. Tuy nhiên, khi kho tài liệu mở rộng, nhiều tài liệu có nội dung gần nhau, kết quả top-k có thể chứa nhiễu. Khi đó, reranking giúp chọn ra những chunks tốt nhất trước khi đưa vào context.
+
+Quy trình reranking đề xuất:
+
+\begin{enumerate}
+    \item Lấy top-k chunks từ vector search hoặc hybrid retrieval.
+    \item So sánh từng chunk với câu hỏi.
+    \item Tính điểm liên quan chi tiết.
+    \item Sắp xếp lại chunks.
+    \item Chọn top-n chunks làm context.
+\end{enumerate}
+
+\section{Thiết kế Context Builder}
+
+Context Builder chịu trách nhiệm chọn lọc, sắp xếp và định dạng các chunks trước khi đưa vào prompt. Đây là bước quan trọng vì LLM chỉ nên trả lời dựa trên các bằng chứng đã được cung cấp.
+
+Context Builder cần thực hiện các nhiệm vụ:
+
+\begin{itemize}
+    \item Chọn chunks có điểm truy hồi cao.
+    \item Ưu tiên tài liệu đúng năm tuyển sinh.
+    \item Loại bỏ chunks trùng lặp hoặc ít liên quan.
+    \item Giữ lại thông tin định danh như mã ngành, tổ hợp, điểm chuẩn, năm tuyển sinh.
+    \item Giới hạn độ dài context để không vượt quá khả năng xử lý của LLM.
+    \item Gắn thông tin nguồn cho từng chunk.
+\end{itemize}
+
+Một mẫu context có thể được thiết kế như sau:
+
+\begin{verbatim}
+[Source 1]
+Document: Diem_chuan_KMA_2017_2025.pdf
+Year: 2025
+Content:
+Công nghệ thông tin (Hà Nội), mã ngành 7480201KMA,
+tổ hợp A00, A01, D01, điểm chuẩn năm 2025 là 24.42.
+
+[Source 2]
+Document: QUY CHẾ tuyển sinh 2026 HVKTMM (19.3).docx
+Year: 2026
+Content:
+...
+\end{verbatim}
+
+Việc đưa nguồn vào context giúp LLM có căn cứ để sinh câu trả lời kèm trích dẫn và giúp frontend có thể hiển thị lại tài liệu nguồn nếu cần.
+
+\section{Thiết kế Prompt Assembly}
+
+Prompt Assembly là bước kết hợp câu hỏi người dùng, context truy hồi và các quy tắc trả lời thành một prompt hoàn chỉnh gửi đến LLM.
+
+Prompt cần ràng buộc LLM theo các nguyên tắc sau:
+
+\begin{itemize}
+    \item Chỉ sử dụng thông tin trong context.
+    \item Không tự suy đoán khi không có bằng chứng.
+    \item Ưu tiên tài liệu mới nhất hoặc đúng năm người dùng hỏi.
+    \item Khi không đủ thông tin, phải trả lời rằng chưa tìm thấy dữ liệu phù hợp.
+    \item Câu trả lời cần rõ ràng, ngắn gọn, phù hợp với học sinh, phụ huynh hoặc thí sinh.
+    \item Các thông tin quan trọng như điểm chuẩn, mã ngành, tổ hợp, thời gian, điều kiện xét tuyển phải có nguồn.
+\end{itemize}
+
+Mẫu prompt đề xuất:
+
+\begin{verbatim}
+Bạn là trợ lý tư vấn tuyển sinh của Học viện Kỹ thuật mật mã.
+
+Nhiệm vụ:
+Trả lời câu hỏi của người dùng dựa trên ngữ cảnh được cung cấp.
+
+Quy tắc:
+- Chỉ sử dụng thông tin trong phần Ngữ cảnh.
+- Không tự tạo thêm điểm chuẩn, mã ngành, học phí, thời gian hoặc điều kiện xét tuyển.
+- Nếu không đủ dữ liệu, hãy nói rõ chưa tìm thấy thông tin trong kho tài liệu.
+- Ưu tiên tài liệu đúng năm tuyển sinh.
+- Trả lời bằng tiếng Việt, dễ hiểu, ngắn gọn.
+- Nếu có nguồn, hãy nêu tên tài liệu hoặc nguồn trích dẫn.
+
+Ngữ cảnh:
+{context}
+
+Câu hỏi:
+{question}
+
+Câu trả lời:
+\end{verbatim}
+
+Cách thiết kế này giúp giảm hallucination và đảm bảo câu trả lời bám sát dữ liệu đã ingest.
+
+\section{Thiết kế API cho phân hệ RAG}
+
+\subsection{Nhóm API quản lý tài liệu}
+
+Từ dữ liệu kỹ thuật đã xác định, RAG service hỗ trợ các endpoint liên quan đến tài liệu như:
+
+\begin{longtable}{p{0.42\textwidth}p{0.48\textwidth}}
+\toprule
+\textbf{Endpoint} & \textbf{Vai trò} \\
+\midrule
+\endhead
+\texttt{/documents} & Liệt kê trạng thái tài liệu trong kho RAG. \\
+\texttt{/documents/upload} & Upload tài liệu mới vào kho xử lý. \\
+\texttt{/documents/scan} & Quét tài liệu mới từ thư mục input. \\
+\texttt{/documents/reprocess\_failed} & Xử lý lại các tài liệu bị lỗi. \\
+\texttt{/documents/pipeline\_status} & Theo dõi trạng thái pipeline. \\
+\bottomrule
+\end{longtable}
+
+Các API này phục vụ trực tiếp màn hình \texttt{/context-docs}, nơi người quản trị có thể upload, scan, retry pipeline, refresh và theo dõi trạng thái tài liệu.
+
+\subsection{Nhóm API truy vấn}
+
+Nhóm API truy vấn phục vụ quá trình hỏi đáp RAG:
+
+\begin{longtable}{p{0.42\textwidth}p{0.48\textwidth}}
+\toprule
+\textbf{Endpoint} & \textbf{Vai trò} \\
+\midrule
+\endhead
+\texttt{/v1/chat/completions} & Sinh câu trả lời dựa trên context và LLM. \\
+\texttt{/v1/chunks} & Tìm kiếm chunks phục vụ retrieval. \\
+\bottomrule
+\end{longtable}
+
+Endpoint \texttt{/v1/chat/completions} được sử dụng trong luồng RAG Chat. Frontend gửi câu hỏi đến RAG service, service truy hồi chunks liên quan, lắp prompt và gọi LLM để sinh câu trả lời. Endpoint \texttt{/v1/chunks} hỗ trợ tìm kiếm chunks, có thể dùng cho kiểm thử retrieval, debug hoặc hiển thị nguồn liên quan.
+
+\subsection{Định dạng request/response đề xuất}
+
+Request truy vấn RAG có thể thiết kế như sau:
+
+\begin{verbatim}
+{
+  "question": "Ngành Công nghệ thông tin năm 2025 lấy bao nhiêu điểm?",
+  "mode": "hybrid",
+  "top_k": 5,
+  "admission_year": 2025,
+  "selected_documents": []
+}
+\end{verbatim}
+
+Response có thể gồm:
+
+\begin{verbatim}
+{
+  "answer": "Năm 2025, ngành Công nghệ thông tin có điểm chuẩn là 24.42.",
+  "citations": [
+    {
+      "document_name": "Diem_chuan_KMA_2017_2025.pdf",
+      "chunk_id": "chunk_...",
+      "year": 2025
+    }
+  ],
+  "status": "answered",
+  "confidence_score": 0.88
+}
+\end{verbatim}
+
+Nếu không có bằng chứng phù hợp, response nên là:
+
+\begin{verbatim}
+{
+  "answer": "Hiện tại hệ thống chưa tìm thấy thông tin phù hợp trong kho tài liệu.",
+  "citations": [],
+  "status": "insufficient_evidence",
+  "confidence_score": 0.0
+}
+\end{verbatim}
+
+\section{Thiết kế tích hợp RAG với Rasa}
+
+\subsection{Cơ chế gọi RAG thông qua Custom Action}
+
+Trong hệ thống, Rasa xử lý các câu hỏi hội thoại thông thường. Với các câu hỏi cần tra cứu tài liệu, Rasa có thể gọi Custom Action để chuyển câu hỏi sang RAG service.
+
+Luồng tích hợp gồm:
+
+\begin{enumerate}
+    \item Người dùng gửi câu hỏi.
+    \item Rasa NLU phân tích intent và entity.
+    \item Nếu intent thuộc nhóm cần tra cứu tài liệu, Rasa gọi \texttt{action\_query\_rag}.
+    \item Custom Action lấy câu hỏi gốc, metadata hội thoại và entity nếu có.
+    \item Custom Action gửi request đến RAG service.
+    \item RAG service trả về câu trả lời, citations và trạng thái.
+    \item Rasa gửi câu trả lời lại cho người dùng.
+\end{enumerate}
+
+Ví dụ:
+
+\begin{verbatim}
+User: Ngành Công nghệ thông tin xét tuyển tổ hợp nào?
+
+Rasa:
+- Nhận diện intent: ask_admission_info
+- Gọi action_query_rag
+
+RAG:
+- Truy hồi tài liệu tuyển sinh
+- Tìm chunks liên quan ngành Công nghệ thông tin
+- Sinh câu trả lời kèm nguồn
+
+Bot:
+Ngành Công nghệ thông tin xét tuyển các tổ hợp A00, A01, D01...
+\end{verbatim}
+
+\subsection{Phân luồng giữa Rasa và RAG}
+
+Không phải câu hỏi nào cũng cần gọi RAG. Hệ thống nên phân luồng như sau:
+
+\begin{longtable}{p{0.34\textwidth}p{0.56\textwidth}}
+\toprule
+\textbf{Loại câu hỏi} & \textbf{Cách xử lý} \\
+\midrule
+\endhead
+Chào hỏi, cảm ơn, tạm biệt & Rasa trả lời bằng rule hoặc response template. \\
+Câu hỏi FAQ đơn giản & Rasa trả lời trực tiếp nếu đã có dữ liệu tĩnh. \\
+Câu hỏi về điểm chuẩn, ngành, phương thức tuyển sinh & Gọi RAG để truy hồi tài liệu. \\
+Câu hỏi cần tài liệu mới nhất & Gọi RAG và ưu tiên metadata năm tuyển sinh mới. \\
+Câu hỏi không đủ dữ liệu & RAG trả trạng thái insufficient evidence. \\
+Câu hỏi ngoài phạm vi tuyển sinh & Rasa fallback hoặc từ chối trả lời. \\
+\bottomrule
+\end{longtable}
+
+Cách phân luồng này giúp giảm chi phí gọi LLM, tăng tốc độ phản hồi và vẫn đảm bảo những câu hỏi cần căn cứ tài liệu được xử lý bằng RAG.
+
+\section{Thiết kế cơ chế kiểm soát độ tin cậy}
+
+\subsection{Kiểm soát hallucination}
+
+Hallucination là rủi ro quan trọng khi sử dụng LLM. Với chatbot tuyển sinh, hallucination có thể dẫn đến sai thông tin về điểm chuẩn, thời gian đăng ký, học phí hoặc điều kiện xét tuyển. Vì vậy, hệ thống cần kiểm soát bằng các cơ chế:
+
+\begin{itemize}
+    \item Chỉ cho phép LLM trả lời dựa trên context đã truy hồi.
+    \item Bắt buộc câu trả lời quan trọng phải có nguồn.
+    \item Không cho phép tự tạo số liệu nếu context không có.
+    \item Khi không có chunks phù hợp, trả về thông báo chưa tìm thấy thông tin.
+    \item Ghi log các câu hỏi có confidence thấp để admin kiểm tra.
+\end{itemize}
+
+\subsection{Kiểm tra năm tuyển sinh}
+
+Dữ liệu tuyển sinh thay đổi theo từng năm, vì vậy RAG cần ưu tiên đúng năm. Nếu người dùng hỏi rõ năm, hệ thống lọc tài liệu theo năm đó. Nếu người dùng không nêu năm, hệ thống ưu tiên tài liệu mới nhất đang có hiệu lực.
+
+Ví dụ:
+
+\begin{itemize}
+    \item Câu hỏi ``điểm chuẩn CNTT năm 2025'' cần ưu tiên tài liệu điểm chuẩn 2017--2025.
+    \item Câu hỏi ``phương thức tuyển sinh 2026'' cần ưu tiên quy chế tuyển sinh 2026 và thông tin dự kiến phương thức tuyển sinh 2026.
+    \item Câu hỏi ``chương trình đào tạo CNTT'' cần ưu tiên tài liệu chương trình đào tạo CNTT.
+\end{itemize}
+
+\subsection{Kiểm tra trạng thái tài liệu}
+
+Chỉ các tài liệu ở trạng thái \texttt{processed} mới nên được sử dụng để trả lời mặc định. Tài liệu failed, pending hoặc archived không nên đưa vào context chính thức. Điều này giúp tránh tình trạng hệ thống sử dụng dữ liệu chưa xử lý xong hoặc có lỗi.
+
+\subsection{Cảnh báo dữ liệu cũ}
+
+Nếu hệ thống chỉ tìm thấy tài liệu cũ hoặc không có tài liệu đúng năm, câu trả lời nên có cảnh báo. Ví dụ:
+
+\begin{quote}
+``Hiện tại hệ thống chỉ tìm thấy thông tin trong tài liệu năm 2025. Nếu bạn cần thông tin tuyển sinh năm 2026, vui lòng kiểm tra thêm thông báo mới nhất từ Học viện.''
+\end{quote}
+
+Cơ chế này giúp tăng tính minh bạch và giảm rủi ro người dùng hiểu nhầm thông tin.
+
+\section{Thiết kế tối ưu vận hành}
+
+\subsection{Cache embedding}
+
+Cache embedding giúp hệ thống không phải sinh lại vector cho chunks không thay đổi. Khi nội dung chunk giữ nguyên, hệ thống có thể tái sử dụng embedding cũ. Điều này đặc biệt hữu ích khi admin reindex tài liệu hoặc cập nhật metadata nhưng nội dung không đổi.
+
+\subsection{Cache kết quả truy hồi}
+
+Một số câu hỏi tuyển sinh được hỏi lặp lại nhiều lần, ví dụ:
+
+\begin{itemize}
+    \item Trường có những phương thức xét tuyển nào?
+    \item Điểm chuẩn ngành Công nghệ thông tin là bao nhiêu?
+    \item Ngành An toàn thông tin xét tuyển tổ hợp nào?
+    \item Hồ sơ nhập học gồm những gì?
+\end{itemize}
+
+Với những câu hỏi phổ biến, hệ thống có thể cache kết quả truy hồi hoặc cache câu trả lời đã kiểm duyệt để tăng tốc độ phản hồi.
+
+\subsection{Retry pipeline}
+
+Màn hình \texttt{/context-docs} có chức năng \texttt{Retry Pipeline}, cho thấy hệ thống đã tính đến tình huống ingest lỗi. Khi tài liệu xử lý thất bại, admin có thể yêu cầu pipeline xử lý lại thay vì upload lại từ đầu. Đây là điểm quan trọng trong vận hành thực tế vì tài liệu PDF, DOCX hoặc XLSX có thể lỗi định dạng, lỗi encoding hoặc lỗi trích xuất văn bản.
+
+\subsection{Clear cache và refresh dữ liệu}
+
+Hệ thống có chức năng \texttt{Clear All} và \texttt{Refresh} trên màn hình tài liệu ngữ cảnh. Các chức năng này hỗ trợ quản trị viên làm mới dữ liệu hiển thị, xử lý cache và kiểm tra trạng thái mới nhất của pipeline.
+
+\section{Thiết kế tiêu chí đánh giá phân hệ RAG}
+
+\subsection{Đánh giá chất lượng truy hồi}
+
+Chất lượng truy hồi quyết định trực tiếp chất lượng câu trả lời. Hệ thống cần đánh giá xem các chunks được lấy ra có thực sự liên quan đến câu hỏi hay không.
+
+Các tiêu chí đánh giá gồm:
+
+\begin{itemize}
+    \item Tỷ lệ truy hồi đúng tài liệu.
+    \item Tỷ lệ truy hồi đúng năm tuyển sinh.
+    \item Tỷ lệ chunks liên quan trong top-k.
+    \item Tỷ lệ câu hỏi truy hồi được nguồn phù hợp.
+    \item Tỷ lệ câu hỏi không tìm thấy nguồn nhưng hệ thống vẫn trả lời.
+\end{itemize}
+
+\subsection{Đánh giá chất lượng câu trả lời}
+
+Câu trả lời của RAG cần được đánh giá theo các tiêu chí:
+
+\begin{itemize}
+    \item Đúng với tài liệu nguồn.
+    \item Không tự thêm thông tin ngoài context.
+    \item Dễ hiểu với thí sinh và phụ huynh.
+    \item Có trích dẫn hoặc chỉ rõ nguồn.
+    \item Trả lời đúng trọng tâm câu hỏi.
+    \item Biết từ chối khi không đủ dữ liệu.
+\end{itemize}
+
+\subsection{Kịch bản kiểm thử đề xuất}
+
+Dựa trên dữ liệu hiện có, có thể xây dựng các nhóm kiểm thử sau:
+
+\begin{longtable}{p{0.25\textwidth}p{0.38\textwidth}p{0.27\textwidth}}
+\toprule
+\textbf{Nhóm kiểm thử} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\
+\midrule
+\endhead
+Điểm chuẩn & Hỏi điểm chuẩn KMA giai đoạn 2017--2025. & Truy hồi đúng file điểm chuẩn hoặc Tuyển sinh.xlsx. \\
+Ngành đào tạo & Hỏi chương trình đào tạo CNTT, ATTT, DTVT. & Truy hồi đúng tài liệu chương trình đào tạo tương ứng. \\
+Phương thức tuyển sinh & Hỏi phương thức tuyển sinh năm 2026. & Truy hồi đúng quy chế hoặc thông tin tuyển sinh 2026. \\
+Ingest & Upload file PDF/DOCX/XLSX mới. & Tài liệu chuyển sang processed, có chunks và updated time. \\
+Pipeline & Retry tài liệu failed. & Tài liệu được xử lý lại hoặc ghi rõ lỗi. \\
+Nguồn trích dẫn & Hỏi câu yêu cầu số liệu cụ thể. & Câu trả lời có nguồn tài liệu phù hợp. \\
+Không đủ dữ liệu & Hỏi thông tin chưa có trong kho. & Hệ thống từ chối trả lời hoặc báo chưa tìm thấy nguồn. \\
+\bottomrule
+\end{longtable}
+
+\subsection{Đánh giá hiện trạng}
+
+Từ dữ liệu kỹ thuật đã thu thập, phân hệ RAG có một số điểm mạnh:
+
+\begin{itemize}
+    \item Kho RAG đã có 21 tài liệu processed và 171 chunks.
+    \item Tài liệu bao phủ nhiều nhóm thông tin như tuyển sinh, điểm chuẩn, chương trình đào tạo, quy chế và hoạt động học viện.
+    \item RAG service ở trạng thái healthy, pipeline không busy.
+    \item Storage được tách lớp rõ ràng: Redis, Qdrant và Memgraph.
+    \item UI quản trị có chức năng quản lý tài liệu ngữ cảnh, upload, scan, retry pipeline và theo dõi trạng thái.
+\end{itemize}
+
+Bên cạnh đó, hệ thống còn một số điểm cần cải thiện:
+
+\begin{itemize}
+    \item Rerank hiện đang tắt, có thể ảnh hưởng đến chất lượng top chunks khi dữ liệu tăng.
+    \item Cần bổ sung dashboard chất lượng RAG như tỷ lệ câu trả lời có citation, top tài liệu được truy hồi và câu hỏi không tìm thấy nguồn.
+    \item Cần chuẩn hóa pipeline nhập liệu về encoding, tên file, OCR confidence, checksum và metadata.
+    \item Cần xây dựng bộ kiểm thử định kỳ cho các câu hỏi tuyển sinh trọng yếu.
+\end{itemize}
+
+\section{Kết luận chương}
+
+Chương này đã trình bày phân tích và thiết kế phân hệ RAG trong hệ thống KMA Chatbot tuyển sinh. RAG được thiết kế nhằm bổ sung khả năng truy xuất tri thức từ tài liệu thật, giúp chatbot trả lời các câu hỏi tuyển sinh, đào tạo, điểm chuẩn và quy chế dựa trên nguồn đã được ingest.
+
+Dữ liệu thực tế cho thấy phân hệ RAG đã có nền tảng vận hành rõ ràng với 21 tài liệu ở trạng thái processed, 171 chunks, sử dụng embedding model \texttt{BAAI/bge-m3}, vector store Qdrant, Redis cho trạng thái và cache, Memgraph cho lưu trữ quan hệ tri thức. Các API như \texttt{/documents}, \texttt{/documents/upload}, \texttt{/documents/scan}, \texttt{/documents/pipeline\_status}, \texttt{/v1/chat/completions} và \texttt{/v1/chunks} cho thấy hệ thống đã hỗ trợ cả luồng ingest và luồng truy vấn.
+
+Về thiết kế, phân hệ RAG được chia thành hai luồng chính: Indexing Flow và Query Flow. Indexing Flow chịu trách nhiệm xử lý tài liệu, chia chunks, sinh embedding và lưu vào các lớp lưu trữ. Query Flow chịu trách nhiệm nhận câu hỏi, truy hồi chunks liên quan, xây dựng context, lắp prompt và sinh câu trả lời bằng LLM. Ngoài ra, chương cũng đã trình bày thiết kế lưu trữ đa tầng, chiến lược truy hồi, Context Builder, Prompt Assembly, cơ chế kiểm soát độ tin cậy, tích hợp với Rasa và các tiêu chí đánh giá chất lượng.
+
+Trong giai đoạn tiếp theo, trọng tâm cần tập trung vào đánh giá chất lượng truy hồi, bật hoặc thử nghiệm rerank, chuẩn hóa metadata, xây dựng dashboard giám sát RAG và tạo bộ kiểm thử định kỳ cho các câu hỏi tuyển sinh quan trọng. Điều này giúp phân hệ RAG không chỉ hoạt động được về mặt kỹ thuật mà còn đảm bảo độ chính xác, tính truy vết và độ tin cậy trong môi trường tư vấn tuyển sinh thực tế.

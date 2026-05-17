@@ -1,0 +1,373 @@
+\chapter{THIẾT KẾ API HỆ THỐNG}
+
+Chương này trình bày thiết kế API cho hệ thống chatbot tư vấn tuyển sinh. API đóng vai trò là lớp trung gian kết nối giữa giao diện người dùng, backend, Rasa Server, Action Server, cơ sở dữ liệu tuyển sinh và phân hệ RAG. Thông qua API, hệ thống có thể tiếp nhận câu hỏi từ người dùng, xử lý xác thực, quản lý dữ liệu huấn luyện chatbot, vận hành mô hình Rasa, truy xuất dữ liệu tuyển sinh và gọi kho tri thức khi cần trả lời các câu hỏi phức tạp.
+
+Hệ thống API được thiết kế theo hướng RESTful, sử dụng đường dẫn có cấu trúc rõ ràng, hỗ trợ phân quyền và dễ mở rộng. Các API chính được đặt dưới tiền tố \texttt{/api/v1}. Dữ liệu trao đổi giữa client và server sử dụng định dạng JSON. Với các chức năng chat thời gian thực, hệ thống có thể sử dụng cơ chế streaming để trả lời từng phần, giúp cải thiện trải nghiệm người dùng.
+
+\section{Nguyên tắc thiết kế API}
+
+API của hệ thống được thiết kế dựa trên các nguyên tắc sau:
+
+\begin{itemize}
+    \item \textbf{Phân tách chức năng rõ ràng:} mỗi nhóm API phụ trách một nghiệp vụ riêng như xác thực, quản lý intent, quản lý rule, chat, huấn luyện mô hình hoặc truy vấn RAG.
+    \item \textbf{Thống nhất phương thức HTTP:} \texttt{GET} dùng để truy vấn dữ liệu, \texttt{POST} dùng để tạo mới hoặc thực hiện hành động, \texttt{PUT} dùng để cập nhật, \texttt{DELETE} dùng để xóa và \texttt{PATCH} dùng cho các cập nhật trạng thái như khôi phục bản ghi.
+    \item \textbf{Hỗ trợ phân trang:} các API lấy danh sách như intent, rule, action và response đều cần hỗ trợ phân trang, tìm kiếm và lọc trạng thái.
+    \item \textbf{Hỗ trợ xóa mềm và khôi phục:} dữ liệu quản trị chatbot có thể xóa mềm để tránh mất dữ liệu trong quá trình vận hành.
+    \item \textbf{Bảo mật bằng xác thực:} các API quản trị yêu cầu người dùng đăng nhập và có quyền phù hợp.
+    \item \textbf{Dễ tích hợp với Rasa và RAG:} các API phải hỗ trợ Action Server gọi dữ liệu tuyển sinh hoặc gọi phân hệ RAG để tạo câu trả lời.
+\end{itemize}
+
+Cấu trúc phản hồi API được chuẩn hóa để frontend dễ xử lý. Một phản hồi thành công có thể có dạng:
+
+\begin{verbatim}
+{
+  "success": true,
+  "message": "Success",
+  "data": { }
+}
+\end{verbatim}
+
+Đối với danh sách có phân trang, phản hồi có thể bổ sung thông tin trang hiện tại, tổng số bản ghi và số bản ghi trên mỗi trang:
+
+\begin{verbatim}
+{
+  "success": true,
+  "data": {
+    "items": [],
+    "page": 1,
+    "pageSize": 10,
+    "totalItems": 100,
+    "totalPages": 10
+  }
+}
+\end{verbatim}
+
+\section{Thiết kế API xác thực người dùng}
+
+Nhóm API xác thực có nhiệm vụ quản lý đăng nhập, đăng ký và xác thực tài khoản. Đây là nhóm API nền tảng để bảo vệ các chức năng quản trị và cá nhân hóa trải nghiệm người dùng.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{POST} & \texttt{/v1/auth/login} & Đăng nhập bằng email và mật khẩu. \\
+\hline
+\texttt{POST} & \texttt{/v1/auth/register} & Đăng ký tài khoản mới. \\
+\hline
+\texttt{POST} & \texttt{/v1/auth/verify-email} & Xác thực email bằng mã OTP. \\
+\hline
+\end{longtable}
+
+Khi đăng nhập thành công, hệ thống trả về token xác thực. Token này được frontend lưu trữ và gửi kèm trong các request cần bảo vệ. Các API quản trị như quản lý intent, rule, action, response và huấn luyện chatbot yêu cầu token hợp lệ.
+
+Ví dụ request đăng nhập:
+
+\begin{verbatim}
+POST /api/v1/auth/login
+
+{
+  "email": "admin@example.com",
+  "password": "123456"
+}
+\end{verbatim}
+
+Ví dụ response:
+
+\begin{verbatim}
+{
+  "success": true,
+  "message": "Login successfully",
+  "data": {
+    "accessToken": "...",
+    "refreshToken": "...",
+    "profile": {
+      "id": "user-id",
+      "email": "admin@example.com",
+      "role": "Admin"
+    }
+  }
+}
+\end{verbatim}
+
+\section{Thiết kế API quản lý dữ liệu Rasa}
+
+Nhóm API quản lý dữ liệu Rasa cho phép quản trị viên thao tác với các thành phần huấn luyện của chatbot như intent, rule, response và action. Việc đưa các thành phần này lên giao diện quản trị giúp người quản trị có thể cập nhật dữ liệu hội thoại mà không cần chỉnh sửa trực tiếp các file cấu hình của Rasa.
+
+\subsection{API quản lý Intent}
+
+Intent là ý định của người dùng được Rasa NLU nhận diện từ câu hỏi đầu vào. API quản lý intent cho phép thêm, sửa, xóa và khôi phục intent.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/intent} & Lấy danh sách intent có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/intent} & Tạo intent mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/intent/\{id\}} & Lấy chi tiết intent theo id. \\
+\hline
+\texttt{PUT} & \texttt{/v1/intent/\{id\}} & Cập nhật intent. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/intent/\{id\}/soft} & Xóa mềm intent. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/intent/\{id\}/hard} & Xóa vĩnh viễn intent. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/intent/\{id\}/restore} & Khôi phục intent đã xóa mềm. \\
+\hline
+\end{longtable}
+
+Dữ liệu intent có thể bao gồm tên intent, danh sách câu ví dụ, trạng thái hoạt động và mô tả. Khi intent được cập nhật, hệ thống cần huấn luyện lại mô hình để thay đổi có hiệu lực.
+
+\subsection{API quản lý Rule}
+
+Rule dùng để định nghĩa các luồng phản hồi cố định trong Rasa. API quản lý rule giúp quản trị viên kiểm soát các kịch bản hội thoại có tính xác định cao.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/rule} & Lấy danh sách rule có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/rule} & Tạo rule mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/rule/\{id\}} & Lấy chi tiết rule. \\
+\hline
+\texttt{PUT} & \texttt{/v1/rule/\{id\}} & Cập nhật rule. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/rule/\{id\}/soft} & Xóa mềm rule. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/rule/\{id\}/hard} & Xóa vĩnh viễn rule. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/rule/\{id\}/restore} & Khôi phục rule. \\
+\hline
+\end{longtable}
+
+Mỗi rule thường bao gồm tên rule, intent kích hoạt, action phản hồi và trạng thái sử dụng. Với các câu hỏi phổ biến như hỏi lời chào, hỏi thông tin trường hoặc hỏi hướng dẫn sử dụng chatbot, rule giúp hệ thống phản hồi nhanh và ổn định.
+
+\subsection{API quản lý Response}
+
+Response là các câu trả lời mẫu được Rasa sử dụng trong phần NLG. API quản lý response cho phép thêm và cập nhật nội dung phản hồi mà không cần chỉnh sửa trực tiếp file \texttt{domain.yml}.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/my-response} & Lấy danh sách response có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/my-response} & Tạo response mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/my-response/\{id\}} & Lấy chi tiết response. \\
+\hline
+\texttt{PUT} & \texttt{/v1/my-response/\{id\}} & Cập nhật response. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/my-response/\{id\}/soft} & Xóa mềm response. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/my-response/\{id\}/hard} & Xóa vĩnh viễn response. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/my-response/\{id\}/restore} & Khôi phục response. \\
+\hline
+\end{longtable}
+
+Mỗi response có thể chứa tên response, nội dung câu trả lời, biến động nếu có và trạng thái hoạt động. Ví dụ, response \texttt{utter\_greet} có thể chứa nhiều biến thể câu chào để chatbot trả lời tự nhiên hơn.
+
+\subsection{API quản lý Action}
+
+Action là hành động mà Rasa thực hiện sau khi nhận diện intent và trạng thái hội thoại. Action có thể là câu trả lời tĩnh hoặc custom action gọi sang backend để lấy dữ liệu.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/action} & Lấy danh sách action có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/action} & Tạo action mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/action/\{id\}} & Lấy chi tiết action. \\
+\hline
+\texttt{PUT} & \texttt{/v1/action/\{id\}} & Cập nhật action. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/action/\{id\}/soft} & Xóa mềm action. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/action/\{id\}/hard} & Xóa vĩnh viễn action. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/action/\{id\}/restore} & Khôi phục action. \\
+\hline
+\end{longtable}
+
+Đối với hệ thống tư vấn tuyển sinh, các custom action quan trọng gồm action tra cứu ngành học, action tra cứu học phí, action tra cứu điểm chuẩn, action tra cứu phương thức xét tuyển và action gọi RAG khi câu hỏi cần truy hồi tài liệu.
+
+\section{Thiết kế API Chatbot và huấn luyện mô hình}
+
+Nhóm API chatbot phục vụ quá trình gửi câu hỏi, nhận phản hồi, kiểm tra trạng thái chatbot và vận hành các tiến trình liên quan đến Rasa.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/chat/stream} & Gửi tin nhắn đến chatbot và nhận phản hồi dạng stream. \\
+\hline
+\texttt{GET} & \texttt{/v1/chatbot/\{id\}/models} & Lấy danh sách model của chatbot. \\
+\hline
+\texttt{GET} & \texttt{/v1/chatbot/\{id\}/health} & Kiểm tra trạng thái hoạt động của chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/run} & Chạy Rasa Server cho chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/run-actions} & Chạy Action Server cho chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/train} & Huấn luyện model chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/train-active} & Huấn luyện model từ các rule và story đang hoạt động. \\
+\hline
+\end{longtable}
+
+Endpoint \texttt{/v1/chatbot/chat/stream} là API trung tâm trong quá trình tương tác với người dùng. Khi người dùng nhập câu hỏi, frontend gửi nội dung câu hỏi đến API này. Backend sau đó chuyển tiếp tin nhắn đến Rasa Server. Rasa phân tích intent, entity, trạng thái hội thoại và quyết định action cần thực hiện. Nếu cần dữ liệu nghiệp vụ, Rasa gọi Action Server. Nếu cần truy hồi tài liệu, Action Server gọi phân hệ RAG.
+
+Ví dụ request gửi tin nhắn:
+
+\begin{verbatim}
+POST /api/v1/chatbot/chat/stream
+
+{
+  "message": "Ngành công nghệ thông tin lấy bao nhiêu điểm?",
+  "senderId": "user-001",
+  "conversationId": "conv-001"
+}
+\end{verbatim}
+
+Ví dụ response dạng thông thường:
+
+\begin{verbatim}
+{
+  "success": true,
+  "data": {
+    "answer": "Điểm chuẩn ngành Công nghệ thông tin năm gần nhất là ...",
+    "source": "database",
+    "intent": "ask_cutoff_score"
+  }
+}
+\end{verbatim}
+
+\section{Thiết kế API dữ liệu tuyển sinh cho Custom Actions}
+
+Ngoài các API quản trị Rasa, hệ thống cần có nhóm API nghiệp vụ tuyển sinh để Action Server truy vấn dữ liệu có cấu trúc. Nhóm API này không nhất thiết được gọi trực tiếp bởi người dùng cuối mà chủ yếu phục vụ custom actions.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint đề xuất} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/majors} & Lấy danh sách ngành học. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/majors/\{id\}} & Lấy chi tiết ngành học. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/majors/by-code/\{code\}} & Tra cứu ngành học theo mã ngành. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/methods} & Lấy danh sách phương thức xét tuyển. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/subject-combinations} & Lấy danh sách tổ hợp xét tuyển. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/cutoff-scores} & Tra cứu điểm chuẩn theo ngành, năm hoặc phương thức xét tuyển. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/tuitions} & Tra cứu học phí theo ngành và năm học. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/faqs} & Lấy danh sách câu hỏi thường gặp. \\
+\hline
+\end{longtable}
+
+Ví dụ khi người dùng hỏi: ``Học phí ngành An toàn thông tin là bao nhiêu?'', Rasa có thể nhận diện intent \texttt{ask\_tuition} và entity \texttt{major = An toàn thông tin}. Sau đó custom action gọi API:
+
+\begin{verbatim}
+GET /api/v1/admissions/tuitions?majorName=An%20toan%20thong%20tin&year=2025
+\end{verbatim}
+
+Kết quả trả về từ backend được Action Server định dạng lại thành câu trả lời tự nhiên trước khi gửi về Rasa. Cách thiết kế này giúp Rasa không phải lưu trực tiếp toàn bộ dữ liệu tuyển sinh trong file huấn luyện, đồng thời dữ liệu có thể được cập nhật thường xuyên từ giao diện quản trị.
+
+\section{Thiết kế API cho phân hệ RAG}
+
+API RAG được sử dụng khi câu hỏi của người dùng không thể trả lời tốt bằng rule, response tĩnh hoặc dữ liệu có cấu trúc. Đây thường là các câu hỏi dài, câu hỏi mở hoặc câu hỏi cần dựa vào tài liệu tuyển sinh.
+
+Nhóm API RAG đề xuất gồm:
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint đề xuất} & \textbf{Mô tả} \\
+\hline
+\texttt{POST} & \texttt{/v1/rag/query} & Gửi câu hỏi đến phân hệ RAG và nhận câu trả lời kèm nguồn. \\
+\hline
+\texttt{POST} & \texttt{/v1/rag/documents} & Thêm tài liệu mới vào kho tri thức. \\
+\hline
+\texttt{GET} & \texttt{/v1/rag/documents} & Lấy danh sách tài liệu đã ingest. \\
+\hline
+\texttt{GET} & \texttt{/v1/rag/documents/\{id\}} & Xem chi tiết tài liệu. \\
+\hline
+\texttt{POST} & \texttt{/v1/rag/documents/\{id\}/ingest} & Thực hiện ingest tài liệu vào kho tri thức. \\
+\hline
+\texttt{POST} & \texttt{/v1/rag/documents/\{id\}/retry} & Xử lý lại tài liệu bị lỗi. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/rag/documents/\{id\}} & Xóa tài liệu khỏi kho tri thức. \\
+\hline
+\texttt{GET} & \texttt{/v1/rag/health} & Kiểm tra trạng thái các thành phần RAG. \\
+\hline
+\end{longtable}
+
+Request truy vấn RAG có thể có dạng:
+
+\begin{verbatim}
+POST /api/v1/rag/query
+
+{
+  "question": "Điều kiện xét tuyển thẳng của trường là gì?",
+  "conversationId": "conv-001",
+  "topK": 5,
+  "filters": {
+    "year": 2025,
+    "documentType": "admission_policy"
+  }
+}
+\end{verbatim}
+
+Response RAG cần trả về câu trả lời và nguồn tham chiếu:
+
+\begin{verbatim}
+{
+  "success": true,
+  "data": {
+    "answer": "Theo đề án tuyển sinh, điều kiện xét tuyển thẳng gồm ...",
+    "sources": [
+      {
+        "documentName": "De an tuyen sinh 2025.pdf",
+        "chunkId": "chunk-001",
+        "page": 12,
+        "score": 0.87
+      }
+    ]
+  }
+}
+\end{verbatim}
+
+Thiết kế response có nguồn tham chiếu giúp tăng độ tin cậy của câu trả lời và hỗ trợ người dùng kiểm chứng thông tin. Đồng thời, quản trị viên có thể dựa vào thông tin \texttt{chunkId}, \texttt{documentName} và \texttt{score} để đánh giá chất lượng truy hồi.
+
+\section{Luồng tích hợp API giữa Frontend, Backend, Rasa và RAG}
+
+Trong hệ thống, frontend không gọi trực tiếp đến Rasa Server hoặc RAG Service mà gửi yêu cầu thông qua backend. Backend đóng vai trò điều phối, xác thực, ghi log hội thoại và chuyển tiếp request đến thành phần phù hợp.
+
+Luồng xử lý câu hỏi thông thường như sau:
+
+\begin{enumerate}
+    \item Người dùng nhập câu hỏi trên giao diện chat.
+    \item Frontend gọi API \texttt{POST /v1/chatbot/chat/stream}.
+    \item Backend ghi nhận tin nhắn và gửi câu hỏi đến Rasa Server.
+    \item Rasa Server nhận diện intent, entity và quyết định action.
+    \item Nếu action là phản hồi tĩnh, Rasa trả lời bằng response đã cấu hình.
+    \item Nếu action cần dữ liệu tuyển sinh, Action Server gọi API dữ liệu tuyển sinh của backend.
+    \item Nếu action cần tài liệu, Action Server gọi API \texttt{/v1/rag/query}.
+    \item Backend trả kết quả về frontend và lưu lịch sử hội thoại.
+\end{enumerate}
+
+Với thiết kế này, mỗi thành phần trong hệ thống có nhiệm vụ rõ ràng. Frontend chỉ phụ trách giao diện và trải nghiệm người dùng. Backend phụ trách xác thực, điều phối và quản lý dữ liệu. Rasa phụ trách hiểu ý định và quản lý hội thoại. Action Server xử lý nghiệp vụ động. RAG phụ trách truy hồi tài liệu và sinh câu trả lời dựa trên kho tri thức.
+
+\section{Kết luận chương}
+
+Chương này đã trình bày thiết kế API cho hệ thống chatbot tư vấn tuyển sinh. Các API được chia thành các nhóm chính gồm API xác thực, API quản lý dữ liệu Rasa, API chatbot, API huấn luyện mô hình, API dữ liệu tuyển sinh và API RAG. Thiết kế này giúp hệ thống có cấu trúc rõ ràng, dễ mở rộng và phù hợp với mô hình kết hợp giữa Rasa và RAG.
+
+Thông qua lớp API, hệ thống có thể quản lý dữ liệu huấn luyện chatbot, vận hành Rasa, gọi custom actions, truy xuất dữ liệu tuyển sinh và khai thác kho tri thức. Đây là nền tảng quan trọng để triển khai các chức năng hỏi đáp tự động, quản trị nội dung và cải thiện chất lượng tư vấn tuyển sinh trong quá trình vận hành.

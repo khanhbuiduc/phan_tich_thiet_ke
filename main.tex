@@ -1,0 +1,71 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage{fontspec}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{array}
+\usepackage{amsmath}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{xurl}
+\usepackage{hyperref}
+
+\geometry{
+    left=3cm,
+    right=2cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+
+\graphicspath{{content/}{content/source/}}
+
+\makeatletter
+\def\input@path{{content/}}
+\makeatother
+
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0.4em}
+\renewcommand{\baselinestretch}{1.25}
+\sloppy
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=black,
+    citecolor=black,
+    urlcolor=blue
+}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    {\Large BÁO CÁO PHÂN TÍCH KỸ THUẬT\par}
+    \vspace{3cm}
+    {\LARGE\bfseries Hệ thống trợ lý ảo tư vấn tuyển sinh\par}
+    \vfill
+    {\large \today\par}
+\end{titlepage}
+
+\tableofcontents
+\clearpage
+
+\input{chapter_1_overview_and_technology/chapter_1_overview_and_technology}
+\input{chapter_2_requirements_analysis/chapter_2_requirements_analysis}
+\input{chapter_3_system_architecture_design/chapter_3_system_architecture_design}
+\input{chapter_4_rasa_chatbot_design/chapter_4_rasa_chatbot_design}
+\input{chapter_5_rag_subsystem_design/chapter_5_rag_subsystem_design}
+\input{chapter_6_database_api_knowledge_base_design/chapter_6_database_api_knowledge_base_design}
+\input{chapter_7_administration_subsystem_design/chapter_7_administration_subsystem_design}
+\input{chapter_8_installation_testing_evaluation/chapter_8_installation_testing_evaluation}
+\input{chapter_9_conclusion_and_future_work/chapter_9_conclusion_and_future_work}
+
+\end{document}

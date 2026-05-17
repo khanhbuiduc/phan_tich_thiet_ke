@@ -1,0 +1,115 @@
+\section{Phân tích đối tượng sử dụng}
+Dựa trên các chức năng đã quan sát được trong hệ thống, có thể xác định hệ thống chatbot tư vấn tuyển sinh gồm ba nhóm người dùng chính: người dùng hỏi đáp, người quản trị nội dung và người quản trị hệ thống. Mỗi nhóm người dùng có mục đích sử dụng, phạm vi thao tác và quyền truy cập khác nhau.
+
+\subsection{Người dùng hỏi đáp}
+Người dùng hỏi đáp là nhóm người dùng trực tiếp tương tác với chatbot để tìm kiếm thông tin tuyển sinh và các thông tin liên quan đến học viện. Nhóm người dùng này có thể là thí sinh, phụ huynh hoặc người quan tâm đến thông tin tuyển sinh, ngành học, học phí, thủ tục, biểu mẫu và các văn bản hướng dẫn.
+
+Trong hệ thống, người dùng hỏi đáp có thể nhập câu hỏi bằng ngôn ngữ tự nhiên thông qua giao diện trò chuyện. Tùy theo nội dung câu hỏi, hệ thống có thể xử lý bằng hai hướng chính: trả lời thông qua Rasa đối với các câu hỏi phổ biến, có kịch bản hoặc có nghiệp vụ rõ ràng; hoặc trả lời thông qua RAG đối với các câu hỏi cần truy xuất thông tin từ tài liệu, văn bản hoặc kho tri thức đã được xử lý.
+
+Các nhu cầu chính của người dùng hỏi đáp gồm:
+
+\begin{table}[H]
+    \centering
+    \caption{Nhu cầu chính của Người dùng hỏi đáp}
+    \begin{tabular}{|l|p{10cm}|}
+        \hline
+        \textbf{Nhu cầu} & \textbf{Mô tả} \\ \hline
+        Hỏi thông tin tuyển sinh & Đặt câu hỏi về phương thức tuyển sinh, thời gian xét tuyển, hồ sơ, thủ tục \\ \hline
+        Hỏi ngành học & Tìm hiểu ngành đào tạo, mã ngành, chương trình học, tổ hợp xét tuyển \\ \hline
+        Hỏi học phí & Tra cứu mức học phí, chính sách tài chính hoặc thông tin liên quan \\ \hline
+        Hỏi điểm chuẩn & Xem điểm chuẩn các năm hoặc điểm chuẩn theo ngành \\ \hline
+        Hỏi văn bản, biểu mẫu & Tìm kiếm các tài liệu, biểu mẫu, quy định hoặc hướng dẫn \\ \hline
+        Nhận phản hồi tự động & Nhận câu trả lời từ Rasa hoặc từ hệ thống RAG dựa trên tài liệu \\ \hline
+    \end{tabular}
+\end{table}
+
+Đặc điểm của nhóm người dùng này là không cần có tài khoản quản trị và không thực hiện các thao tác thay đổi dữ liệu trong hệ thống. Họ chủ yếu sử dụng chatbot như một kênh tra cứu và tư vấn nhanh. Câu hỏi của nhóm này thường ngắn, có thể thiếu ngữ cảnh, sử dụng từ viết tắt hoặc cách diễn đạt tự nhiên. Vì vậy, hệ thống cần có khả năng nhận diện ý định, trích xuất thông tin quan trọng và hỏi lại khi câu hỏi chưa đủ dữ liệu.
+
+Ví dụ, người dùng có thể hỏi:
+
+\begin{table}[H]
+    \centering
+    \caption{Ví dụ về câu hỏi của người dùng và hướng xử lý}
+    \begin{tabular}{|p{7cm}|p{8cm}|}
+        \hline
+        \textbf{Câu hỏi} & \textbf{Hướng xử lý} \\ \hline
+        ``Ngành Công nghệ thông tin xét tổ hợp nào?'' & Rasa nhận diện intent hỏi tổ hợp hoặc truy vấn dữ liệu ngành \\ \hline
+        ``Học phí ngành An toàn thông tin bao nhiêu?'' & Tra cứu dữ liệu học phí hoặc tài liệu tuyển sinh \\ \hline
+        ``Điểm chuẩn KMA năm 2025 là bao nhiêu?'' & RAG truy xuất tài liệu điểm chuẩn hoặc file tuyển sinh \\ \hline
+        ``Có mẫu đơn xin hoãn thi không?'' & Tìm kiếm trong tài liệu/biểu mẫu đã quản lý \\ \hline
+        ``Trường có xét học bạ không?'' & Rasa hoặc RAG trả lời theo phương thức tuyển sinh đã cập nhật \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Người quản trị nội dung}
+Người quản trị nội dung là nhóm người dùng chịu trách nhiệm cập nhật, quản lý và kiểm soát các dữ liệu được sử dụng cho hoạt động tư vấn của chatbot. Đây có thể là cán bộ tuyển sinh, cán bộ đào tạo hoặc nhân sự phụ trách nội dung của hệ thống.
+
+Khác với người dùng hỏi đáp, người quản trị nội dung có quyền truy cập vào các chức năng quản lý dữ liệu, tài liệu, biểu mẫu và tài liệu ngữ cảnh phục vụ RAG. Nhóm người dùng này đảm bảo rằng thông tin mà chatbot sử dụng để trả lời luôn được cập nhật, đúng nguồn và phù hợp với phạm vi tuyển sinh của học viện.
+
+Các chức năng chính của người quản trị nội dung gồm:
+
+\begin{table}[H]
+    \centering
+    \caption{Chức năng chính của Người quản trị nội dung}
+    \begin{tabular}{|l|p{10cm}|}
+        \hline
+        \textbf{Chức năng} & \textbf{Mô tả} \\ \hline
+        Quản lý tài liệu & Thêm, sửa, xóa, tìm kiếm và phân loại tài liệu trong hệ thống \\ \hline
+        Quản lý biểu mẫu & Cập nhật các biểu mẫu như đơn từ, giấy tờ, tài liệu hướng dẫn \\ \hline
+        Quản lý tài liệu ngữ cảnh RAG & Upload, quét, xử lý và theo dõi trạng thái tài liệu dùng cho RAG \\ \hline
+        Quản lý câu hỏi gợi ý & Cập nhật các câu hỏi phổ biến để hỗ trợ người dùng \\ \hline
+        Quản lý dữ liệu huấn luyện & Bổ sung hoặc điều chỉnh dữ liệu phục vụ chatbot/Rasa \\ \hline
+        Theo dõi tài liệu lỗi & Kiểm tra tài liệu xử lý thất bại và thực hiện xử lý lại nếu cần \\ \hline
+    \end{tabular}
+\end{table}
+
+Trong hệ thống thực tế, nhóm chức năng quản lý tài liệu và biểu mẫu được thể hiện qua khu vực Documents \& Forms, còn nhóm tài liệu ngữ cảnh RAG được thể hiện qua màn hình Context Documents. Tài liệu phân tích kỹ thuật cũng ghi nhận các thao tác như scan tài liệu mới, retry pipeline, upload documents, lọc trạng thái và theo dõi trạng thái processed/pending/failed của tài liệu.
+
+Vai trò của người quản trị nội dung rất quan trọng vì chất lượng câu trả lời của chatbot phụ thuộc trực tiếp vào chất lượng dữ liệu đầu vào. Nếu tài liệu lỗi thời, sai định dạng hoặc chưa được xử lý thành công, hệ thống RAG có thể không truy xuất được thông tin chính xác. Do đó, người quản trị nội dung cần thường xuyên cập nhật tài liệu tuyển sinh, điểm chuẩn, chương trình đào tạo, học phí, biểu mẫu và các quy định mới.
+
+\subsection{Người quản trị hệ thống}
+Người quản trị hệ thống là nhóm người dùng có quyền cao hơn, chịu trách nhiệm quản lý vận hành, phân quyền và giám sát toàn bộ hệ thống. Nhóm này không chỉ quan tâm đến nội dung tư vấn mà còn quản lý tài khoản, vai trò, quyền truy cập, thống kê hoạt động và phạm vi sử dụng các chức năng.
+
+Các chức năng chính của người quản trị hệ thống gồm:
+
+\begin{table}[H]
+    \centering
+    \caption{Chức năng chính của Người quản trị hệ thống}
+    \begin{tabular}{|l|p{10cm}|}
+        \hline
+        \textbf{Chức năng} & \textbf{Mô tả} \\ \hline
+        Quản lý tài khoản & Xem danh sách người dùng, trạng thái tài khoản và thông tin cơ bản \\ \hline
+        Quản lý vai trò & Tạo, sửa, xóa hoặc cấu hình các vai trò như USER, MANAGER, ADMIN \\ \hline
+        Quản lý quyền & Kiểm soát quyền truy cập theo từng API hoặc nhóm chức năng \\ \hline
+        Theo dõi thống kê & Xem thống kê người dùng, hội thoại, chatbot, tài liệu và NLP \\ \hline
+        Kiểm soát phạm vi truy cập & Đảm bảo người dùng chỉ được sử dụng chức năng phù hợp với quyền \\ \hline
+        Hỗ trợ vận hành hệ thống & Theo dõi tình trạng hoạt động, phát hiện lỗi và hỗ trợ xử lý sự cố \\ \hline
+    \end{tabular}
+\end{table}
+
+Từ hệ thống đã quan sát, phân hệ quản trị hệ thống thể hiện qua các nhóm chức năng Statistics reports, RBAC và Users Management. Các màn hình như /roles, /permissions và /users cho thấy hệ thống đã có cơ chế quản lý vai trò, quyền và người dùng. Tài liệu cũng ghi nhận các vai trò như USER, MANAGER và ADMIN, trong đó mỗi vai trò có số lượng quyền khác nhau.
+
+Người quản trị hệ thống có vai trò đảm bảo an toàn và ổn định cho hệ thống. Ví dụ, người dùng thông thường không được phép truy cập vào các chức năng quản lý tài liệu, phân quyền hoặc thống kê hệ thống. Ngược lại, quản trị viên cần được cấp đủ quyền để thực hiện các thao tác quản lý dữ liệu và giám sát vận hành.
+
+\subsection{So sánh phạm vi sử dụng giữa các nhóm người dùng}
+Để làm rõ sự khác biệt giữa ba nhóm người dùng, có thể tổng hợp như sau:
+
+\begin{table}[H]
+    \centering
+    \caption{So sánh phạm vi sử dụng giữa các nhóm người dùng}
+    \begin{tabular}{|p{3.5cm}|p{3.5cm}|p{5cm}|p{3cm}|}
+        \hline
+        \textbf{Nhóm người dùng} & \textbf{Mục tiêu sử dụng} & \textbf{Chức năng chính} & \textbf{Quyền thay đổi dữ liệu} \\ \hline
+        Người dùng hỏi đáp & Tra cứu và nhận tư vấn tuyển sinh & Chat với Rasa, Chat với RAG, hỏi thông tin ngành, học phí, thủ tục, văn bản & Không \\ \hline
+        Người quản trị nội dung & Quản lý nguồn tri thức phục vụ chatbot & Quản lý tài liệu, biểu mẫu, tài liệu RAG, câu hỏi gợi ý, dữ liệu huấn luyện & Có, trong phạm vi nội dung \\ \hline
+        Người quản trị hệ thống & Quản lý vận hành và phân quyền & Quản lý tài khoản, vai trò, quyền, thống kê, phạm vi truy cập & Có, trong phạm vi hệ thống \\ \hline
+    \end{tabular}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{content/source/User group diagram of the system.png}
+    \caption{Sơ đồ các nhóm đối tượng sử dụng hệ thống}
+    \label{fig:user_groups_overview}
+\end{figure}
+

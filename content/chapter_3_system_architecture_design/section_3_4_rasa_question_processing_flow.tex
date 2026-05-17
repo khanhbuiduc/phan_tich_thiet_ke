@@ -1,0 +1,26 @@
+﻿\section{Luồng xử lý câu hỏi bằng Rasa}
+
+Rasa được dùng cho các câu hỏi có cấu trúc rõ ràng, có thể định nghĩa trước bằng intent, entity, rule và story.
+
+Ví dụ câu hỏi:
+\begin{itemize}
+    \item Trường có những ngành nào?
+    \item Ngành Công nghệ thông tin xét tuyển tổ hợp nào?
+    \item Điểm chuẩn ngành An toàn thông tin năm 2024 là bao nhiêu?
+\end{itemize}
+
+Luồng xử lý bằng Rasa:
+\begin{enumerate}
+    \item Rasa nhận tin nhắn từ Backend API.
+    \item NLU phân tích và xác định intent.
+    \item Trích xuất entity (tên ngành, năm, phương thức xét tuyển...).
+    \item Dialogue Management chọn hành động tiếp theo.
+    \item Câu hỏi đơn giản: trả lời bằng template.
+    \item Câu hỏi cần dữ liệu: gọi custom action.
+    \item Action Server truy vấn Backend API/cơ sở dữ liệu.
+    \item Kết quả trả về Rasa và gửi lại Backend API.
+\end{enumerate}
+
+Ưu điểm của luồng Rasa là tốc độ xử lý nhanh, dễ kiểm soát câu trả lời và phù hợp với câu hỏi lặp lại. Hạn chế là cần dữ liệu huấn luyện tương đối đầy đủ.
+
+\textbf{Gợi ý chèn Hình 3.4:} Luồng xử lý câu hỏi bằng Rasa.

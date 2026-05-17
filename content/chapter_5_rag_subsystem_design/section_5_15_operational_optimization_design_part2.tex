@@ -1,0 +1,17 @@
+﻿\section{Thiết kế tối ưu vận hành}
+
+\subsection{Cache embedding}
+
+Dựa trên checksum chunk để tái sử dụng embedding khi nội dung không thay đổi, giảm chi phí và tăng tốc indexing.
+
+\subsection{Cache kết quả truy hồi}
+
+Cache top-k retrieval cho câu hỏi phổ biến; cần cơ chế invalidation khi tài liệu liên quan được cập nhật.
+
+\subsection{Cache câu trả lời FAQ}
+
+Lưu các câu trả lời FAQ đã kiểm duyệt để giảm chi phí LLM, tăng tốc độ phản hồi và đảm bảo tính nhất quán.
+
+\subsection{Degradation Mode khi hệ thống quá tải}
+
+Khi một thành phần lỗi, hệ thống giảm cấp dịch vụ có kiểm soát: dùng BM25 khi vector lỗi, bỏ reranker khi không khả dụng, hoặc trả câu trả lời từ cache.

@@ -1,0 +1,117 @@
+﻿\section{Thiết kế NLU pipeline}
+
+NLU pipeline là chuỗi các thành phần xử lý ngôn ngữ tự nhiên trong Rasa. Pipeline có nhiệm vụ tách từ, trích xuất đặc trưng, phân loại intent và nhận diện entity.
+
+Với chatbot tư vấn tuyển sinh tiếng Việt, việc thiết kế pipeline cần chú ý đến đặc điểm của tiếng Việt như từ ghép, dấu tiếng Việt, cách viết tắt và sự đa dạng trong cách diễn đạt của người dùng.
+
+Một pipeline cơ bản có thể được thiết kế như sau:
+
+\begin{verbatim}
+language: vi
+
+pipeline:
+  - name: WhitespaceTokenizer
+
+  - name: RegexFeaturizer
+
+  - name: LexicalSyntacticFeaturizer
+
+  - name: CountVectorsFeaturizer
+    analyzer: word
+    min_ngram: 1
+    max_ngram: 2
+
+  - name: CountVectorsFeaturizer
+    analyzer: char_wb
+    min_ngram: 3
+    max_ngram: 5
+
+  - name: DIETClassifier
+    epochs: 100
+    constrain_similarities: true
+
+  - name: EntitySynonymMapper
+
+  - name: ResponseSelector
+    epochs: 100
+    constrain_similarities: true
+
+  - name: FallbackClassifier
+    threshold: 0.45
+    ambiguity_threshold: 0.1
+\end{verbatim}
+
+\subsection*{Vai trò của các thành phần}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Vai trò} \\
+\hline
+WhitespaceTokenizer & Tách câu thành các token dựa trên khoảng trắng \\
+\hline
+RegexFeaturizer & Hỗ trợ nhận diện mẫu cố định như A00, A01, năm, điểm \\
+\hline
+LexicalSyntacticFeaturizer & Trích xuất đặc trưng từ hình thức của token \\
+\hline
+CountVectorsFeaturizer & Biểu diễn câu hỏi dưới dạng vector dựa trên từ và ký tự \\
+\hline
+DIETClassifier & Phân loại intent và trích xuất entity \\
+\hline
+EntitySynonymMapper & Chuẩn hóa các cách gọi khác nhau của cùng một thực thể \\
+\hline
+ResponseSelector & Lựa chọn phản hồi phù hợp cho retrieval intent \\
+\hline
+FallbackClassifier & Xử lý khi mô hình không đủ tự tin \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{Chuẩn hóa synonym}
+
+Trong tuyển sinh, cùng một ngành hoặc phương thức xét tuyển có thể được người dùng gọi bằng nhiều cách khác nhau.
+
+\begin{verbatim}
+- synonym: công nghệ thông tin
+  examples: |
+    - cntt
+    - IT
+    - ngành IT
+    - công nghệ tt
+
+- synonym: an toàn thông tin
+  examples: |
+    - attt
+    - bảo mật thông tin
+    - an ninh mạng
+
+- synonym: điểm thi tốt nghiệp THPT
+  examples: |
+    - điểm thi thpt
+    - điểm thi tốt nghiệp
+    - điểm thi quốc gia
+\end{verbatim}
+
+Việc chuẩn hóa synonym giúp hệ thống truy vấn dữ liệu chính xác hơn. Ví dụ, khi người dùng nhập ``ngành IT'', hệ thống sẽ hiểu và chuẩn hóa thành ``công nghệ thông tin''.
+
+\subsection*{Thiết kế dữ liệu huấn luyện NLU}
+
+Dữ liệu NLU cần đảm bảo các yêu cầu sau:
+\begin{itemize}
+    \item Mỗi intent nên có đủ số lượng câu ví dụ, tối thiểu từ 10 đến 20 câu cho các intent đơn giản và nhiều hơn đối với các intent quan trọng.
+    \item Dữ liệu cần đa dạng về cách diễn đạt, từ câu ngắn đến câu dài.
+    \item Cần có ví dụ chứa entity và không chứa entity để mô hình học được cả hai trường hợp.
+\end{itemize}
+
+Ví dụ:
+
+\begin{verbatim}
+- intent: ask_tuition_fee
+  examples: |
+    - học phí của trường là bao nhiêu
+    - học phí ngành [công nghệ thông tin](major) là bao nhiêu
+    - ngành [an toàn thông tin](major) học phí một năm bao nhiêu
+    - cho em hỏi học phí năm [2025](year)
+    - học phí có đắt không
+\end{verbatim}

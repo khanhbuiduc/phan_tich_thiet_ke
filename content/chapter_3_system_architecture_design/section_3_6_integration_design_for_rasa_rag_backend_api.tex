@@ -1,0 +1,57 @@
+﻿\section{Thiết kế tích hợp Rasa, RAG và Backend API}
+
+Việc tích hợp Rasa, RAG và Backend API là nội dung trọng tâm trong kiến trúc hệ thống. Thiết kế theo hướng phối hợp giúp khai thác thế mạnh từng thành phần thay vì thay thế lẫn nhau.
+
+\subsection*{a. Nguyên tắc tích hợp}
+
+\begin{itemize}
+    \item Frontend chỉ giao tiếp với Backend API.
+    \item Backend API chịu trách nhiệm xác thực, phân quyền và ghi log.
+    \item Backend gửi tin nhắn đến Rasa để xử lý hội thoại.
+    \item Action Server là cầu nối giữa Rasa, Backend API và RAG.
+    \item RAG chỉ được gọi khi cần truy hồi tài liệu hoặc khi Rasa không đủ tự tin.
+    \item Kết quả cuối cùng trả về Frontend thông qua Backend API.
+\end{itemize}
+
+\subsection*{b. Cơ chế lựa chọn giữa Rasa và RAG}
+
+\begin{itemize}
+    \item Câu hỏi ngắn, rõ intent: ưu tiên Rasa.
+    \item Câu hỏi cần dữ liệu có cấu trúc: Rasa + Action Server + Backend API.
+    \item Câu hỏi cần đọc tài liệu dài hoặc cần trích dẫn: RAG.
+    \item Câu hỏi ngoài intent đã huấn luyện: fallback sang RAG.
+\end{itemize}
+
+Ví dụ:
+\begin{itemize}
+    \item ``Trường có những ngành nào?'' $\rightarrow$ Rasa $\rightarrow$ Action Server $\rightarrow$ Backend API $\rightarrow$ Database.
+    \item ``Theo đề án tuyển sinh, điều kiện xét tuyển học bạ là gì?'' $\rightarrow$ Rasa fallback $\rightarrow$ Action Server $\rightarrow$ RAG.
+\end{itemize}
+
+\subsection*{c. Thiết kế API tích hợp}
+
+Các API tiêu biểu:
+\begin{itemize}
+    \item \texttt{/api/chat/send} (POST): Gửi tin nhắn từ Frontend.
+    \item \texttt{/api/chat/history} (GET): Lấy lịch sử hội thoại.
+    \item \texttt{/api/admissions/majors} (GET): Lấy danh sách ngành.
+    \item \texttt{/api/admissions/methods} (GET): Lấy phương thức xét tuyển.
+    \item \texttt{/api/documents/upload} (POST): Tải tài liệu tuyển sinh.
+    \item \texttt{/api/rag/index} (POST): Kích hoạt indexing tài liệu.
+    \item \texttt{/api/rag/query} (POST): Truy vấn phân hệ RAG.
+    \item \texttt{/api/admin/users} (GET/POST/PUT/DELETE): Quản lý người dùng.
+    \item \texttt{/api/admin/logs} (GET): Xem log hệ thống.
+\end{itemize}
+
+\subsection*{d. Fallback từ Rasa sang RAG}
+
+Cơ chế fallback giúp hệ thống không dừng ở phản hồi ``không hiểu'' khi intent có độ tin cậy thấp.
+
+Quy trình:
+\begin{enumerate}
+    \item Rasa nhận câu hỏi và đánh giá confidence.
+    \item Nếu confidence thấp, kích hoạt fallback action.
+    \item Action Server gửi câu hỏi sang RAG.
+    \item RAG truy hồi bằng chứng và sinh câu trả lời.
+    \item Nếu không có bằng chứng phù hợp, hệ thống trả lời lịch sự và gợi ý người dùng hỏi rõ hơn.
+\end{enumerate}

@@ -1,0 +1,17 @@
+﻿\section{Thiết kế API cho phân hệ RAG}
+
+\subsection{API lập chỉ mục tài liệu}
+
+Endpoint đề xuất: \texttt{POST /api/rag/documents/index}. API chạy bất đồng bộ để xử lý ingest, chunking và embedding.
+
+\subsection{API truy vấn tri thức}
+
+Endpoint đề xuất: \texttt{POST /api/rag/query}. Đầu vào gồm câu hỏi, năm tuyển sinh, mode, top\_k; đầu ra gồm câu trả lời, citation, confidence và trạng thái.
+
+\subsection{API lấy nguồn trích dẫn}
+
+Endpoint đề xuất: \texttt{GET /api/rag/citations/\{citation\_id\}} để xem chi tiết nguồn mà câu trả lời đã sử dụng.
+
+\subsection{API quản lý tài liệu trong kho tri thức}
+
+Các endpoint quản trị điển hình: danh sách tài liệu, xem chi tiết, cập nhật metadata, xóa/lưu trữ, duyệt tài liệu và lập chỉ mục lại.

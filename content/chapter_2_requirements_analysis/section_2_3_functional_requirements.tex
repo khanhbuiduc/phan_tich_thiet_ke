@@ -1,0 +1,211 @@
+\section{Phân tích yêu cầu chức năng}
+
+Yêu cầu chức năng mô tả những chức năng cụ thể mà hệ thống cần cung cấp cho các nhóm người dùng. Dựa trên các chức năng đã triển khai trong hệ thống, có thể chia yêu cầu chức năng thành các nhóm chính gồm: hỏi đáp thường với Rasa, hỏi đáp RAG, quản lý tài liệu biểu mẫu, quản lý tài liệu ngữ cảnh RAG, báo cáo thống kê, phân quyền RBAC và quản lý người dùng.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{content/source/System_functional_decomposition_diagram.png}
+    \caption{Biểu đồ phân rã chức năng hệ thống}
+    \label{fig:system_functional_decomposition_diagram}
+\end{figure}
+
+\subsection{Nhóm chức năng hỏi đáp thường với Rasa}
+
+Hỏi đáp thường với Rasa là chức năng phục vụ các câu hỏi phổ biến, các luồng hội thoại đã được định nghĩa trước hoặc các nghiệp vụ có cấu trúc rõ ràng. Khi người dùng đặt câu hỏi, hệ thống gửi nội dung câu hỏi đến Rasa để xử lý. Rasa thực hiện nhận diện ý định, trích xuất thực thể, xác định rule/story phù hợp và trả về câu trả lời tương ứng.
+
+Chức năng này phù hợp với các nhóm câu hỏi có tính lặp lại cao trong tư vấn tuyển sinh, ví dụ như hỏi phương thức tuyển sinh, hỏi học phí, hỏi giấy báo trúng tuyển, hỏi ngành học hoặc các thông tin cơ bản về học viện.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng hỏi đáp thường với Rasa}
+    \label{tab:fr_rasa}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-01 & Gửi câu hỏi đến chatbot & Người dùng nhập câu hỏi trên giao diện hội thoại \\ \hline
+        FR-02 & Xử lý câu hỏi bằng Rasa & Hệ thống gửi câu hỏi đến Rasa để nhận diện intent, entity và luồng xử lý \\ \hline
+        FR-03 & Trả lời câu hỏi phổ biến & Chatbot trả lời các câu hỏi đã được huấn luyện hoặc định nghĩa sẵn \\ \hline
+        FR-04 & Xử lý nghiệp vụ có cấu trúc & Hệ thống xử lý các câu hỏi có luồng rõ ràng như hỏi ngành, hỏi học phí, hỏi thủ tục \\ \hline
+        FR-05 & Gợi ý câu hỏi thường gặp & Hệ thống có thể hiển thị hoặc gợi ý các câu hỏi phổ biến để người dùng lựa chọn \\ \hline
+    \end{tabular}
+\end{table}
+
+Ví dụ, với câu hỏi “Trường có những phương thức tuyển sinh nào?”, hệ thống có thể nhận diện đây là câu hỏi về phương thức tuyển sinh và trả lời dựa trên dữ liệu hoặc kịch bản đã được cấu hình trong Rasa.
+
+\subsection{Nhóm chức năng hỏi đáp RAG}
+
+Hỏi đáp RAG được sử dụng cho các câu hỏi cần truy xuất thông tin từ tài liệu đã được upload và xử lý trước đó. Các tài liệu sau khi đưa vào hệ thống sẽ được trích xuất nội dung, chia thành các đoạn nhỏ gọi là chunks, sinh embedding và lưu vào kho truy xuất. Khi người dùng đặt câu hỏi, hệ thống tìm các chunks liên quan và sử dụng chúng làm ngữ cảnh để sinh câu trả lời.
+
+Chức năng này phù hợp với các câu hỏi cần dựa vào tài liệu dài như quy chế tuyển sinh, điểm chuẩn, chương trình đào tạo, biểu mẫu, hướng dẫn thủ tục hoặc văn bản của học viện.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng hỏi đáp RAG}
+    \label{tab:fr_rag_updated}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-06 & Gửi câu hỏi RAG & Người dùng nhập câu hỏi trong giao diện RAG Chat \\ \hline
+        FR-07 & Chọn tài liệu ngữ cảnh & Người dùng hoặc hệ thống có thể chọn tài liệu làm nguồn ngữ cảnh \\ \hline
+        FR-08 & Truy xuất chunks liên quan & Hệ thống tìm các đoạn tài liệu phù hợp với câu hỏi \\ \hline
+        FR-09 & Sinh câu trả lời dựa trên tài liệu & Hệ thống sử dụng nội dung truy xuất được để tạo câu trả lời \\ \hline
+        FR-10 & Trả lời kèm căn cứ tài liệu & Câu trả lời được sinh dựa trên các tài liệu đã ingest, hạn chế suy đoán ngoài nguồn \\ \hline
+    \end{tabular}
+\end{table}
+
+Ví dụ, với câu hỏi “Điểm chuẩn KMA từ năm 2017 đến 2025 như thế nào?”, hệ thống RAG có thể truy xuất tài liệu điểm chuẩn hoặc file tuyển sinh đã xử lý để tạo câu trả lời phù hợp.
+
+\subsection{Nhóm chức năng quản lý tài liệu biểu mẫu tại /docs}
+
+Chức năng quản lý tài liệu biểu mẫu cho phép người quản trị nội dung quản lý các tài liệu phục vụ sinh viên, thí sinh hoặc cán bộ trong quá trình tra cứu. Các tài liệu này có thể là đơn từ, biểu mẫu, giấy tờ hướng dẫn hoặc các văn bản thường dùng.
+
+Tại màn hình /docs, hệ thống hỗ trợ tìm kiếm, lọc, tạo tài liệu mới, theo dõi loại file và dung lượng file. Chức năng này giúp tài liệu được tổ chức có hệ thống, thuận tiện cho việc quản lý và khai thác.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng quản lý tài liệu biểu mẫu}
+    \label{tab:fr_docs}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-11 & Xem danh sách tài liệu biểu mẫu & Hiển thị danh sách tài liệu đã có trong hệ thống \\ \hline
+        FR-12 & Tìm kiếm tài liệu & Cho phép tìm tài liệu theo tên hoặc thông tin liên quan \\ \hline
+        FR-13 & Lọc tài liệu & Cho phép lọc tài liệu theo loại, nhóm hoặc tiêu chí phù hợp \\ \hline
+        FR-14 & Tạo tài liệu mới & Người quản trị có thể thêm tài liệu/biểu mẫu mới \\ \hline
+        FR-15 & Theo dõi loại file & Hệ thống hiển thị định dạng file như DOC, DOCX, PDF \\ \hline
+        FR-16 & Theo dõi dung lượng file & Hệ thống hiển thị kích thước tài liệu để phục vụ quản lý \\ \hline
+        FR-17 & Thao tác với tài liệu & Người quản trị có thể thực hiện các thao tác quản lý như xem, sửa, xóa hoặc khôi phục nếu hệ thống hỗ trợ \\ \hline
+    \end{tabular}
+\end{table}
+
+Chức năng này giúp phân hệ quản trị nội dung kiểm soát tốt các biểu mẫu thường được người dùng hỏi đến, ví dụ như đơn xin hoãn thi, đơn xin phúc khảo, đơn xin thôi học hoặc giấy giới thiệu thực tập.
+
+\subsection{Nhóm chức năng quản lý tài liệu ngữ cảnh tại /context-docs}
+
+Tài liệu ngữ cảnh là nhóm tài liệu được sử dụng trực tiếp cho hệ thống RAG. Khác với tài liệu biểu mẫu thông thường, tài liệu ngữ cảnh cần được hệ thống xử lý qua pipeline để trích xuất văn bản, chia chunks, sinh embedding và đưa vào kho truy xuất.
+
+Tại màn hình /context-docs, hệ thống hỗ trợ quét tài liệu mới, upload tài liệu, retry pipeline, chọn tài liệu và theo dõi trạng thái xử lý như processed, pending hoặc failed.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng quản lý tài liệu ngữ cảnh}
+    \label{tab:fr_context_docs}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-18 & Xem danh sách tài liệu ngữ cảnh & Hiển thị các tài liệu đã đưa vào kho RAG \\ \hline
+        FR-19 & Upload tài liệu ngữ cảnh & Người quản trị tải lên tài liệu phục vụ truy xuất RAG \\ \hline
+        FR-20 & Scan tài liệu mới & Hệ thống quét các tài liệu mới trong thư mục hoặc nguồn dữ liệu \\ \hline
+        FR-21 & Xử lý pipeline tài liệu & Hệ thống trích xuất văn bản, chia chunks và sinh embedding \\ \hline
+        FR-22 & Retry pipeline & Cho phép xử lý lại các tài liệu bị lỗi \\ \hline
+        FR-23 & Theo dõi trạng thái xử lý & Hiển thị trạng thái processed, pending, failed của từng tài liệu \\ \hline
+        FR-24 & Chọn tài liệu làm ngữ cảnh & Cho phép chọn tài liệu cụ thể để phục vụ quá trình hỏi đáp RAG \\ \hline
+        FR-25 & Theo dõi số chunks & Hiển thị số lượng chunks sinh ra từ mỗi tài liệu \\ \hline
+        FR-26 & Làm mới danh sách tài liệu & Cập nhật lại trạng thái và danh sách tài liệu trên giao diện \\ \hline
+    \end{tabular}
+\end{table}
+
+Nhóm chức năng này là cầu nối trực tiếp giữa người quản trị nội dung và hệ thống RAG. Nếu tài liệu chưa được xử lý thành công, hệ thống RAG sẽ không thể sử dụng tài liệu đó để trả lời câu hỏi. Vì vậy, việc theo dõi trạng thái tài liệu là yêu cầu quan trọng.
+
+\subsection{Nhóm chức năng báo cáo thống kê tại /statistics/*}
+
+Hệ thống cung cấp nhóm chức năng báo cáo thống kê nhằm hỗ trợ quản trị viên theo dõi tình trạng hoạt động và hiệu quả sử dụng hệ thống. Các route thống kê bao gồm thống kê người dùng, hội thoại, chatbot, NLP và tài liệu.
+
+Nhóm chức năng này giúp người quản trị đánh giá được mức độ sử dụng chatbot, số lượng tài liệu, hoạt động hội thoại và các thông tin vận hành liên quan.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng báo cáo thống kê}
+    \label{tab:fr_statistics}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-27 & Thống kê người dùng & Theo dõi số lượng người dùng hoặc trạng thái người dùng \\ \hline
+        FR-28 & Thống kê hội thoại & Theo dõi tổng số hội thoại, số tin nhắn và mức độ tương tác \\ \hline
+        FR-29 & Thống kê chatbot & Theo dõi số lượng chatbot, rule, action hoặc thông tin liên quan \\ \hline
+        FR-30 & Thống kê NLP & Theo dõi các thông tin liên quan đến xử lý ngôn ngữ tự nhiên nếu hệ thống hỗ trợ \\ \hline
+        FR-31 & Thống kê tài liệu & Theo dõi tổng số tài liệu, tài liệu public/private, dung lượng và phân bố file \\ \hline
+        FR-32 & Hiển thị biểu đồ thống kê & Hệ thống hiển thị dữ liệu thống kê dưới dạng bảng hoặc biểu đồ \\ \hline
+        FR-33 & Làm mới dữ liệu thống kê & Cho phép cập nhật lại dữ liệu báo cáo theo thời điểm hiện tại \\ \hline
+    \end{tabular}
+\end{table}
+
+Chức năng thống kê giúp hệ thống không chỉ dừng lại ở việc hỏi đáp, mà còn có khả năng giám sát và đánh giá hiệu quả vận hành. Đây là cơ sở để quản trị viên cải thiện dữ liệu, điều chỉnh chatbot và phát hiện các vấn đề phát sinh.
+
+\subsection{Nhóm chức năng RBAC tại /roles và /permissions}
+
+RBAC là cơ chế kiểm soát truy cập dựa trên vai trò. Trong hệ thống, chức năng RBAC được thể hiện qua hai nhóm chính: quản lý vai trò tại /roles và quản lý quyền tại /permissions.
+
+Cơ chế này giúp hệ thống phân tách rõ quyền hạn giữa người dùng thường, người quản trị nội dung và người quản trị hệ thống. Mỗi vai trò sẽ được gán một tập quyền nhất định, từ đó kiểm soát người dùng được phép truy cập hoặc thao tác với chức năng nào.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng RBAC}
+    \label{tab:fr_rbac}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-34 & Xem danh sách vai trò & Hiển thị các vai trò hiện có trong hệ thống \\ \hline
+        FR-35 & Tạo vai trò & Cho phép tạo vai trò mới khi cần mở rộng hệ thống \\ \hline
+        FR-36 & Cập nhật vai trò & Cho phép sửa thông tin vai trò \\ \hline
+        FR-37 & Xóa vai trò & Cho phép xóa vai trò không còn sử dụng \\ \hline
+        FR-38 & Xem danh sách quyền & Hiển thị các quyền hoặc endpoint được hệ thống quản lý \\ \hline
+        FR-39 & Gán quyền cho vai trò & Cấu hình vai trò được phép sử dụng chức năng nào \\ \hline
+        FR-40 & Kiểm soát truy cập chức năng & Hệ thống kiểm tra quyền trước khi cho phép thao tác \\ \hline
+        FR-41 & Phân tách quyền quản trị & Tách quyền quản lý nội dung, thống kê, tài liệu và người dùng \\ \hline
+    \end{tabular}
+\end{table}
+
+Nhóm chức năng RBAC là yêu cầu quan trọng về mặt bảo mật và vận hành. Nhờ RBAC, hệ thống có thể giới hạn phạm vi truy cập, tránh trường hợp người dùng không có thẩm quyền thay đổi dữ liệu hoặc truy cập chức năng quản trị.
+
+\subsection{Nhóm chức năng quản lý người dùng tại /users}
+
+Chức năng quản lý người dùng cho phép người quản trị hệ thống theo dõi và quản lý danh sách tài khoản trong hệ thống. Mỗi tài khoản có thể gắn với vai trò, trạng thái và các thông tin cơ bản phục vụ quản trị.
+
+Tại màn hình /users, hệ thống hiển thị danh sách tài khoản, vai trò và các thao tác quản trị tương ứng.
+
+\begin{table}[H]
+    \centering
+    \caption{Nhóm chức năng quản lý người dùng}
+    \label{tab:fr_users}
+    \begin{tabular}{|p{2cm}|p{4.5cm}|p{8cm}|}
+        \hline
+        \textbf{Mã chức năng} & \textbf{Tên chức năng} & \textbf{Mô tả} \\ \hline
+        FR-42 & Xem danh sách người dùng & Hiển thị danh sách tài khoản trong hệ thống \\ \hline
+        FR-43 & Tìm kiếm người dùng & Cho phép tìm kiếm tài khoản theo tên, email hoặc thông tin liên quan \\ \hline
+        FR-44 & Xem thông tin người dùng & Hiển thị thông tin cơ bản của tài khoản \\ \hline
+        FR-45 & Quản lý vai trò người dùng & Gán hoặc thay đổi vai trò cho tài khoản \\ \hline
+        FR-46 & Quản lý trạng thái tài khoản & Theo dõi hoặc thay đổi trạng thái như active, pending, banned nếu hệ thống hỗ trợ \\ \hline
+        FR-47 & Thao tác quản trị tài khoản & Cho phép sửa, khóa, mở khóa hoặc xử lý tài khoản tùy theo quyền \\ \hline
+        FR-48 & Kiểm soát quyền theo tài khoản & Đảm bảo tài khoản chỉ sử dụng được các chức năng tương ứng với vai trò \\ \hline
+    \end{tabular}
+\end{table}
+
+Chức năng này hỗ trợ người quản trị hệ thống kiểm soát người dùng và đảm bảo an toàn cho các phân hệ quản trị.
+
+\subsection{Bảng tổng hợp yêu cầu chức năng}
+
+Dựa trên các nhóm chức năng đã phân tích, có thể tổng hợp yêu cầu chức năng chính của hệ thống như sau:
+
+\begin{table}[H]
+    \centering
+    \caption{Tổng hợp yêu cầu chức năng}
+    \label{tab:fr_summary}
+    \begin{tabular}{|p{4cm}|p{3.5cm}|p{7cm}|}
+        \hline
+        \textbf{Nhóm chức năng} & \textbf{Mã yêu cầu} & \textbf{Chức năng chính} \\ \hline
+        Hỏi đáp Rasa & FR-01 đến FR-05 & Hỏi đáp thường, xử lý câu hỏi phổ biến, luồng định sẵn và nghiệp vụ có cấu trúc \\ \hline
+        Hỏi đáp RAG & FR-06 đến FR-10 & Hỏi đáp dựa trên tài liệu đã upload, truy xuất chunks và sinh câu trả lời theo ngữ cảnh \\ \hline
+        Quản lý tài liệu biểu mẫu & FR-11 đến FR-17 & Quản lý tài liệu tại /docs, tìm kiếm, lọc, tạo tài liệu, theo dõi loại file và dung lượng \\ \hline
+        Quản lý tài liệu ngữ cảnh & FR-18 đến FR-26 & Quản lý tài liệu RAG tại /context-docs, upload, scan, retry pipeline, theo dõi trạng thái xử lý \\ \hline
+        Báo cáo thống kê & FR-27 đến FR-33 & Thống kê người dùng, hội thoại, chatbot, NLP và tài liệu tại /statistics/* \\ \hline
+        RBAC & FR-34 đến FR-41 & Quản lý vai trò, quyền và phạm vi sử dụng chức năng tại /roles, /permissions \\ \hline
+        Quản lý người dùng & FR-42 đến FR-48 & Quản lý danh sách tài khoản, vai trò, trạng thái và thao tác quản trị tại /users \\ \hline
+    \end{tabular}
+\end{table}
+
+\subsection{Nhận xét}
+
+Từ các yêu cầu chức năng trên, có thể thấy hệ thống đã được thiết kế theo hướng kết hợp giữa chatbot hỏi đáp và nền tảng quản trị tri thức. Phần hỏi đáp thường với Rasa đảm nhiệm các câu hỏi phổ biến, có cấu trúc rõ ràng. Phần RAG hỗ trợ khai thác thông tin từ tài liệu dài và các văn bản đã được xử lý thành chunks. Bên cạnh đó, các phân hệ quản lý tài liệu, thống kê, RBAC và quản lý người dùng giúp hệ thống có khả năng vận hành thực tế, kiểm soát dữ liệu và phân quyền sử dụng.
+
+Như vậy, hệ thống không chỉ phục vụ người dùng cuối trong việc hỏi đáp tuyển sinh, mà còn cung cấp đầy đủ công cụ cho quản trị viên trong việc cập nhật nội dung, theo dõi hoạt động và đảm bảo an toàn truy cập.

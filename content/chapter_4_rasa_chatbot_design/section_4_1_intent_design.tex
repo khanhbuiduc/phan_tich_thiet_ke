@@ -1,0 +1,203 @@
+﻿\section{Thiết kế tập intent}
+
+Trong hệ thống chatbot tư vấn tuyển sinh, intent được sử dụng để biểu diễn ý định của người dùng khi nhập câu hỏi. Việc thiết kế intent đóng vai trò quan trọng vì đây là cơ sở để Rasa NLU phân loại câu hỏi và lựa chọn luồng xử lý phù hợp.
+
+Đối với bài toán tư vấn tuyển sinh, người dùng chủ yếu là thí sinh, phụ huynh hoặc người quan tâm đến thông tin tuyển sinh của nhà trường. Các câu hỏi thường xoay quanh ngành đào tạo, phương thức xét tuyển, tổ hợp môn, điểm chuẩn, học phí, hồ sơ đăng ký, thời gian tuyển sinh và thông tin liên hệ.
+
+Tập intent được thiết kế theo hướng vừa đủ chi tiết để chatbot hiểu đúng câu hỏi, nhưng không chia quá nhỏ gây khó khăn trong quá trình huấn luyện và bảo trì dữ liệu. Các intent được chia thành các nhóm chính như sau:
+
+\subsection*{Nhóm intent giao tiếp cơ bản}
+
+Nhóm này dùng để xử lý các tương tác thông thường giữa người dùng và chatbot.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Intent} & \textbf{Ý nghĩa} \\
+\hline
+greet & Người dùng chào chatbot \\
+\hline
+goodbye & Người dùng kết thúc hội thoại \\
+\hline
+thank & Người dùng cảm ơn \\
+\hline
+affirm & Người dùng xác nhận đồng ý \\
+\hline
+deny & Người dùng phủ định \\
+\hline
+bot\_challenge & Người dùng hỏi chatbot là ai \\
+\hline
+\end{tabular}
+\end{table}
+
+Ví dụ dữ liệu huấn luyện:
+
+\begin{verbatim}
+- intent: greet
+  examples: |
+    - xin chào
+    - chào bot
+    - hello
+    - hi
+    - em cần tư vấn tuyển sinh
+
+- intent: goodbye
+  examples: |
+    - tạm biệt
+    - bye
+    - hẹn gặp lại
+    - cảm ơn, em không hỏi nữa
+
+- intent: thank
+  examples: |
+    - cảm ơn
+    - em cảm ơn ạ
+    - thanks
+    - thông tin hữu ích quá
+\end{verbatim}
+
+\subsection*{Nhóm intent hỏi thông tin tuyển sinh chung}
+
+Đây là nhóm intent cốt lõi của chatbot tuyển sinh, dùng để xử lý các câu hỏi phổ biến của thí sinh.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Intent} & \textbf{Ý nghĩa} \\
+\hline
+ask\_admission\_overview & Hỏi tổng quan tuyển sinh \\
+\hline
+ask\_major & Hỏi về ngành đào tạo \\
+\hline
+ask\_major\_detail & Hỏi chi tiết về một ngành cụ thể \\
+\hline
+ask\_admission\_method & Hỏi phương thức xét tuyển \\
+\hline
+ask\_subject\_combination & Hỏi tổ hợp xét tuyển \\
+\hline
+ask\_benchmark\_score & Hỏi điểm chuẩn \\
+\hline
+ask\_tuition\_fee & Hỏi học phí \\
+\hline
+ask\_quota & Hỏi chỉ tiêu tuyển sinh \\
+\hline
+ask\_application\_profile & Hỏi hồ sơ xét tuyển \\
+\hline
+ask\_admission\_time & Hỏi thời gian tuyển sinh \\
+\hline
+ask\_contact & Hỏi thông tin liên hệ \\
+\hline
+ask\_location & Hỏi địa chỉ trường \\
+\hline
+ask\_scholarship & Hỏi học bổng \\
+\hline
+ask\_dormitory & Hỏi ký túc xá \\
+\hline
+ask\_job\_opportunity & Hỏi cơ hội việc làm sau tốt nghiệp \\
+\hline
+\end{tabular}
+\end{table}
+
+Ví dụ:
+
+\begin{verbatim}
+- intent: ask_major
+  examples: |
+    - trường có những ngành nào
+    - các ngành đào tạo của trường là gì
+    - năm nay trường tuyển những ngành nào
+    - cho em biết danh sách ngành tuyển sinh
+
+- intent: ask_major_detail
+  examples: |
+    - ngành công nghệ thông tin học những gì
+    - ngành an toàn thông tin ra trường làm gì
+    - em muốn biết thông tin ngành [công nghệ thông tin](major)
+    - ngành [kỹ thuật phần mềm](major) có phù hợp với em không
+
+- intent: ask_admission_method
+  examples: |
+    - trường xét tuyển bằng những phương thức nào
+    - có xét học bạ không
+    - trường có xét điểm thi tốt nghiệp không
+    - phương thức tuyển sinh năm nay là gì
+
+- intent: ask_subject_combination
+  examples: |
+    - ngành công nghệ thông tin xét tổ hợp nào
+    - tổ hợp xét tuyển của ngành [an toàn thông tin](major) là gì
+    - em thi khối A00 có xét được không
+    - ngành này xét A01 không
+
+- intent: ask_benchmark_score
+  examples: |
+    - điểm chuẩn năm trước là bao nhiêu
+    - ngành công nghệ thông tin lấy bao nhiêu điểm
+    - điểm chuẩn ngành [an toàn thông tin](major) năm 2024 là bao nhiêu
+    - em được 25 điểm có đỗ không
+
+- intent: ask_tuition_fee
+  examples: |
+    - học phí của trường là bao nhiêu
+    - ngành công nghệ thông tin học phí bao nhiêu
+    - học phí một năm khoảng bao nhiêu
+    - trường có tăng học phí không
+\end{verbatim}
+
+\subsection*{Nhóm intent xử lý câu hỏi cần RAG}
+
+Một số câu hỏi có tính mở, yêu cầu thông tin dài, có thể thay đổi theo từng năm hoặc nằm trong tài liệu tuyển sinh. Các câu hỏi này không nên viết cố định toàn bộ trong \texttt{domain.yml}, mà nên được chuyển sang phân hệ RAG để truy xuất từ tài liệu.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{9cm}|}
+\hline
+\textbf{Intent} & \textbf{Ý nghĩa} \\
+\hline
+ask\_rag\_question & Câu hỏi cần truy xuất tài liệu \\
+\hline
+ask\_policy\_detail & Hỏi chi tiết quy định, chính sách \\
+\hline
+ask\_complex\_admission\_info & Hỏi thông tin tuyển sinh phức tạp \\
+\hline
+ask\_compare\_major & So sánh các ngành \\
+\hline
+ask\_followup\_question & Câu hỏi nối tiếp cần ngữ cảnh \\
+\hline
+\end{tabular}
+\end{table}
+
+Ví dụ:
+
+\begin{verbatim}
+- intent: ask_rag_question
+  examples: |
+    - cho em biết chi tiết đề án tuyển sinh năm nay
+    - quy định xét tuyển thẳng như thế nào
+    - điều kiện ưu tiên xét tuyển là gì
+    - em muốn biết toàn bộ thông tin về ngành công nghệ thông tin
+    - chính sách học bổng được quy định ở đâu
+
+- intent: ask_compare_major
+  examples: |
+    - ngành công nghệ thông tin và an toàn thông tin khác nhau như thế nào
+    - nên học kỹ thuật phần mềm hay hệ thống thông tin
+    - so sánh ngành CNTT và ATTT giúp em
+\end{verbatim}
+
+\subsection*{Nhóm intent ngoài phạm vi}
+
+Nhóm này dùng để nhận diện các câu hỏi không thuộc phạm vi tuyển sinh.
+
+\begin{verbatim}
+- intent: out_of_scope
+  examples: |
+    - hôm nay thời tiết thế nào
+    - kể chuyện cười đi
+    - tư vấn mua điện thoại
+    - bạn có biết nấu ăn không
+\end{verbatim}
+
+Việc thiết kế intent theo nhóm giúp hệ thống dễ mở rộng. Khi cần bổ sung một nội dung tuyển sinh mới, có thể thêm intent mới hoặc mở rộng examples cho intent hiện có mà không làm thay đổi toàn bộ kiến trúc chatbot.

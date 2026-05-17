@@ -1,0 +1,180 @@
+﻿\section{Thiết kế phối hợp giữa câu trả lời tĩnh, câu trả lời động và câu trả lời RAG}
+
+Trong chatbot tư vấn tuyển sinh, không nên sử dụng duy nhất một cơ chế trả lời. Nếu tất cả câu hỏi đều dùng RAG, hệ thống có thể chậm, tốn chi phí và khó kiểm soát. Nếu tất cả câu hỏi đều dùng câu trả lời tĩnh, chatbot sẽ thiếu linh hoạt và khó cập nhật khi thông tin tuyển sinh thay đổi.
+
+Vì vậy, hệ thống được thiết kế theo hướng phối hợp ba loại câu trả lời:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|p{5cm}|}
+\hline
+\textbf{Loại câu trả lời} & \textbf{Nguồn dữ liệu} & \textbf{Trường hợp sử dụng} \\
+\hline
+Câu trả lời tĩnh & domain.yml & Chào hỏi, cảm ơn, hướng dẫn chung \\
+\hline
+Câu trả lời động & Backend API, CSDL quan hệ & Điểm chuẩn, học phí, ngành, chỉ tiêu \\
+\hline
+Câu trả lời RAG & Tài liệu tuyển sinh, Vector Store, Document Store & Quy định chi tiết, câu hỏi mở, nội dung dài \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{Câu trả lời tĩnh}
+
+Câu trả lời tĩnh được dùng cho các tương tác đơn giản, ít thay đổi và không cần truy vấn dữ liệu.
+
+Ví dụ:
+
+Người dùng: Xin chào
+
+Chatbot: Xin chào! Mình là chatbot tư vấn tuyển sinh. Bạn cần tìm hiểu thông tin về ngành học, điểm chuẩn, học phí hay phương thức xét tuyển?
+
+Ưu điểm của câu trả lời tĩnh là nhanh, ổn định và dễ kiểm soát. Tuy nhiên, không phù hợp với các thông tin thay đổi thường xuyên.
+
+\subsection*{Câu trả lời động}
+
+Câu trả lời động được sinh ra từ Custom Action sau khi truy vấn Backend API hoặc cơ sở dữ liệu quan hệ.
+
+Ví dụ:
+
+Người dùng: Điểm chuẩn ngành công nghệ thông tin năm 2024 là bao nhiêu?
+
+Chatbot: Điểm chuẩn ngành công nghệ thông tin năm 2024 là 26.5 điểm, theo phương thức xét điểm thi tốt nghiệp THPT.
+
+Loại phản hồi này phù hợp với dữ liệu có cấu trúc như:
+\begin{itemize}
+    \item Danh sách ngành.
+    \item Mã ngành.
+    \item Tổ hợp xét tuyển.
+    \item Chỉ tiêu.
+    \item Điểm chuẩn.
+    \item Học phí.
+    \item Thời gian xét tuyển.
+    \item Thông tin liên hệ.
+\end{itemize}
+
+Dữ liệu được quản lý trong Backend và cơ sở dữ liệu quan hệ, giúp quản trị viên dễ dàng cập nhật.
+
+\subsection*{Câu trả lời RAG}
+
+Câu trả lời RAG được sử dụng khi câu hỏi cần truy xuất tài liệu hoặc cần diễn giải nội dung dài.
+
+Ví dụ:
+
+Người dùng: Điều kiện xét tuyển thẳng được quy định như thế nào?
+
+Chatbot: Theo đề án tuyển sinh, các đối tượng được xét tuyển thẳng gồm thí sinh đạt giải trong kỳ thi học sinh giỏi quốc gia, thí sinh đạt giải cuộc thi khoa học kỹ thuật cấp quốc gia và các đối tượng khác theo quy định của Bộ Giáo dục và Đào tạo...
+
+Nguồn tham khảo:
+
+1. Đề án tuyển sinh 2025, trang 12
+
+RAG giúp chatbot trả lời linh hoạt hơn, đồng thời có thể cung cấp nguồn tham khảo để người dùng kiểm chứng thông tin.
+
+\subsection*{Cơ chế lựa chọn loại câu trả lời}
+
+Hệ thống lựa chọn loại câu trả lời dựa trên intent, confidence, entity và loại thông tin người dùng yêu cầu.
+
+\begin{verbatim}
+Nếu intent thuộc nhóm giao tiếp cơ bản
+-> Trả lời tĩnh từ domain.yml
+
+Nếu intent thuộc nhóm dữ liệu có cấu trúc
+-> Gọi Custom Action
+-> Backend API
+-> Trả lời động
+
+Nếu intent thuộc nhóm câu hỏi mở hoặc cần tài liệu
+-> Gọi action_call_rag
+-> RAG Service
+-> Trả lời kèm nguồn
+
+Nếu intent không rõ nhưng câu hỏi có liên quan tuyển sinh
+-> Fallback sang RAG
+
+Nếu câu hỏi ngoài phạm vi tuyển sinh
+-> Trả lời out_of_scope
+\end{verbatim}
+
+\subsection*{Sơ đồ phối hợp đề xuất}
+
+\begin{verbatim}
+Câu hỏi người dùng
+  -> Rasa NLU phân tích intent/entity
+  -> Kiểm tra intent và confidence
+
+[Nhánh 1] Intent giao tiếp cơ bản
+  -> Response tĩnh từ domain.yml
+
+[Nhánh 2] Intent dữ liệu có cấu trúc
+  -> Custom Action
+  -> Backend API
+  -> CSDL quan hệ
+  -> Response động
+
+[Nhánh 3] Intent câu hỏi mở/phức tạp
+  -> Custom Action
+  -> RAG Service
+  -> Vector Store/Document Store
+  -> LLM
+  -> Response kèm nguồn
+
+[Nhánh 4] Không hiểu nhưng liên quan tuyển sinh
+  -> Fallback sang RAG
+
+[Nhánh 5] Ngoài phạm vi
+  -> utter_out_of_scope
+\end{verbatim}
+
+\subsection*{Bảng so sánh ba loại phản hồi}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Tiêu chí} & \textbf{Trả lời tĩnh} & \textbf{Trả lời động} & \textbf{Trả lời RAG} \\
+\hline
+Tốc độ & Rất nhanh & Nhanh & Chậm hơn \\
+\hline
+Độ kiểm soát & Cao & Cao & Trung bình đến cao \\
+\hline
+Phù hợp dữ liệu thay đổi & Thấp & Cao & Cao \\
+\hline
+Cần cơ sở dữ liệu & Không & Có & Có \\
+\hline
+Có trích dẫn nguồn & Không & Có thể & Có \\
+\hline
+Phù hợp câu hỏi mở & Không & Hạn chế & Tốt \\
+\hline
+Chi phí xử lý & Thấp & Trung bình & Cao hơn \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection*{Nguyên tắc phối hợp}
+
+Hệ thống ưu tiên trả lời theo thứ tự:
+
+\textit{Câu trả lời tĩnh $\rightarrow$ Câu trả lời động $\rightarrow$ Câu trả lời RAG $\rightarrow$ Fallback}
+
+Tuy nhiên, không phải lúc nào cũng dùng RAG cuối cùng. Với các câu hỏi có bản chất là truy xuất tài liệu, hệ thống có thể gọi RAG trực tiếp mà không cần đi qua câu trả lời động.
+
+Ví dụ:
+
+Người dùng: Quy định ưu tiên xét tuyển được ghi như thế nào trong đề án?
+
+Câu hỏi này nên chuyển thẳng sang RAG vì người dùng đang hỏi nội dung trong tài liệu.
+
+Ngược lại:
+
+Người dùng: Ngành công nghệ thông tin mã ngành là gì?
+
+Câu hỏi này nên dùng Backend API vì đây là dữ liệu có cấu trúc, không cần gọi RAG.
+
+\subsection*{Kết luận chương 4}
+
+Chương 4 đã trình bày thiết kế chi tiết chatbot Rasa cho bài toán tư vấn tuyển sinh. Hệ thống được xây dựng dựa trên các thành phần chính của Rasa gồm intent, entity, slot, NLU pipeline, stories, rules, custom actions và NLG trong \texttt{domain.yml}.
+
+Thiết kế chatbot không chỉ dừng lại ở các câu trả lời cố định mà còn kết hợp với Backend API để truy vấn dữ liệu động và phân hệ RAG để xử lý các câu hỏi mở, câu hỏi phức tạp hoặc cần truy xuất từ tài liệu tuyển sinh. Cách tiếp cận này giúp hệ thống vừa đảm bảo tốc độ phản hồi, vừa tăng độ chính xác và khả năng mở rộng.
+
+Thông qua cơ chế phối hợp giữa câu trả lời tĩnh, câu trả lời động và câu trả lời RAG, chatbot có thể đáp ứng tốt nhiều tình huống tư vấn tuyển sinh khác nhau, từ các câu hỏi đơn giản như chào hỏi, hỏi ngành, hỏi học phí đến các câu hỏi phức tạp liên quan đến quy định, chính sách và đề án tuyển sinh.

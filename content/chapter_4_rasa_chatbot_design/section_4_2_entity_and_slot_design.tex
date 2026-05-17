@@ -1,0 +1,161 @@
+﻿\section{Thiết kế entity và slot}
+
+Entity là các thông tin quan trọng được trích xuất từ câu hỏi của người dùng. Trong bài toán tuyển sinh, entity giúp chatbot hiểu rõ người dùng đang hỏi về ngành nào, năm nào, phương thức nào hoặc tổ hợp môn nào.
+
+Slot là nơi lưu trữ giá trị entity hoặc thông tin ngữ cảnh trong suốt cuộc hội thoại. Rasa sử dụng slot để quyết định hành động tiếp theo, gọi API hoặc truyền dữ liệu cho Custom Action.
+
+\subsection*{Danh sách entity chính}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|p{4cm}|p{6cm}|}
+\hline
+\textbf{Entity} & \textbf{Ý nghĩa} & \textbf{Ví dụ} \\
+\hline
+major & Ngành đào tạo & công nghệ thông tin, an toàn thông tin \\
+\hline
+year & Năm tuyển sinh & 2024, 2025, năm nay \\
+\hline
+admission\_method & Phương thức xét tuyển & học bạ, điểm thi THPT, xét tuyển thẳng \\
+\hline
+subject\_combination & Tổ hợp môn & A00, A01, D01 \\
+\hline
+score & Mức điểm của thí sinh & 24 điểm, 25.5 điểm \\
+\hline
+province & Tỉnh/thành phố & Hà Nội, Hải Phòng \\
+\hline
+program\_type & Hệ/chương trình đào tạo & đại trà, chất lượng cao \\
+\hline
+document\_type & Loại hồ sơ/tài liệu & học bạ, giấy chứng nhận, căn cước công dân \\
+\hline
+time\_expression & Mốc thời gian & tháng 7, đợt 1, trước ngày 30/6 \\
+\hline
+\end{tabular}
+\end{table}
+
+Ví dụ entity trong câu hỏi:
+
+\textit{Ngành công nghệ thông tin năm 2024 lấy bao nhiêu điểm?}
+
+Kết quả trích xuất mong muốn:
+
+\begin{verbatim}
+{
+  "intent": "ask_benchmark_score",
+  "entities": {
+    "major": "công nghệ thông tin",
+    "year": "2024"
+  }
+}
+\end{verbatim}
+
+Ví dụ khác:
+
+\textit{Em được 25 điểm khối A00 có xét ngành an toàn thông tin được không?}
+
+Kết quả trích xuất:
+
+\begin{verbatim}
+{
+  "intent": "ask_benchmark_score",
+  "entities": {
+    "score": "25",
+    "subject_combination": "A00",
+    "major": "an toàn thông tin"
+  }
+}
+\end{verbatim}
+
+\subsection*{Thiết kế slot}
+
+Các slot được khai báo trong \texttt{domain.yml} để lưu thông tin quan trọng trong hội thoại.
+
+\begin{verbatim}
+slots:
+  major:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: major
+
+  year:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: year
+
+  admission_method:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: admission_method
+
+  subject_combination:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: subject_combination
+
+  score:
+    type: float
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: score
+
+  rag_query:
+    type: text
+    influence_conversation: false
+    mappings:
+      - type: custom
+
+  last_answer_type:
+    type: categorical
+    values:
+      - static
+      - dynamic
+      - rag
+      - fallback
+    influence_conversation: true
+    mappings:
+      - type: custom
+\end{verbatim}
+
+Trong đó:
+\begin{itemize}
+    \item \texttt{major}, \texttt{year}, \texttt{subject\_combination}, \texttt{score} là các slot phục vụ truy vấn thông tin tuyển sinh.
+    \item \texttt{rag\_query} lưu câu hỏi gốc của người dùng để truyền sang phân hệ RAG.
+    \item \texttt{last\_answer\_type} cho biết câu trả lời gần nhất được sinh từ nguồn nào: tĩnh, động, RAG hoặc fallback.
+\end{itemize}
+
+\subsection*{Lưu ý khi thiết kế entity và slot}
+
+Không nên tạo quá nhiều entity không cần thiết vì sẽ làm dữ liệu huấn luyện phức tạp và khó kiểm soát. Với các thông tin có thể xử lý bằng regex như mã tổ hợp môn A00, A01, D01, có thể dùng \texttt{RegexFeaturizer} hoặc \texttt{lookup table} để tăng độ chính xác.
+
+Ví dụ lookup table cho ngành đào tạo:
+
+\begin{verbatim}
+- lookup: major
+  examples: |
+    - công nghệ thông tin
+    - an toàn thông tin
+    - kỹ thuật phần mềm
+    - hệ thống thông tin
+    - khoa học máy tính
+    - điện tử viễn thông
+\end{verbatim}
+
+Ví dụ regex cho tổ hợp xét tuyển:
+
+\begin{verbatim}
+- regex: subject_combination
+  examples: |
+    - A00
+    - A01
+    - D01
+    - D07
+\end{verbatim}
