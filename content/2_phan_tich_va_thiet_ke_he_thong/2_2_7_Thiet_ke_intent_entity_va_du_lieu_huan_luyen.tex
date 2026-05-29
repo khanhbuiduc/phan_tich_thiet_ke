@@ -1,0 +1,33 @@
+\section{Thiết kế intent, entity và dữ liệu huấn luyện}
+
+Intent là nhãn biểu diễn mục đích của người dùng. Trong hệ thống tư vấn tuyển sinh, intent cần được thiết kế theo nhóm nghiệp vụ thay vì thiết kế rời rạc theo từng câu hỏi cụ thể.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{8.5cm}|}
+\hline
+\textbf{Nhóm intent} & \textbf{Intent tiêu biểu} \\
+\hline
+Giao tiếp cơ bản & \texttt{chao\_hoi}, \texttt{cam\_on}, \texttt{tam\_biet}, \texttt{hoi\_kha\_nang\_ho\_tro} \\
+\hline
+Tuyển sinh & \texttt{hoi\_phuong\_thuc\_tuyen\_sinh}, \texttt{hoi\_to\_hop\_xet\_tuyen}, \texttt{hoi\_diem\_chuan}, \texttt{hoi\_chi\_tieu\_tuyen\_sinh}, \texttt{hoi\_thoi\_gian\_tuyen\_sinh}, \texttt{hoi\_dieu\_kien\_xet\_tuyen} \\
+\hline
+Ngành đào tạo & \texttt{hoi\_nganh\_an\_toan\_thong\_tin}, \texttt{hoi\_nganh\_cong\_nghe\_thong\_tin}, \texttt{hoi\_nganh\_dien\_tu\_vien\_thong}, \texttt{hoi\_chuong\_trinh\_dao\_tao}, \texttt{hoi\_co\_hoi\_viec\_lam} \\
+\hline
+Thủ tục & \texttt{hoi\_ho\_so\_nhap\_hoc}, \texttt{hoi\_giay\_bao\_trung\_tuyen}, \texttt{hoi\_hoc\_phi}, \texttt{hoi\_ky\_tuc\_xa}, \texttt{hoi\_bao\_hiem\_y\_te} \\
+\hline
+Điều khiển hội thoại & \texttt{yeu\_cau\_tom\_tat}, \texttt{yeu\_cau\_noi\_ro\_hon}, \texttt{hoi\_nguon\_thong\_tin}, \texttt{nlu\_fallback} \\
+\hline
+\end{tabular}
+\caption{Các nhóm intent chính trong chatbot tuyển sinh}
+\label{tab:rasa-intent-groups}
+\end{table}
+
+Entity là thông tin cụ thể cần trích xuất trong câu hỏi. Với hệ thống tuyển sinh, entity có thể gồm \texttt{nganh}, \texttt{ma\_nganh}, \texttt{to\_hop\_mon}, \texttt{nam\_tuyen\_sinh}, \texttt{phuong\_thuc\_xet\_tuyen}, \texttt{co\_so\_dao\_tao}, \texttt{loai\_giay\_to} và \texttt{doi\_tuong\_thi\_sinh}.
+
+Ví dụ, với câu hỏi ``Ngành An toàn thông tin năm 2025 lấy bao nhiêu điểm?'', hệ thống cần nhận diện intent là \texttt{hoi\_diem\_chuan}, entity \texttt{nganh} là ``An toàn thông tin'' và entity \texttt{nam\_tuyen\_sinh} là ``2025''.
+
+Dữ liệu huấn luyện cần có nhiều biến thể cho mỗi intent để mô hình học được ý định thay vì học thuộc một câu cụ thể. Ví dụ với intent \texttt{hoi\_hoc\_phi}, dữ liệu mẫu có thể gồm: ``học phí của học viện là bao nhiêu'', ``ngành công nghệ thông tin học phí thế nào'', ``em muốn hỏi mức học phí năm nay'', ``học phí một kỳ khoảng bao nhiêu'', ``học phí ngành an toàn thông tin có cao không''.
+
+Việc thiết kế intent và entity phải bảo đảm ba yêu cầu: đủ bao phủ nghiệp vụ tuyển sinh, không trùng nghĩa quá gần giữa các intent, và có dữ liệu mẫu đa dạng theo cách hỏi thực tế của người dùng.
+

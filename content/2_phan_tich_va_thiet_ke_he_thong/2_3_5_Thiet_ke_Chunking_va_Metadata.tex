@@ -1,0 +1,41 @@
+\section{Thiết kế Chunking và Metadata}
+
+Chunking là bước chia tài liệu thành các đoạn nhỏ để phục vụ embedding và truy hồi. Nếu chunk quá dài, vector embedding có thể bị loãng nghĩa vì chứa nhiều chủ đề. Nếu chunk quá ngắn, hệ thống có thể mất ngữ cảnh, ví dụ mất quan hệ giữa tên ngành, mã ngành, tổ hợp môn và điểm chuẩn.
+
+Trong hệ thống tuyển sinh, chunk nên được thiết kế theo đơn vị nghĩa thay vì cắt cứng theo số ký tự. Các đơn vị phù hợp gồm:
+
+\begin{itemize}
+    \item Một mục trong quy chế tuyển sinh.
+    \item Một bảng điểm chuẩn theo năm.
+    \item Một nhóm thông tin về một ngành.
+    \item Một đoạn mô tả phương thức xét tuyển.
+    \item Một phần hướng dẫn hồ sơ nhập học.
+    \item Một nhóm dòng trong file Excel tuyển sinh.
+\end{itemize}
+
+Ví dụ, với tài liệu điểm chuẩn, chunk không nên tách riêng tên ngành và điểm chuẩn thành hai đoạn khác nhau. Một chunk tốt cần giữ được đầy đủ tên ngành, mã ngành, tổ hợp xét tuyển, điểm chuẩn, năm tuyển sinh, cơ sở đào tạo nếu có và nguồn tài liệu.
+
+Cấu trúc chunk đề xuất:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.8cm}|p{9cm}|}
+\hline
+\textbf{Trường} & \textbf{Ví dụ} \\
+\hline
+\texttt{chunk\_id} & \texttt{diem\_chuan\_2025\_001} \\
+\hline
+\texttt{document\_id} & \texttt{diem\_chuan\_kma\_2017\_2025} \\
+\hline
+\texttt{section\_title} & Điểm chuẩn năm 2025 \\
+\hline
+\texttt{content} & Năm 2025, ngành Công nghệ thông tin mã 7480201KMA xét các tổ hợp A00, A01, D01, điểm chuẩn là ... \\
+\hline
+\texttt{metadata} & \texttt{year}: 2025; \texttt{topic}: \texttt{diem\_chuan}; \texttt{major}: Công nghệ thông tin; \texttt{source\_file}: tài liệu điểm chuẩn \\
+\hline
+\end{tabular}
+\caption{Ví dụ cấu trúc chunk cho dữ liệu điểm chuẩn}
+\label{tab:rag-chunk-structure}
+\end{table}
+
+Thiết kế chunk tốt giúp retrieval lấy được đúng bằng chứng và giúp LLM không phải suy đoán quan hệ bị thiếu.

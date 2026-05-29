@@ -1,0 +1,18 @@
+\section{Thiết kế Citation và truy vết nguồn}
+
+Citation là cơ chế giúp người dùng và quản trị viên kiểm chứng câu trả lời. Một câu trả lời RAG tốt không chỉ đúng nội dung mà còn phải cho biết nguồn lấy từ đâu.
+
+Mỗi câu trả lời nên gắn với:
+
+\begin{itemize}
+    \item \texttt{document\_id}.
+    \item \texttt{document\_name}.
+    \item \texttt{chunk\_id}.
+    \item \texttt{page\_number} hoặc \texttt{section\_title} nếu có.
+    \item \texttt{updated\_at}.
+    \item \texttt{valid\_status}.
+\end{itemize}
+
+Ví dụ: nguồn là tài liệu điểm chuẩn của Học viện, chunk 2, cập nhật ngày 14/04/2026. Với các câu trả lời có nhiều mệnh đề, mỗi mệnh đề quan trọng nên có bằng chứng riêng. Ví dụ, nếu trả lời vừa có điểm chuẩn, vừa có tổ hợp xét tuyển, vừa có mã ngành, hệ thống cần bảo đảm cả ba thông tin đều xuất hiện trong context.
+
+Thiết kế citation giúp người dùng tin tưởng hơn, quản trị viên kiểm tra được nguồn, dễ phát hiện lỗi parse hoặc lỗi retrieval, dễ cập nhật tài liệu khi thông tin thay đổi và giảm rủi ro LLM tự sinh thông tin không có căn cứ.

@@ -1,0 +1,7 @@
+\section{Kết luận chương}
+
+Chương này đã trình bày vai trò, kiến trúc và thiết kế chi tiết của phân hệ RAG trong hệ thống chatbot tư vấn tuyển sinh. RAG được thiết kế như lớp tri thức động, giúp hệ thống khai thác tài liệu tuyển sinh, chương trình đào tạo, điểm chuẩn, quy chế và biểu mẫu để trả lời các câu hỏi cần căn cứ thực tế.
+
+Về vận hành, phân hệ RAG gồm hai luồng chính: Indexing Flow dùng để biến tài liệu thô thành chunk, embedding, metadata và knowledge graph; Query Flow dùng để chuẩn hóa câu hỏi, truy hồi bằng chứng, xây dựng context và gọi LLM sinh câu trả lời có citation. Các lớp như Data Ingest, Chunking, Embedding, Index Layer, Knowledge Graph, Retrieval, Context Builder, Prompt Assembly và Citation được tách riêng để dễ kiểm thử, mở rộng và kiểm soát lỗi.
+
+Khi tích hợp với Rasa, RAG giúp chatbot vừa giữ được khả năng điều phối hội thoại theo intent, vừa trả lời được các câu hỏi có nội dung phụ thuộc tài liệu thực tế. Thiết kế này phù hợp với bài toán tuyển sinh, nơi thông tin thay đổi theo năm và cần khả năng truy vết nguồn rõ ràng.

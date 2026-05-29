@@ -1,0 +1,33 @@
+\section{Thiết kế API dữ liệu tuyển sinh cho Custom Actions}
+
+Ngoài các API quản trị Rasa, hệ thống cần có nhóm API nghiệp vụ tuyển sinh để Action Server truy vấn dữ liệu có cấu trúc. Nhóm API này không nhất thiết được gọi trực tiếp bởi người dùng cuối mà chủ yếu phục vụ custom actions.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint đề xuất} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/majors} & Lấy danh sách ngành học. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/majors/\{id\}} & Lấy chi tiết ngành học. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/majors/by-code/\{code\}} & Tra cứu ngành học theo mã ngành. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/methods} & Lấy danh sách phương thức xét tuyển. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/subject-combinations} & Lấy danh sách tổ hợp xét tuyển. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/cutoff-scores} & Tra cứu điểm chuẩn theo ngành, năm hoặc phương thức xét tuyển. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/tuitions} & Tra cứu học phí theo ngành và năm học. \\
+\hline
+\texttt{GET} & \texttt{/v1/admissions/faqs} & Lấy danh sách câu hỏi thường gặp. \\
+\hline
+\end{longtable}
+
+Ví dụ khi người dùng hỏi: ``Học phí ngành An toàn thông tin là bao nhiêu?'', Rasa có thể nhận diện intent \texttt{ask\_tuition} và entity \texttt{major = An toàn thông tin}. Sau đó custom action gọi API:
+
+\begin{verbatim}
+GET /api/v1/admissions/tuitions?majorName=An%20toan%20thong%20tin&year=2025
+\end{verbatim}
+
+Kết quả trả về từ backend được Action Server định dạng lại thành câu trả lời tự nhiên trước khi gửi về Rasa. Cách thiết kế này giúp Rasa không phải lưu trực tiếp toàn bộ dữ liệu tuyển sinh trong file huấn luyện, đồng thời dữ liệu có thể được cập nhật thường xuyên từ giao diện quản trị.

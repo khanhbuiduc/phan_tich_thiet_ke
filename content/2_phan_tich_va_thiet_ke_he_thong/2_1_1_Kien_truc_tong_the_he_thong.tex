@@ -1,0 +1,26 @@
+﻿\section{Kiến trúc tổng thể hệ thống}
+
+Hệ thống trợ lý ảo tư vấn tuyển sinh được tổ chức theo kiến trúc nhiều lớp, kết hợp giữa các thành phần của hệ thống web với các thành phần xử lý ngôn ngữ tự nhiên, truy hồi tri thức và sinh câu trả lời. Cách tổ chức này giúp hệ thống tiếp nhận câu hỏi, phân tích ý định, truy xuất dữ liệu tuyển sinh và trả phản hồi theo một luồng rõ ràng.
+
+Về tổng thể, hệ thống gồm các nhóm thành phần chính:
+\begin{itemize}
+    \item Frontend Web: giao diện tương tác với người dùng.
+    \item Backend API: lớp trung gian xử lý nghiệp vụ, xác thực, phân quyền và kết nối dữ liệu.
+    \item Rasa Server: thành phần xử lý hội thoại, nhận diện ý định và điều phối luồng trả lời.
+    \item Action Server: nơi thực thi các hành động tùy chỉnh khi Rasa cần gọi logic nghiệp vụ bên ngoài.
+    \item Phân hệ RAG: truy hồi tri thức từ tài liệu tuyển sinh và hỗ trợ sinh câu trả lời có căn cứ.
+    \item Cơ sở dữ liệu quan hệ: lưu trữ dữ liệu nghiệp vụ có cấu trúc như người dùng, ngành học, chỉ tiêu, tài khoản quản trị.
+    \item Vector Store: lưu trữ vector embedding phục vụ tìm kiếm ngữ nghĩa.
+    \item Document Store: lưu trữ tài liệu gốc hoặc các đoạn tài liệu đã chia nhỏ.
+    \item Knowledge Graph: biểu diễn quan hệ giữa các thực thể tuyển sinh như ngành học, phương thức xét tuyển, tổ hợp môn, học phí, chỉ tiêu.
+    \item Phân hệ quản trị: hỗ trợ quản lý nội dung tuyển sinh, dữ liệu huấn luyện, tài liệu RAG và giám sát hệ thống.
+\end{itemize}
+
+Kiến trúc này giúp hệ thống không phụ thuộc hoàn toàn vào một phương pháp trả lời duy nhất. Với các câu hỏi đơn giản, có cấu trúc rõ ràng, Rasa có thể xử lý trực tiếp thông qua intent, entity và rule/story. Với các câu hỏi phức tạp, cần thông tin từ tài liệu dài hoặc thay đổi thường xuyên, hệ thống sẽ chuyển sang phân hệ RAG để truy hồi bằng chứng trước khi sinh câu trả lời.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{content/source/kiến trúc hệ thống/Mô hình hệ thống.png}
+    \caption{Sơ đồ kiến trúc tổng thể hệ thống}
+    \label{fig:overall_system_architecture}
+\end{figure}

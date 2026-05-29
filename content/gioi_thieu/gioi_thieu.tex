@@ -1,0 +1,27 @@
+\chapter{GIỚI THIỆU}
+\label{chap:introduction}
+
+\section{Giới thiệu bài toán}
+\label{sec:problem_introduction}
+Trong những năm gần đây, việc ứng dụng trí tuệ nhân tạo vào giáo dục ngày càng rõ nét, đặc biệt ở các bài toán hỗ trợ tư vấn và tra cứu thông tin. Mỗi mùa tuyển sinh, các cơ sở giáo dục đại học phải tiếp nhận số lượng lớn câu hỏi từ thí sinh và phụ huynh. Nội dung câu hỏi thường lặp lại, tập trung vào chỉ tiêu tuyển sinh, điểm chuẩn các năm trước, phương thức xét tuyển, học phí, chương trình đào tạo và các thủ tục nhập học.
+
+Tại Học viện Kỹ thuật Mật mã (KMA), tư vấn tuyển sinh không chỉ là hoạt động cung cấp thông tin mà còn góp phần thu hút và định hướng thí sinh vào các ngành đào tạo trọng điểm như An toàn thông tin, Công nghệ thông tin và Kỹ thuật Điện tử Viễn thông. Tuy nhiên, các kênh tư vấn truyền thống như điện thoại, email và mạng xã hội bộc lộ nhiều hạn chế trong giai đoạn cao điểm: cần nhiều nhân sự, phản hồi chậm và khó giữ thông tin thống nhất giữa các lượt tư vấn.
+
+Bên cạnh đó, thông tin tuyển sinh và quy chế đào tạo thay đổi theo từng năm học. Việc cập nhật đồng đều cho toàn bộ đội ngũ tư vấn vì thế trở thành một yêu cầu khó nhưng bắt buộc.
+
+Từ thực tế đó, việc xây dựng một hệ thống trợ lý ảo hỗ trợ giải đáp thắc mắc cho thí sinh là cần thiết. Hệ thống này giúp giảm tải cho đội ngũ tư vấn, rút ngắn thời gian phản hồi và tăng khả năng cung cấp thông tin nhất quán.
+
+Từ đó, đề tài \textbf{"Nghiên cứu và xây dựng hệ thống KMA Chatbot hỗ trợ tư vấn tuyển sinh"} được lựa chọn. Hệ thống đề xuất không chỉ xử lý các kịch bản hội thoại cố định bằng Rasa mà còn tích hợp RAG (Retrieval-Augmented Generation) để truy xuất thông tin từ kho tài liệu tuyển sinh. Cách kết hợp này phù hợp với các câu hỏi phức tạp hoặc thay đổi thường xuyên theo tài liệu nghiệp vụ.
+
+\section{Giới thiệu tài liệu}
+\label{sec:document_introduction}
+Tài liệu này trình bày chi tiết về quá trình phân tích, thiết kế, và triển khai hệ thống "KMA Chatbot hỗ trợ tư vấn tuyển sinh". Nội dung của tài liệu được cấu trúc một cách có hệ thống để người đọc có thể dễ dàng theo dõi và nắm bắt được toàn bộ quy trình phát triển của dự án. Cấu trúc của tài liệu bao gồm các chương chính sau:
+\begin{itemize}
+    \item \textbf{Giới thiệu:} Trình bày tổng quan về bài toán tư vấn tuyển sinh, bối cảnh lựa chọn đề tài và cấu trúc tài liệu.
+    \item \textbf{Chương 1 - Khảo sát và phân tích yêu cầu hệ thống:} Tập trung vào việc khảo sát bài toán, xác định nhóm người dùng, phân tích yêu cầu chức năng, phi chức năng và đặc tả các ca sử dụng chính.
+    \item \textbf{Chương 2 - Phân tích và thiết kế hệ thống:} Trình bày kiến trúc tổng thể, thiết kế chatbot Rasa, phân hệ RAG, API hệ thống và phân hệ quản trị.
+    \item \textbf{Chương 3 - Xây dựng:} Dành cho nội dung xây dựng và triển khai hệ thống.
+\end{itemize}
+
+
+Với yêu cầu về bảo mật thông tin, khả năng tùy biến sâu mô hình học máy và hạn chế phụ thuộc vào bên thứ ba, Rasa là lựa chọn phù hợp để làm nền tảng cốt lõi cho KMA Chatbot.

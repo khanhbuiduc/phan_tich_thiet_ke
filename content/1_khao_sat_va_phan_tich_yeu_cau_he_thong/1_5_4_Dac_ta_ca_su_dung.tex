@@ -1,0 +1,241 @@
+\subsection{Đặc tả ca sử dụng}
+
+\subsubsection{Đặc tả ca sử dụng UC-01: Hỏi đáp với Rasa}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-01 \\ \hline
+Tên ca sử dụng & Hỏi đáp với Rasa \\ \hline
+Tác nhân & Khách, Người dùng \\ \hline
+Mục tiêu & Tác nhân gửi câu hỏi tuyển sinh và nhận phản hồi phù hợp từ trợ lý ảo Rasa \\ \hline
+Tiền điều kiện & Hệ thống chatbot đang hoạt động và tác nhân truy cập được giao diện hỏi đáp \\ \hline
+Hậu điều kiện & Câu hỏi được xử lý, phản hồi được hiển thị; nếu là Người dùng thì lịch sử hội thoại có thể được lưu \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Tác nhân nhập câu hỏi \\
+2) Hệ thống tiếp nhận nội dung \\
+3) Rasa phân tích intent và entity \\
+4) Hệ thống truy xuất dữ liệu liên quan \\
+5) Trả phản hồi cho tác nhân
+\end{tabular} \\ \hline
+Luồng thay thế & Nếu câu hỏi chưa rõ, hệ thống yêu cầu tác nhân bổ sung thông tin \\ \hline
+Ngoại lệ & Nếu không tìm thấy thông tin phù hợp hoặc chatbot lỗi xử lý, hệ thống thông báo và đề nghị thử lại \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-02: Đăng nhập}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-02 \\ \hline
+Tên ca sử dụng & Đăng nhập \\ \hline
+Tác nhân & Người dùng, Quản lý, Admin \\ \hline
+Mục tiêu & Xác thực tài khoản để truy cập các chức năng theo quyền được cấp \\ \hline
+Tiền điều kiện & Tác nhân đã có tài khoản hợp lệ trên hệ thống \\ \hline
+Hậu điều kiện & Phiên đăng nhập được tạo và tác nhân được chuyển đến giao diện phù hợp với vai trò \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Tác nhân mở màn hình đăng nhập \\
+2) Nhập thông tin tài khoản \\
+3) Hệ thống kiểm tra thông tin xác thực \\
+4) Hệ thống xác định vai trò \\
+5) Cho phép truy cập hệ thống
+\end{tabular} \\ \hline
+Luồng thay thế & Tác nhân có thể đăng nhập lại nếu nhập sai thông tin ở lần trước \\ \hline
+Ngoại lệ & Nếu tài khoản sai, bị khóa hoặc không đủ điều kiện truy cập, hệ thống từ chối đăng nhập và thông báo lý do \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-03: Quản lý lịch sử hội thoại}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-03 \\ \hline
+Tên ca sử dụng & Quản lý lịch sử hội thoại \\ \hline
+Tác nhân & Người dùng \\ \hline
+Mục tiêu & Xem, tra cứu và quản lý các hội thoại đã thực hiện với chatbot \\ \hline
+Tiền điều kiện & Người dùng đã đăng nhập và có dữ liệu hội thoại được lưu \\ \hline
+Hậu điều kiện & Lịch sử hội thoại được hiển thị hoặc được cập nhật theo thao tác quản lý của người dùng \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Người dùng mở mục lịch sử hội thoại \\
+2) Hệ thống tải danh sách hội thoại \\
+3) Người dùng chọn hội thoại cần xem \\
+4) Hệ thống hiển thị chi tiết nội dung \\
+5) Người dùng thực hiện thao tác quản lý nếu cần
+\end{tabular} \\ \hline
+Luồng thay thế & Người dùng có thể tìm kiếm, lọc hoặc sắp xếp danh sách hội thoại theo thời gian \\ \hline
+Ngoại lệ & Nếu không có dữ liệu lịch sử, hệ thống hiển thị danh sách trống và thông báo phù hợp \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-04: Quản lý các bộ dữ liệu}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-04 \\ \hline
+Tên ca sử dụng & Quản lý các bộ dữ liệu \\ \hline
+Tác nhân & Quản lý \\ \hline
+Mục tiêu & Quản lý dữ liệu nghiệp vụ phục vụ tra cứu, hỏi đáp và gợi ý thông tin tuyển sinh \\ \hline
+Tiền điều kiện & Quản lý đã đăng nhập và có quyền thao tác với dữ liệu \\ \hline
+Hậu điều kiện & Dữ liệu được thêm mới, cập nhật, xem chi tiết hoặc xóa theo thao tác hợp lệ \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Quản lý mở màn hình bộ dữ liệu \\
+2) Chọn thao tác thêm, sửa, xem hoặc xóa \\
+3) Hệ thống hiển thị biểu mẫu dữ liệu \\
+4) Quản lý nhập hoặc chỉnh sửa thông tin \\
+5) Hệ thống kiểm tra và lưu thay đổi
+\end{tabular} \\ \hline
+Luồng thay thế & Quản lý có thể thu thập dữ liệu hoặc cập nhật bộ câu hỏi gợi ý từ nguồn có sẵn \\ \hline
+Ngoại lệ & Nếu dữ liệu không hợp lệ hoặc trùng lặp, hệ thống từ chối lưu và yêu cầu chỉnh sửa \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-05: Quản lý văn bản, biểu mẫu}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-05 \\ \hline
+Tên ca sử dụng & Quản lý văn bản, biểu mẫu \\ \hline
+Tác nhân & Quản lý \\ \hline
+Mục tiêu & Quản lý văn bản và biểu mẫu phục vụ tra cứu, hỏi đáp và cung cấp thông tin tuyển sinh \\ \hline
+Tiền điều kiện & Quản lý đã đăng nhập và được cấp quyền quản lý tài liệu \\ \hline
+Hậu điều kiện & Tài liệu hoặc biểu mẫu được cập nhật trong hệ thống và sẵn sàng sử dụng \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Quản lý mở danh mục văn bản, biểu mẫu \\
+2) Chọn thêm mới, cập nhật, xem chi tiết hoặc xóa \\
+3) Hệ thống hiển thị thông tin tài liệu \\
+4) Quản lý thực hiện chỉnh sửa \\
+5) Hệ thống lưu thay đổi
+\end{tabular} \\ \hline
+Luồng thay thế & Quản lý có thể tải lên tệp đính kèm hoặc gắn tài liệu với từng nhóm nghiệp vụ cụ thể \\ \hline
+Ngoại lệ & Nếu tệp sai định dạng, thiếu thông tin hoặc lỗi tải lên, hệ thống thông báo thao tác không thành công \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-06: Quản lý bộ API}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-06 \\ \hline
+Tên ca sử dụng & Quản lý bộ API \\ \hline
+Tác nhân & Quản lý \\ \hline
+Mục tiêu & Quản lý thông tin API hoặc tài liệu API phục vụ tích hợp giữa các thành phần hệ thống \\ \hline
+Tiền điều kiện & Quản lý đã đăng nhập và có quyền truy cập chức năng API \\ \hline
+Hậu điều kiện & Thông tin API được cập nhật, lưu trữ và có thể sử dụng cho tích hợp hệ thống \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Quản lý truy cập màn hình quản lý API \\
+2) Chọn thêm mới, cập nhật, xem hoặc xóa API \\
+3) Nhập thông tin endpoint, phương thức và mô tả \\
+4) Hệ thống kiểm tra dữ liệu \\
+5) Lưu thay đổi
+\end{tabular} \\ \hline
+Luồng thay thế & Quản lý có thể cập nhật tài liệu mô tả hoặc cấu hình liên kết với API hiện có \\ \hline
+Ngoại lệ & Nếu cấu hình API thiếu thông tin bắt buộc hoặc trùng endpoint không hợp lệ, hệ thống từ chối lưu \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-07: Quản lý chatbot Rasa}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-07 \\ \hline
+Tên ca sử dụng & Quản lý chatbot Rasa \\ \hline
+Tác nhân & Admin \\ \hline
+Mục tiêu & Quản lý các thành phần của chatbot Rasa như intent, entity, action, response, rule, story, slot và cấu hình liên quan \\ \hline
+Tiền điều kiện & Admin đã đăng nhập và có quyền quản trị chatbot \\ \hline
+Hậu điều kiện & Cấu hình chatbot được cập nhật và sẵn sàng phục vụ huấn luyện hoặc vận hành \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Admin truy cập màn hình quản lý chatbot \\
+2) Chọn thành phần cần quản lý \\
+3) Thêm mới hoặc chỉnh sửa dữ liệu \\
+4) Hệ thống kiểm tra tính hợp lệ \\
+5) Lưu cấu hình cập nhật
+\end{tabular} \\ \hline
+Luồng thay thế & Admin có thể xem trước thay đổi hoặc thực hiện huấn luyện lại chatbot sau khi cập nhật \\ \hline
+Ngoại lệ & Nếu dữ liệu cấu hình sai cú pháp hoặc không nhất quán, hệ thống từ chối lưu và thông báo lỗi \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-08: Quản lý người dùng}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-08 \\ \hline
+Tên ca sử dụng & Quản lý người dùng \\ \hline
+Tác nhân & Quản lý, Admin \\ \hline
+Mục tiêu & Quản lý tài khoản người dùng, trạng thái hoạt động và thông tin phân quyền cơ bản \\ \hline
+Tiền điều kiện & Tác nhân đã đăng nhập và có quyền quản lý người dùng \\ \hline
+Hậu điều kiện & Tài khoản người dùng được tạo mới, cập nhật, khóa, mở khóa hoặc xóa theo thao tác hợp lệ \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Tác nhân mở màn hình quản lý người dùng \\
+2) Chọn thêm mới hoặc chỉnh sửa tài khoản \\
+3) Nhập hoặc cập nhật thông tin người dùng \\
+4) Hệ thống kiểm tra dữ liệu \\
+5) Lưu thay đổi và cập nhật danh sách
+\end{tabular} \\ \hline
+Luồng thay thế & Tác nhân có thể thực hiện ban/unban hoặc gán cấu hình chatbot cho người dùng phù hợp \\ \hline
+Ngoại lệ & Nếu tài khoản trùng lặp, thiếu thông tin hoặc không đủ quyền thao tác, hệ thống từ chối xử lý \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-09: Quản lý vai trò và quyền hạn}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-09 \\ \hline
+Tên ca sử dụng & Quản lý vai trò và quyền hạn \\ \hline
+Tác nhân & Admin \\ \hline
+Mục tiêu & Thiết lập vai trò, quyền hạn và quan hệ phân quyền trong hệ thống \\ \hline
+Tiền điều kiện & Admin đã đăng nhập và có quyền quản trị RBAC \\ \hline
+Hậu điều kiện & Vai trò, quyền hạn hoặc quan hệ gán quyền được cập nhật thành công trong hệ thống \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Admin mở màn hình quản lý vai trò và quyền hạn \\
+2) Chọn tạo mới hoặc chỉnh sửa vai trò, quyền \\
+3) Gán quyền cho vai trò hoặc gán vai trò cho người dùng \\
+4) Hệ thống kiểm tra ràng buộc \\
+5) Lưu cấu hình phân quyền
+\end{tabular} \\ \hline
+Luồng thay thế & Admin có thể sao chép cấu hình từ vai trò có sẵn để tạo vai trò mới nhanh hơn \\ \hline
+Ngoại lệ & Nếu cấu hình phân quyền mâu thuẫn hoặc vượt quyền cho phép, hệ thống từ chối cập nhật \\ \hline
+\end{tabular}
+\end{table}
+
+\subsubsection{Đặc tả ca sử dụng UC-10: Báo cáo thống kê}
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Mô tả} \\ \hline
+Mã ca sử dụng & UC-10 \\ \hline
+Tên ca sử dụng & Báo cáo thống kê \\ \hline
+Tác nhân & Admin \\ \hline
+Mục tiêu & Theo dõi số liệu tổng hợp về người dùng, hội thoại, chatbot, NLP và tài liệu trong hệ thống \\ \hline
+Tiền điều kiện & Admin đã đăng nhập và có quyền xem báo cáo thống kê \\ \hline
+Hậu điều kiện & Báo cáo được hiển thị theo bộ lọc hoặc phạm vi thời gian được lựa chọn \\ \hline
+Luồng chính & \begin{tabular}[t]{@{}l@{}}
+1) Admin truy cập màn hình báo cáo \\
+2) Chọn loại báo cáo hoặc khoảng thời gian \\
+3) Hệ thống tổng hợp dữ liệu \\
+4) Hiển thị biểu đồ và chỉ số thống kê \\
+5) Admin xem chi tiết hoặc đối chiếu dữ liệu
+\end{tabular} \\ \hline
+Luồng thay thế & Admin có thể lọc báo cáo theo từng nhóm dữ liệu hoặc xuất báo cáo nếu hệ thống hỗ trợ \\ \hline
+Ngoại lệ & Nếu thiếu dữ liệu hoặc lỗi truy xuất thống kê, hệ thống hiển thị cảnh báo và không tạo được báo cáo đầy đủ \\ \hline
+\end{tabular}
+\end{table}

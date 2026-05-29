@@ -1,0 +1,78 @@
+\section{Thiết kế luồng nghiệp vụ phân hệ quản trị}
+
+\subsection{Luồng quản lý tài liệu biểu mẫu}
+
+Luồng quản lý tài liệu biểu mẫu bắt đầu khi Admin hoặc Manager cần thêm mới hoặc cập nhật một biểu mẫu. Người quản trị truy cập màn hình \texttt{/docs}, tải file lên, nhập mô tả, gán tag và lưu thông tin. Backend kiểm tra định dạng file, lưu metadata và cập nhật danh sách tài liệu.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Người quản trị đăng nhập hệ thống.
+    \item Truy cập màn hình Documents.
+    \item Thêm mới hoặc chỉnh sửa tài liệu.
+    \item Nhập tên, mô tả, tag và chọn file.
+    \item Backend kiểm tra dữ liệu.
+    \item File và metadata được lưu vào hệ thống.
+    \item Giao diện cập nhật danh sách tài liệu.
+\end{enumerate}
+
+\subsection{Luồng quản lý tài liệu RAG}
+
+Luồng quản lý tài liệu RAG bắt đầu từ màn hình \texttt{/context-docs}. Người quản trị upload tài liệu hoặc scan tài liệu mới. Sau đó pipeline xử lý tài liệu, sinh chunks và cập nhật trạng thái.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Người quản trị chọn chatbot cần thao tác.
+    \item Truy cập màn hình Context Documents.
+    \item Upload tài liệu hoặc scan tài liệu mới.
+    \item Hệ thống đưa tài liệu vào pipeline xử lý.
+    \item Pipeline trích xuất văn bản, chia chunks và sinh embedding.
+    \item Trạng thái tài liệu được cập nhật thành processed hoặc failed.
+    \item Nếu failed, người quản trị có thể retry pipeline.
+\end{enumerate}
+
+\subsection{Luồng phân quyền người dùng}
+
+Luồng phân quyền bắt đầu khi Admin cần cấp quyền cho một nhóm người dùng. Admin tạo hoặc cập nhật vai trò, sau đó gán các quyền cần thiết cho vai trò đó. Cuối cùng, Admin gán vai trò cho tài khoản người dùng.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Admin truy cập màn hình Roles.
+    \item Tạo hoặc chỉnh sửa vai trò.
+    \item Chọn danh sách quyền từ màn hình Permissions.
+    \item Gán quyền cho vai trò.
+    \item Truy cập màn hình Users.
+    \item Gán vai trò cho người dùng.
+    \item Backend áp dụng kiểm tra quyền khi người dùng truy cập API.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng phân quyền RBAC.png}}
+    \caption{Biểu đồ tuần tự luồng phân quyền RBAC}
+    \label{fig:seq-rbac-authorization}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_09.png}}
+    \caption{Biểu đồ hoạt động luồng phân quyền RBAC}
+    \label{fig:act-rbac-authorization}
+\end{figure}
+
+\subsection{Luồng xem báo cáo thống kê}
+
+Luồng xem báo cáo thống kê cho phép Admin hoặc Manager theo dõi tình trạng hệ thống theo từng nhóm dữ liệu.
+
+Quy trình gồm:
+
+\begin{enumerate}
+    \item Người quản trị chọn chatbot cần xem báo cáo.
+    \item Truy cập nhóm Statistics.
+    \item Chọn loại báo cáo: Users, Conversations, Chatbots hoặc Documents.
+    \item Frontend gọi API thống kê tương ứng.
+    \item Backend tổng hợp dữ liệu.
+    \item Giao diện hiển thị số liệu, biểu đồ và bảng chi tiết.
+\end{enumerate}

@@ -1,0 +1,32 @@
+\section{Phân tích yêu cầu phi chức năng}
+
+Yêu cầu phi chức năng mô tả các tiêu chí chất lượng mà hệ thống cần đáp ứng trong quá trình vận hành. Nếu yêu cầu chức năng trả lời câu hỏi hệ thống cần làm gì, thì yêu cầu phi chức năng tập trung vào cách hệ thống hoạt động sao cho ổn định, tin cậy, an toàn và phù hợp với môi trường sử dụng thực tế.
+
+\begin{table}[H]
+    \centering
+    \caption{Đặc tả yêu cầu phi chức năng}
+    \label{tab:non_functional_requirements_spec}
+    \small
+    \begin{tabularx}{\textwidth}{|p{3cm}|X|p{2cm}|}
+        \hline
+        \textbf{Tiêu chí} & \textbf{Yêu cầu} & \textbf{Ưu tiên} \\ \hline
+        Hiệu năng & Xử lý đồng thời tối thiểu 500 yêu cầu/s & Cao \\ \hline
+        Hiệu năng & Tốc độ xử lý 1 yêu cầu tối đa không quá 5 giây &  \\ \hline
+        Khả năng mở rộng & Hỗ trợ nền tảng Web và ứng dụng trên Android, iOS đối với phần mềm phía máy trạm & Cao \\ \hline
+        Độ sẵn sàng & Hỗ trợ tích hợp chatbot lên các hệ thống khác nhau thông qua API & Cao \\ \hline
+        Độ chính xác & Độ chính xác trong phân loại ý định, tách từ tối thiểu: 85\% & Cao \\ \hline
+        Khả năng bảo trì & Kiến trúc microservices & Trung bình \\ \hline
+        Khả năng kiểm thử & Bộ dữ liệu huấn luyện tối thiểu 1500 câu hỏi đầy đủ các chủ đề khi ứng dụng tại HVKTMM; 500 câu hỏi khi ứng dụng tại Tạp chí ATTT & Trung bình \\ \hline
+        Ngôn ngữ & Hỗ trợ xử lý ngôn ngữ tiếng Việt & Cao \\ \hline
+    \end{tabularx}
+\end{table}
+
+Đối với hệ thống trợ lý ảo tuyển sinh, yêu cầu phi chức năng có vai trò quan trọng vì hệ thống xử lý các thông tin có ảnh hưởng trực tiếp đến người dùng như ngành đào tạo, học phí, điểm chuẩn, thủ tục, biểu mẫu và quy chế tuyển sinh. Do đó, hệ thống cần ưu tiên tính chính xác, hạn chế trả lời theo suy đoán và có khả năng dựa trên nguồn dữ liệu đã được quản lý.
+
+Hệ thống cần bảo đảm câu trả lời có căn cứ, đặc biệt với các câu hỏi sử dụng RAG. Khi người dùng hỏi về thông tin nằm trong tài liệu, hệ thống phải truy xuất nội dung liên quan trước khi sinh câu trả lời. Nếu không tìm thấy dữ liệu phù hợp, chatbot nên phản hồi rằng chưa đủ thông tin thay vì tự tạo ra nội dung không có trong nguồn tài liệu.
+
+Bên cạnh tính đúng nguồn, hệ thống cũng cần có khả năng truy vết và vận hành ổn định. Tài liệu đưa vào hệ thống cần có trạng thái xử lý rõ ràng để quản trị viên biết tài liệu nào đã sẵn sàng sử dụng, tài liệu nào đang chờ xử lý và tài liệu nào bị lỗi. Các thao tác như upload, scan, retry pipeline, refresh dữ liệu và theo dõi thống kê giúp việc vận hành hệ thống thuận tiện hơn.
+
+Về bảo mật, hệ thống cần phân quyền rõ ràng giữa người dùng thông thường, người quản lý và admin. Người dùng thông thường chỉ nên được sử dụng các chức năng hỏi đáp và tra cứu; trong khi đó, các chức năng quản lý tài liệu, quản lý người dùng, phân quyền và xem thống kê cần được giới hạn cho các tài khoản có quyền phù hợp. Điều này giúp bảo vệ dữ liệu và tránh các thay đổi ngoài phạm vi trách nhiệm.
+
+Ngoài ra, hệ thống cần có khả năng mở rộng khi số lượng người dùng, tài liệu và câu hỏi tăng lên. Việc tách các thành phần như lưu trữ tài liệu, trạng thái xử lý, vector database và dữ liệu quản trị giúp hệ thống dễ nâng cấp hơn trong tương lai. Nhìn chung, các yêu cầu phi chức năng giúp hệ thống không chỉ đáp ứng được nghiệp vụ hỏi đáp, mà còn có đủ độ tin cậy để triển khai và vận hành lâu dài.

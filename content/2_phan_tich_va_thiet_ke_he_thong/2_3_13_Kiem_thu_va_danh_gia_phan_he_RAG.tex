@@ -1,0 +1,26 @@
+\section{Kiểm thử và đánh giá phân hệ RAG}
+
+Đánh giá RAG cần thực hiện trên cả hai lớp: chất lượng truy hồi và chất lượng câu trả lời. Truy hồi đúng nhưng prompt kém có thể tạo câu trả lời khó hiểu; ngược lại, prompt tốt nhưng truy hồi sai tài liệu sẽ khiến câu trả lời sai căn cứ.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{8.8cm}|}
+\hline
+\textbf{Nhóm đánh giá} & \textbf{Tiêu chí} \\
+\hline
+Chất lượng truy hồi & Truy hồi đúng tài liệu, đúng năm, đúng ngành, đúng loại thông tin và đúng đoạn chứa câu trả lời. \\
+\hline
+Chất lượng context & Context đủ thông tin, ít nhiễu, không trùng lặp và giữ được nguồn tham chiếu. \\
+\hline
+Chất lượng câu trả lời & Trả lời đúng trọng tâm, dễ hiểu, không tự tạo thông tin và có nguồn khi cần. \\
+\hline
+Khả năng vận hành & Tài liệu mới được xử lý ổn định, trạng thái rõ ràng, có khả năng xử lý lại khi lỗi. \\
+\hline
+Độ tin cậy & Hệ thống biết từ chối khi không có bằng chứng, biết cảnh báo khi nguồn cũ hoặc mâu thuẫn. \\
+\hline
+\end{tabular}
+\caption{Tiêu chí đánh giá chất lượng phân hệ RAG}
+\label{tab:rag-evaluation-criteria}
+\end{table}
+
+Bộ kiểm thử RAG nên bao gồm các nhóm câu hỏi về điểm chuẩn, ngành đào tạo, phương thức xét tuyển, hồ sơ nhập học, chính sách ưu tiên, học phí, chương trình đào tạo và các câu hỏi không có trong tài liệu. Nhóm câu hỏi không có trong tài liệu đặc biệt quan trọng vì giúp kiểm tra khả năng từ chối trả lời khi thiếu bằng chứng.

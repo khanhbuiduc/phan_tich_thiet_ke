@@ -1,0 +1,42 @@
+\section{Phân hệ RBAC và quản lý quyền}
+
+RBAC là viết tắt của Role-Based Access Control, tức là mô hình kiểm soát truy cập dựa trên vai trò. Trong hệ thống KMA Chatbot, nhóm chức năng RBAC được thể hiện qua các route \texttt{/roles} và \texttt{/permissions}. Đây là thành phần bảo mật quan trọng vì phân hệ quản trị có nhiều thao tác ảnh hưởng trực tiếp đến dữ liệu và cấu hình hệ thống.
+
+\subsection{Quản lý vai trò}
+
+Màn hình \texttt{/roles} hiển thị danh sách vai trò trong hệ thống. Các vai trò đã quan sát gồm USER, MANAGER và ADMIN. Mỗi vai trò có mô tả, số lượng quyền được gán, thời điểm tạo và các thao tác quản trị.
+
+Vai trò USER đại diện cho nhóm người dùng cơ bản với quyền truy cập hạn chế. Vai trò MANAGER đại diện cho nhóm quản lý hoặc biên tập nội dung với quyền ở mức trung bình. Vai trò ADMIN là vai trò có quyền cao nhất, có thể quản lý nhiều chức năng hệ thống.
+
+\begin{table}[H]
+\centering
+\caption{Các vai trò quan sát được trong hệ thống}
+\label{tab:roles-observed}
+\begin{tabular}{|p{3cm}|p{6cm}|p{4cm}|}
+\hline
+\textbf{Vai trò} & \textbf{Mô tả} & \textbf{Mức quyền} \\ \hline
+USER & Người dùng cơ bản & Thấp \\ \hline
+MANAGER & Người quản lý hoặc biên tập nội dung & Trung bình \\ \hline
+ADMIN & Người quản trị hệ thống & Cao \\ \hline
+\end{tabular}
+\end{table}
+
+\subsection{Quản lý quyền}
+
+Màn hình \texttt{/permissions} hiển thị danh sách quyền theo từng API hoặc chức năng. Các quyền quan sát được gồm các quyền thống kê như \texttt{GET /api/v1/statistic/system}, \texttt{GET /api/v1/statistic/documents}, \texttt{GET /api/v1/statistic/nlp}, \texttt{GET /api/v1/statistic/chatbots}, \texttt{GET /api/v1/statistic/conversations}, \texttt{GET /api/v1/statistic/users}, cùng với các quyền thao tác tài liệu như khôi phục hoặc xóa mềm tài liệu.
+
+Cách thiết kế quyền theo endpoint giúp hệ thống kiểm soát truy cập chi tiết. Mỗi quyền gắn với một hành động cụ thể, một module cụ thể và trạng thái cho phép hay không cho phép. Khi người dùng gọi API, backend có thể kiểm tra xem vai trò của người dùng có quyền tương ứng hay không.
+
+\subsection{Thiết kế quan hệ vai trò và quyền}
+
+Quan hệ giữa vai trò và quyền là quan hệ nhiều-nhiều. Một vai trò có thể có nhiều quyền, và một quyền có thể được gán cho nhiều vai trò khác nhau. Vì vậy, trong cơ sở dữ liệu cần có bảng trung gian \texttt{RolePermissions} để lưu quan hệ này.
+
+Mô hình dữ liệu đề xuất gồm:
+
+\begin{itemize}
+    \item \texttt{Roles}: lưu thông tin vai trò.
+    \item \texttt{Permissions}: lưu thông tin quyền.
+    \item \texttt{RolePermissions}: lưu quan hệ giữa vai trò và quyền.
+    \item \texttt{Users}: lưu thông tin người dùng.
+    \item \texttt{UserRoles}: lưu quan hệ giữa người dùng và vai trò.
+\end{itemize}

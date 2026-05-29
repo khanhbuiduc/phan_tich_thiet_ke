@@ -1,0 +1,135 @@
+\section{Thiết kế API quản lý dữ liệu Rasa}
+
+Nhóm API quản lý dữ liệu Rasa cho phép quản trị viên thao tác với các thành phần huấn luyện của chatbot như intent, rule, response và action. Việc đưa các thành phần này lên giao diện quản trị giúp người quản trị có thể cập nhật dữ liệu hội thoại mà không cần chỉnh sửa trực tiếp các file cấu hình của Rasa.
+
+\subsection{API quản lý Intent}
+
+Intent là ý định của người dùng được Rasa NLU nhận diện từ câu hỏi đầu vào. API quản lý intent cho phép thêm, sửa, xóa và khôi phục intent.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/intent} & Lấy danh sách intent có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/intent} & Tạo intent mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/intent/\{id\}} & Lấy chi tiết intent theo id. \\
+\hline
+\texttt{PUT} & \texttt{/v1/intent/\{id\}} & Cập nhật intent. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/intent/\{id\}/soft} & Xóa mềm intent. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/intent/\{id\}/hard} & Xóa vĩnh viễn intent. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/intent/\{id\}/restore} & Khôi phục intent đã xóa mềm. \\
+\hline
+\end{longtable}
+
+Dữ liệu intent có thể bao gồm tên intent, danh sách câu ví dụ, trạng thái hoạt động và mô tả. Khi intent được cập nhật, hệ thống cần huấn luyện lại mô hình để thay đổi có hiệu lực.
+
+\subsection{API quản lý Rule}
+
+Rule dùng để định nghĩa các luồng phản hồi cố định trong Rasa. API quản lý rule giúp quản trị viên kiểm soát các kịch bản hội thoại có tính xác định cao.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/rule} & Lấy danh sách rule có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/rule} & Tạo rule mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/rule/\{id\}} & Lấy chi tiết rule. \\
+\hline
+\texttt{PUT} & \texttt{/v1/rule/\{id\}} & Cập nhật rule. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/rule/\{id\}/soft} & Xóa mềm rule. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/rule/\{id\}/hard} & Xóa vĩnh viễn rule. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/rule/\{id\}/restore} & Khôi phục rule. \\
+\hline
+\end{longtable}
+
+Mỗi rule thường bao gồm tên rule, intent kích hoạt, action phản hồi và trạng thái sử dụng. Với các câu hỏi phổ biến như hỏi lời chào, hỏi thông tin trường hoặc hỏi hướng dẫn sử dụng chatbot, rule giúp hệ thống phản hồi nhanh và ổn định.
+
+\subsection{API quản lý Response}
+
+Response là các câu trả lời mẫu được Rasa sử dụng trong phần NLG. API quản lý response cho phép thêm và cập nhật nội dung phản hồi mà không cần chỉnh sửa trực tiếp file \texttt{domain.yml}.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/my-response} & Lấy danh sách response có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/my-response} & Tạo response mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/my-response/\{id\}} & Lấy chi tiết response. \\
+\hline
+\texttt{PUT} & \texttt{/v1/my-response/\{id\}} & Cập nhật response. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/my-response/\{id\}/soft} & Xóa mềm response. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/my-response/\{id\}/hard} & Xóa vĩnh viễn response. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/my-response/\{id\}/restore} & Khôi phục response. \\
+\hline
+\end{longtable}
+
+Mỗi response có thể chứa tên response, nội dung câu trả lời, biến động nếu có và trạng thái hoạt động. Ví dụ, response \texttt{utter\_greet} có thể chứa nhiều biến thể câu chào để chatbot trả lời tự nhiên hơn.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng quản lý intent entity response rule story action.png}}
+    \caption{Biểu đồ tuần tự luồng quản lý intent, entity, response, rule, story và action}
+    \label{fig:seq-manage-rasa-training-data}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_05.png}}
+    \caption{Biểu đồ hoạt động luồng quản lý intent, entity, response, rule, story và action}
+    \label{fig:act-manage-rasa-training-data}
+\end{figure}
+
+\subsection{API quản lý Action}
+
+Action là hành động mà Rasa thực hiện sau khi nhận diện intent và trạng thái hội thoại. Action có thể là câu trả lời tĩnh hoặc custom action gọi sang backend để lấy dữ liệu.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{GET} & \texttt{/v1/action} & Lấy danh sách action có phân trang. \\
+\hline
+\texttt{POST} & \texttt{/v1/action} & Tạo action mới. \\
+\hline
+\texttt{GET} & \texttt{/v1/action/\{id\}} & Lấy chi tiết action. \\
+\hline
+\texttt{PUT} & \texttt{/v1/action/\{id\}} & Cập nhật action. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/action/\{id\}/soft} & Xóa mềm action. \\
+\hline
+\texttt{DELETE} & \texttt{/v1/action/\{id\}/hard} & Xóa vĩnh viễn action. \\
+\hline
+\texttt{PATCH} & \texttt{/v1/action/\{id\}/restore} & Khôi phục action. \\
+\hline
+\end{longtable}
+
+Đối với hệ thống tư vấn tuyển sinh, các custom action quan trọng gồm action tra cứu ngành học, action tra cứu học phí, action tra cứu điểm chuẩn, action tra cứu phương thức xét tuyển và action gọi RAG khi câu hỏi cần truy hồi tài liệu.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/seq_04.png}}
+    \caption{Biểu đồ tuần tự luồng push và chạy Action Server}
+    \label{fig:seq-push-run-actions}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_04.png}}
+    \caption{Biểu đồ hoạt động luồng push và chạy Action Server}
+    \label{fig:act-push-run-actions}
+\end{figure}

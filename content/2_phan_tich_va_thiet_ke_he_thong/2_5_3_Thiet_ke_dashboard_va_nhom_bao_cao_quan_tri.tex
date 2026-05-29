@@ -1,0 +1,58 @@
+\section{Thiết kế dashboard và nhóm báo cáo quản trị}
+
+Dashboard và nhóm báo cáo quản trị có nhiệm vụ cung cấp góc nhìn tổng quan về tình trạng hoạt động của hệ thống. Trong giao diện đã phân tích, hệ thống có các màn hình thống kê chính gồm User Report, Conversation Report, Chatbot Report và Document Report. Riêng route \texttt{/statistics/nlp} trong phiên quan sát hiện tại chưa tải được đầy đủ, do đó phần thiết kế chỉ mô tả theo hướng chức năng cần có và không khẳng định số liệu NLP cụ thể.
+
+\subsection{Báo cáo người dùng}
+
+Báo cáo người dùng giúp người quản trị theo dõi số lượng tài khoản và trạng thái hoạt động của người dùng trong hệ thống. Các chỉ số cần hiển thị gồm tổng số người dùng, số người dùng đang hoạt động, số người dùng bị khóa, số người dùng chờ duyệt và số người dùng mới trong một khoảng thời gian.
+
+Báo cáo này có ý nghĩa quan trọng trong vận hành vì nó giúp Admin kiểm soát quy mô người dùng, phát hiện tài khoản bất thường và đánh giá mức độ sử dụng hệ thống.
+
+\subsection{Báo cáo hội thoại}
+
+Báo cáo hội thoại phục vụ theo dõi hoạt động hỏi đáp giữa người dùng và chatbot. Màn hình Conversation Report đã quan sát có các thẻ thống kê và biểu đồ xu hướng hội thoại. Về mặt thiết kế, báo cáo hội thoại cần hiển thị các thông tin như tổng số hội thoại, số lượng tin nhắn trung bình, người dùng đang hoạt động và xu hướng hội thoại theo thời gian.
+
+Các chỉ số này giúp người quản trị biết thời điểm hệ thống được sử dụng nhiều, nhóm câu hỏi nào phát sinh thường xuyên và mức độ tương tác của người dùng với chatbot.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng lưu lịch sử hội thoại.png}}
+    \caption{Biểu đồ tuần tự luồng lưu và tra cứu lịch sử hội thoại}
+    \label{fig:seq-admin-conversation-history}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_11.png}}
+    \caption{Biểu đồ hoạt động luồng lưu và tra cứu lịch sử hội thoại}
+    \label{fig:act-admin-conversation-history}
+\end{figure}
+
+\subsection{Báo cáo chatbot}
+
+Báo cáo chatbot tập trung vào các chatbot đang được quản lý trong hệ thống. Màn hình Chatbot Report đã xác minh có nhóm thông tin về tổng số chatbot, tổng số người dùng và số lượng intent đang hoạt động. Điều đó cho thấy backend đã có nhóm thống kê riêng cho đối tượng chatbot.
+
+Trong thiết kế, báo cáo chatbot cần cung cấp các thông tin:
+
+\begin{itemize}
+    \item Tổng số chatbot đang có trong hệ thống.
+    \item Chatbot đang được chọn làm ngữ cảnh quản trị.
+    \item Số người dùng liên quan đến chatbot.
+    \item Số intent hoặc nhóm nghiệp vụ mà chatbot hỗ trợ.
+    \item Trạng thái hoạt động của chatbot.
+\end{itemize}
+
+Tuy nhiên, trong phạm vi dữ liệu UI hiện có, chưa xác minh được màn hình tạo, sửa, xóa chatbot riêng biệt. Vì vậy, chương này chỉ mô tả quản lý chatbot ở mức chọn ngữ cảnh và theo dõi thống kê, không khẳng định đầy đủ chức năng CRUD chatbot.
+
+\subsection{Báo cáo tài liệu}
+
+Báo cáo tài liệu giúp theo dõi tình trạng kho tài liệu của hệ thống. Màn hình Document Report đã quan sát có các chỉ số như tổng số tài liệu, số tài liệu public, số tài liệu private và tổng dung lượng file. Ngoài ra, màn hình còn có các biểu đồ phân bố theo loại file, dung lượng và trạng thái public/private.
+
+Báo cáo tài liệu giúp Admin đánh giá quy mô kho tài liệu, loại file đang được sử dụng nhiều và mức độ công khai của tài liệu. Đây là cơ sở để kiểm soát chất lượng dữ liệu đầu vào cho hệ thống hỏi đáp và kho tri thức.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/hình 7.2 dashboard quản trị tổng quan.png}}
+    \caption{Nhóm màn hình dashboard và báo cáo quản trị}
+    \label{fig:statistics-dashboard-overview}
+\end{figure}

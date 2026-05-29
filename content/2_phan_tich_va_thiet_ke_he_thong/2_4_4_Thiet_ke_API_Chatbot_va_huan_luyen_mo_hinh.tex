@@ -1,0 +1,78 @@
+\section{Thiết kế API Chatbot và huấn luyện mô hình}
+
+Nhóm API chatbot phục vụ quá trình gửi câu hỏi, nhận phản hồi, kiểm tra trạng thái chatbot và vận hành các tiến trình liên quan đến Rasa.
+
+\begin{longtable}{|p{3cm}|p{5cm}|p{7cm}|}
+\hline
+\textbf{Phương thức} & \textbf{Endpoint} & \textbf{Mô tả} \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/chat/stream} & Gửi tin nhắn đến chatbot và nhận phản hồi dạng stream. \\
+\hline
+\texttt{GET} & \texttt{/v1/chatbot/\{id\}/models} & Lấy danh sách model của chatbot. \\
+\hline
+\texttt{GET} & \texttt{/v1/chatbot/\{id\}/health} & Kiểm tra trạng thái hoạt động của chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/run} & Chạy Rasa Server cho chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/run-actions} & Chạy Action Server cho chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/train} & Huấn luyện model chatbot. \\
+\hline
+\texttt{POST} & \texttt{/v1/chatbot/\{id\}/train-active} & Huấn luyện model từ các rule và story đang hoạt động. \\
+\hline
+\end{longtable}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng upload run model.png}}
+    \caption{Biểu đồ tuần tự luồng upload và chạy model Rasa}
+    \label{fig:seq-upload-run-model}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_03.png}}
+    \caption{Biểu đồ hoạt động luồng upload và chạy model Rasa}
+    \label{fig:act-upload-run-model}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng active training data và train model.png}}
+    \caption{Biểu đồ tuần tự luồng active training data và train model}
+    \label{fig:seq-active-training-data-train-model}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_06.png}}
+    \caption{Biểu đồ hoạt động luồng active training data và train model}
+    \label{fig:act-active-training-data-train-model}
+\end{figure}
+
+Endpoint \texttt{/v1/chatbot/chat/stream} là API trung tâm trong quá trình tương tác với người dùng. Khi người dùng nhập câu hỏi, frontend gửi nội dung câu hỏi đến API này. Backend sau đó chuyển tiếp tin nhắn đến Rasa Server. Rasa phân tích intent, entity, trạng thái hội thoại và quyết định action cần thực hiện. Nếu cần dữ liệu nghiệp vụ, Rasa gọi Action Server. Nếu cần truy hồi tài liệu, Action Server gọi phân hệ RAG.
+
+Ví dụ request gửi tin nhắn:
+
+\begin{verbatim}
+POST /api/v1/chatbot/chat/stream
+
+{
+  "message": "Ngành công nghệ thông tin lấy bao nhiêu điểm?",
+  "senderId": "user-001",
+  "conversationId": "conv-001"
+}
+\end{verbatim}
+
+Ví dụ response dạng thông thường:
+
+\begin{verbatim}
+{
+  "success": true,
+  "data": {
+    "answer": "Điểm chuẩn ngành Công nghệ thông tin năm gần nhất là ...",
+    "source": "database",
+    "intent": "ask_cutoff_score"
+  }
+}
+\end{verbatim}

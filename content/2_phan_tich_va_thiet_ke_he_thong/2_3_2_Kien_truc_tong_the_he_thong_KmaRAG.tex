@@ -1,0 +1,16 @@
+\section{Kiến trúc tổng thể hệ thống KmaRAG}
+
+Kiến trúc KmaRAG trong hệ thống được tổ chức theo hướng nhiều lớp và nhiều pipeline. Cách tổ chức này bám sát mã nguồn của dịch vụ \texttt{kmarag-main}: phía ngoài là lớp giao diện và API, ở giữa là lõi điều phối KmaRAG, phía trong là các pipeline ingest/query/graph, các kho lưu trữ chuyên biệt và các mô hình embedding, LLM. Thiết kế phân lớp giúp hệ thống dễ mở rộng, dễ kiểm thử và dễ xác định lỗi theo từng pha vận hành.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{\detokenize{content/source/RAG/architecture/kmarag_overall_architecture.png}}
+    \caption{Kiến trúc tổng thể hệ thống KmaRAG}
+    \label{fig:rag-overall-architecture}
+\end{figure}
+
+Ở lớp giao tiếp, người dùng và quản trị viên thao tác qua Web UI hoặc API client. Phía dưới là \texttt{KmaRAG API Server} viết bằng FastAPI, nơi tiếp nhận request, kiểm tra tham số và định tuyến đến pipeline phù hợp. Từ tài liệu kỹ thuật và mã nguồn có thể xác minh các nhánh chính như upload/scan/reprocess tài liệu, truy vấn non-streaming hoặc streaming, và các thao tác graph management.
+
+Lớp lõi \texttt{KmaRAG Core Engine} đóng vai trò orchestrator, gom toàn bộ các thao tác ingest, query, graph, cache và phối hợp lưu trữ. Từ lõi này, hệ thống tách ra ba pipeline chính. \texttt{Data Ingest Pipeline} xử lý tài liệu thô, sinh chunk, embedding, entity và relation. \texttt{Query Pipeline} lấy câu hỏi, truy hồi dữ liệu từ nhiều nguồn, xây dựng context và gọi LLM để sinh câu trả lời. \texttt{Graph Pipeline} phụ trách cập nhật và khai thác tri thức đồ thị, đồng thời hỗ trợ các thao tác quản trị graph qua API.
+
+Phía dưới các pipeline là lớp lưu trữ đa tầng. \texttt{Redis} được dùng cho KV, trạng thái tài liệu và cache; \texttt{Qdrant} lưu vector để semantic retrieval; \texttt{Memgraph} lưu knowledge graph cho entity và relation; còn \texttt{Document Store} giữ tài liệu gốc hoặc dữ liệu tài liệu đã chuẩn hóa. Trên lớp lưu trữ là lớp mô hình, gồm embedding model để biến văn bản thành biểu diễn ngữ nghĩa và LLM để sinh câu trả lời cuối cùng. Đầu ra của toàn bộ kiến trúc không chỉ là câu trả lời văn bản mà còn gồm nguồn tham chiếu, phù hợp với yêu cầu truy vết của phân hệ RAG.

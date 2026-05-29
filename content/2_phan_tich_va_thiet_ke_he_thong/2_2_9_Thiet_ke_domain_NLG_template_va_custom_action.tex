@@ -1,0 +1,43 @@
+\section{Thiết kế domain, NLG template và custom action}
+
+Trong Rasa, \texttt{domain.yml} là nơi định nghĩa các thành phần chính của chatbot như intents, entities, slots, responses, actions và forms. Đối với hệ thống tư vấn tuyển sinh, domain đóng vai trò như bản thiết kế hành vi hội thoại.
+
+Cấu trúc domain cần bao gồm các nhóm chính:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{9cm}|}
+\hline
+\textbf{Nhóm} & \textbf{Ví dụ thành phần} \\
+\hline
+Intents & \texttt{chao\_hoi}, \texttt{hoi\_hoc\_phi}, \texttt{hoi\_diem\_chuan}, \texttt{hoi\_to\_hop\_xet\_tuyen}, \texttt{hoi\_ho\_so\_nhap\_hoc}, \texttt{nlu\_fallback} \\
+\hline
+Entities & \texttt{nganh}, \texttt{nam\_tuyen\_sinh}, \texttt{to\_hop\_mon}, \texttt{phuong\_thuc\_xet\_tuyen} \\
+\hline
+Slots & \texttt{nganh}, \texttt{nam\_tuyen\_sinh}, \texttt{clarification\_count}, \texttt{pending\_question} \\
+\hline
+Responses & \texttt{utter\_chao\_hoi}, \texttt{utter\_hoc\_phi}, \texttt{utter\_diem\_chuan}, \texttt{utter\_hoi\_lam\_ro}, \texttt{utter\_fallback} \\
+\hline
+Actions & \texttt{action\_fallback}, \texttt{action\_log\_unknown\_question} \\
+\hline
+\end{tabular}
+\caption{Cấu trúc thiết kế domain của chatbot Rasa}
+\label{tab:rasa-domain-design}
+\end{table}
+
+NLG trong hệ thống Rasa chủ yếu là template-based. Điều này phù hợp với chatbot tuyển sinh vì nhiều câu trả lời cần ổn định, nhất quán và không được tự ý sinh thông tin sai. Ví dụ, phản hồi chào hỏi nên giới thiệu rõ vai trò chatbot và gợi ý các nhóm thông tin có thể hỗ trợ như ngành học, điểm chuẩn, học phí hoặc hồ sơ nhập học.
+
+Ưu điểm của template là dễ kiểm soát nội dung. Nhược điểm là độ linh hoạt thấp nếu người dùng hỏi nhiều biến thể phức tạp. Vì vậy, template nên dùng cho các nhóm câu hỏi chắc chắn, còn các trường hợp cần xử lý điều kiện nên chuyển sang custom action.
+
+Custom action là lớp xử lý nghiệp vụ khi response tĩnh trong domain không đủ. Khi Rasa Core chọn custom action, Rasa gửi tracker, domain và trạng thái hội thoại hiện tại sang Action Server để xử lý. Action Server đọc intent, entity, slot, lịch sử hội thoại, sau đó trả message qua dispatcher và event cập nhật tracker nếu cần.
+
+Ba đối tượng quan trọng trong custom action gồm:
+
+\begin{itemize}
+    \item \texttt{dispatcher}: gửi message, button hoặc response về người dùng.
+    \item \texttt{tracker}: đọc lịch sử hội thoại, intent, entity và slot.
+    \item \texttt{domain}: chứa cấu hình hợp lệ của chatbot.
+\end{itemize}
+
+Ví dụ, \texttt{action\_fallback} có thể đọc intent ranking, \texttt{clarification\_count} và \texttt{pending\_question} để quyết định bot nên hỏi lại, gợi ý người dùng nhập rõ hơn hay ghi log câu hỏi chưa xử lý được.
+

@@ -1,0 +1,37 @@
+\section{Nguyên tắc thiết kế API}
+
+API của hệ thống được thiết kế dựa trên các nguyên tắc sau:
+
+\begin{itemize}
+    \item \textbf{Phân tách chức năng rõ ràng:} mỗi nhóm API phụ trách một nghiệp vụ riêng như xác thực, quản lý intent, quản lý rule, chat, huấn luyện mô hình hoặc truy vấn RAG.
+    \item \textbf{Thống nhất phương thức HTTP:} \texttt{GET} dùng để truy vấn dữ liệu, \texttt{POST} dùng để tạo mới hoặc thực hiện hành động, \texttt{PUT} dùng để cập nhật, \texttt{DELETE} dùng để xóa và \texttt{PATCH} dùng cho các cập nhật trạng thái như khôi phục bản ghi.
+    \item \textbf{Hỗ trợ phân trang:} các API lấy danh sách như intent, rule, action và response đều cần hỗ trợ phân trang, tìm kiếm và lọc trạng thái.
+    \item \textbf{Hỗ trợ xóa mềm và khôi phục:} dữ liệu quản trị chatbot có thể xóa mềm để tránh mất dữ liệu trong quá trình vận hành.
+    \item \textbf{Bảo mật bằng xác thực:} các API quản trị yêu cầu người dùng đăng nhập và có quyền phù hợp.
+    \item \textbf{Dễ tích hợp với Rasa và RAG:} các API phải hỗ trợ Action Server gọi dữ liệu tuyển sinh hoặc gọi phân hệ RAG để tạo câu trả lời.
+\end{itemize}
+
+Cấu trúc phản hồi API được chuẩn hóa để frontend dễ xử lý. Một phản hồi thành công có thể có dạng:
+
+\begin{verbatim}
+{
+  "success": true,
+  "message": "Success",
+  "data": { }
+}
+\end{verbatim}
+
+Đối với danh sách có phân trang, phản hồi có thể bổ sung thông tin trang hiện tại, tổng số bản ghi và số bản ghi trên mỗi trang:
+
+\begin{verbatim}
+{
+  "success": true,
+  "data": {
+    "items": [],
+    "page": 1,
+    "pageSize": 10,
+    "totalItems": 100,
+    "totalPages": 10
+  }
+}
+\end{verbatim}

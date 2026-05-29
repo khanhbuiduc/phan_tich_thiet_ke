@@ -1,0 +1,27 @@
+\section{Phân hệ quản lý chatbot}
+
+Phân hệ quản lý chatbot trong giao diện hiện tại được thể hiện thông qua trường chọn chatbot trên nhiều màn hình quản trị như tài liệu, tài liệu ngữ cảnh, thống kê, vai trò, quyền và người dùng. Giá trị quan sát được là \textit{Chatbot tuyen sinh}. Chi tiết này cho thấy hệ thống có khả năng khoanh vùng dữ liệu theo chatbot đang được chọn.
+
+\subsection{Chọn ngữ cảnh chatbot}
+
+Khi người quản trị chọn một chatbot, các thao tác tiếp theo trong khu vực quản trị có thể được hiểu là đang áp dụng cho chatbot đó. Ví dụ, khi chọn \textit{Chatbot tuyen sinh}, danh sách tài liệu, tài liệu ngữ cảnh, thống kê và quyền truy cập có thể được lọc theo phạm vi chatbot tuyển sinh.
+
+Thiết kế này có ưu điểm là giúp hệ thống mở rộng tốt hơn. Trong tương lai, nếu nhà trường triển khai thêm nhiều chatbot khác nhau, ví dụ chatbot học vụ, chatbot thư viện hoặc chatbot hỗ trợ kỹ thuật, Admin có thể chuyển đổi ngữ cảnh quản trị mà không cần xây dựng một hệ thống riêng cho từng chatbot.
+
+\subsection{Thống kê theo chatbot}
+
+Route \texttt{/statistics/chatbots} và quyền \texttt{GET /api/v1/statistic/chatbots} cho thấy hệ thống đã có nhóm thống kê dành riêng cho chatbot. Điều này giúp Admin theo dõi hiệu quả hoạt động của từng chatbot thay vì chỉ xem thống kê tổng thể toàn hệ thống.
+
+Các chỉ số nên được quản lý theo chatbot gồm:
+
+\begin{itemize}
+    \item Số lượng người dùng tương tác với chatbot.
+    \item Số lượng hội thoại phát sinh từ chatbot.
+    \item Số intent đang hoạt động.
+    \item Số tài liệu hoặc tài liệu ngữ cảnh được gắn với chatbot.
+    \item Trạng thái hoạt động của chatbot.
+\end{itemize}
+
+\subsection{Giới hạn phạm vi đã xác minh}
+
+Trong phiên phân tích UI hiện tại, chưa ghi nhận được màn hình tạo, sửa, xóa chatbot riêng biệt. Vì vậy, chức năng quản lý chatbot trong chương này được mô tả theo phạm vi đã xác minh gồm chọn ngữ cảnh chatbot và xem thống kê chatbot. Các chức năng CRUD chatbot nếu có sẽ cần được kiểm chứng thêm trong quá trình phát triển hoặc kiểm thử hệ thống.

@@ -1,0 +1,13 @@
+﻿\section{Thiết kế tầng NLU cho tiếng Việt}
+
+Tầng NLU là điểm vào đầu tiên của Rasa pipeline, có nhiệm vụ biến câu hỏi tiếng Việt thành dữ liệu có cấu trúc gồm intent, confidence, intent ranking và entity. Theo mã nguồn hiện tại, pipeline đang dùng \texttt{PhoBERTIntentClassifier}, \texttt{RegexEntityExtractor}, \texttt{EntitySynonymMapper} và \texttt{FallbackClassifier}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{\detokenize{content/source/rasa/sequence/seq_2_2_5_nlu_pipeline.png}}
+    \caption{Biểu đồ tuần tự luồng xử lý NLU tiếng Việt với PhoBERT}
+    \label{fig:rasa-nlu-sequence}
+\end{figure}
+
+Trong code, \texttt{PhoBERTIntentClassifier} thực hiện chuỗi xử lý gồm chuẩn hóa văn bản, loại bớt một số ký tự, tách từ bằng VnCoreNLP, token hóa bằng PhoBERT tokenizer, suy luận trên mô hình và tạo \texttt{intent\_ranking}. Sau đó \texttt{RegexEntityExtractor} và \texttt{EntitySynonymMapper} bổ sung, chuẩn hóa entity; cuối cùng \texttt{FallbackClassifier} kiểm tra ngưỡng \texttt{0.65} và độ nhập nhằng \texttt{0.05} để quyết định giữ intent hay chuyển sang \texttt{nlu\_fallback}. PhoBERT chỉ đảm nhiệm bước hiểu câu hỏi, còn việc chọn phản hồi vẫn do Rasa Core và Action Server quyết định.
+

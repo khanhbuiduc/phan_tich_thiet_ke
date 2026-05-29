@@ -1,0 +1,34 @@
+﻿\section{Luồng xử lý tin nhắn trong hệ thống}
+
+Luồng xử lý tin nhắn mô tả quá trình từ khi người dùng nhập câu hỏi trên giao diện đến khi hệ thống trả lại câu trả lời.
+
+Quy trình xử lý gồm các bước:
+\begin{enumerate}
+    \item Người dùng nhập câu hỏi trên Frontend Web.
+    \item Frontend gửi câu hỏi đến Backend API.
+    \item Backend kiểm tra phiên làm việc/xác thực và ghi log ban đầu.
+    \item Backend gửi câu hỏi đến Rasa Server.
+    \item Rasa phân tích intent, entity và trạng thái hội thoại.
+    \item Nếu trả lời trực tiếp được, Rasa trả về template response.
+    \item Nếu cần nghiệp vụ, Rasa gọi Action Server.
+    \item Action Server quyết định gọi Backend API, cơ sở dữ liệu hoặc RAG.
+    \item Kết quả được trả về Action Server, sau đó gửi lại Rasa.
+    \item Rasa trả kết quả về Backend API.
+    \item Backend lưu lịch sử hội thoại và trả kết quả cho Frontend.
+    \item Frontend hiển thị câu trả lời cho người dùng.
+\end{enumerate}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng chat thường qua Rasa.png}}
+    \caption{Biểu đồ tuần tự luồng chat thường qua Rasa}
+    \label{fig:seq-chat-rasa}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_01.png}}
+    \caption{Biểu đồ hoạt động luồng chat thường qua Rasa}
+    \label{fig:act-chat-rasa}
+\end{figure}
+

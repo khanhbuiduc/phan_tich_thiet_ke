@@ -1,0 +1,13 @@
+﻿\section{Luồng tổng thể từ câu hỏi đến phản hồi}
+
+Luồng xử lý tổng thể trong hệ thống được triển khai theo chuỗi gọi giữa frontend, backend và cụm Rasa. Từ hook \texttt{useChat} ở frontend, tin nhắn được gắn \texttt{conversationId} nếu chưa tồn tại, gửi tới endpoint \texttt{/api/v1/chatbot/\{id\}/chat}, sau đó backend chuyển tiếp sang Flask API và Rasa để lấy phản hồi.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{\detokenize{content/source/rasa/sequence/seq_2_2_3_question_to_answer.png}}
+    \caption{Biểu đồ tuần tự luồng tổng thể từ câu hỏi đến phản hồi chatbot}
+    \label{fig:rasa-question-to-answer-flow}
+\end{figure}
+
+Biểu đồ tuần tự này cho thấy backend không chỉ đóng vai trò trung chuyển. Tầng service còn thực hiện chọn chatbot runtime, chuyển đổi dữ liệu sang định dạng Flask API cần dùng, đồng thời gắn \texttt{messageId}, \texttt{sourceType} và lưu phản hồi vào MongoDB để phục vụ lịch sử hội thoại và đánh giá chất lượng trả lời. Ở phía Flask, Rasa được gọi qua REST webhook; nếu cần custom action thì Action Server sẽ tham gia trước khi phản hồi cuối cùng quay lại frontend.
+

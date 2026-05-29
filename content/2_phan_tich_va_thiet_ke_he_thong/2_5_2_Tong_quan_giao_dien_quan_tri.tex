@@ -1,0 +1,22 @@
+\section{Tổng quan giao diện quản trị}
+
+Giao diện quản trị được tổ chức theo dạng sidebar, cho phép người dùng truy cập nhanh đến các nhóm chức năng chính. Các route đã quan sát gồm \texttt{/docs}, \texttt{/context-docs}, \texttt{/statistics/users}, \texttt{/statistics/conversations}, \texttt{/statistics/chatbots}, \texttt{/statistics/documents}, \texttt{/roles}, \texttt{/permissions} và \texttt{/users}. Ngoài ra, khu vực giao diện còn hiển thị trường chọn chatbot với giá trị quan sát được là \textit{Chatbot tuyen sinh}.
+
+Sự xuất hiện của trường chọn chatbot trên nhiều màn hình quản trị cho thấy dữ liệu và thao tác quản trị đang được tổ chức theo từng ngữ cảnh chatbot. Khi người quản trị chọn một chatbot cụ thể, các dữ liệu như tài liệu, ngữ cảnh RAG, thống kê và phân quyền sẽ được giới hạn theo phạm vi đó. Cách tổ chức này cũng thuận lợi nếu sau này hệ thống mở rộng để quản lý nhiều chatbot khác nhau.
+
+Các nhóm màn hình chính trong phân hệ quản trị gồm:
+
+\begin{itemize}
+    \item \textbf{Documents \& Forms}: quản lý tài liệu và biểu mẫu.
+    \item \textbf{Context Documents}: quản lý tài liệu ngữ cảnh cho RAG.
+    \item \textbf{Statistics}: thống kê người dùng, hội thoại, chatbot và tài liệu.
+    \item \textbf{RBAC}: quản lý vai trò và quyền.
+    \item \textbf{Users Management}: quản lý tài khoản người dùng.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/hình 7.1 dashboard quản trị tổng quan.png}}
+    \caption{Tổng quan giao diện phân hệ quản trị}
+    \label{fig:admin-overview}
+\end{figure}

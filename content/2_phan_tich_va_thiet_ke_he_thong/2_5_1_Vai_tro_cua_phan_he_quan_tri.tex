@@ -1,0 +1,22 @@
+\section{Vai trò của phân hệ quản trị}
+
+Phân hệ quản trị là thành phần quan trọng trong hệ thống KMA Chatbot tuyển sinh, có nhiệm vụ hỗ trợ người quản trị kiểm soát dữ liệu, tài liệu, người dùng, quyền truy cập, thống kê vận hành và kho tri thức phục vụ hỏi đáp. Nếu giao diện hội thoại là nơi người dùng cuối đặt câu hỏi và nhận câu trả lời, thì phân hệ quản trị là nơi duy trì dữ liệu nền, kiểm soát trạng thái xử lý tài liệu, theo dõi chất lượng vận hành và đảm bảo hệ thống hoạt động đúng phạm vi được cấu hình.
+
+Từ giao diện hệ thống đã quan sát, phân hệ quản trị bao gồm các nhóm chức năng chính: quản lý tài liệu và biểu mẫu, quản lý tài liệu ngữ cảnh RAG, báo cáo thống kê, quản lý chatbot theo ngữ cảnh đang chọn, quản lý vai trò, quản lý quyền và quản lý người dùng. Các nhóm chức năng này cho thấy hệ thống không chỉ dừng lại ở một chatbot hỏi đáp đơn giản, mà đã được mở rộng thành một nền tảng quản trị tri thức và vận hành chatbot phục vụ tư vấn tuyển sinh.
+
+Trong bài toán tuyển sinh, dữ liệu thường xuyên thay đổi theo từng năm như phương thức xét tuyển, điểm chuẩn, chương trình đào tạo, biểu mẫu, quy chế, lịch tuyển sinh và các thông báo mới. Vì vậy, phân hệ quản trị đóng vai trò cầu nối giữa người quản trị nội dung và các thành phần kỹ thuật phía sau như Backend API, Rasa, RAG service, cơ sở dữ liệu, kho tài liệu và vector database.
+
+Các mục tiêu chính của phân hệ quản trị gồm:
+
+\begin{itemize}
+    \item Quản lý tài liệu, biểu mẫu phục vụ sinh viên, thí sinh và cán bộ.
+    \item Quản lý tài liệu ngữ cảnh được đưa vào kho tri thức RAG.
+    \item Theo dõi trạng thái xử lý tài liệu như processed, pending, failed.
+    \item Hỗ trợ upload, scan, retry pipeline và làm mới dữ liệu tài liệu.
+    \item Quản lý chatbot theo ngữ cảnh được chọn.
+    \item Theo dõi các báo cáo thống kê về người dùng, hội thoại, chatbot và tài liệu.
+    \item Quản lý vai trò, quyền và tài khoản người dùng theo mô hình RBAC.
+    \item Đảm bảo chỉ người dùng có quyền phù hợp mới được truy cập các chức năng quản trị.
+\end{itemize}
+
+Như vậy, phân hệ quản trị vừa có vai trò nghiệp vụ, vừa có vai trò kỹ thuật. Về mặt nghiệp vụ, phân hệ giúp cập nhật dữ liệu và tài liệu tư vấn. Về mặt kỹ thuật, phân hệ giúp kiểm soát trạng thái xử lý dữ liệu, phân quyền truy cập và theo dõi hiệu quả vận hành của chatbot.
