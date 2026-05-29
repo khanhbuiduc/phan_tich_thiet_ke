@@ -1,119 +1,13 @@
-﻿\section{Thiết kế custom actions}
+﻿\section{Thiết kế tầng NLU cho tiếng Việt}
 
-Custom Action là thành phần cho phép Rasa thực hiện các xử lý ngoài khả năng trả lời tĩnh, ví dụ gọi Backend API, truy vấn cơ sở dữ liệu, gọi phân hệ RAG hoặc xử lý logic nghiệp vụ.
+Tầng NLU là điểm vào đầu tiên của Rasa pipeline, có nhiệm vụ biến câu hỏi tiếng Việt thành dữ liệu có cấu trúc gồm intent, confidence, intent ranking và entity. Theo mã nguồn hiện tại, pipeline đang dùng \texttt{PhoBERTIntentClassifier}, \texttt{RegexEntityExtractor}, \texttt{EntitySynonymMapper} và \texttt{FallbackClassifier}.
 
-Trong hệ thống chatbot tư vấn tuyển sinh, Custom Action được đặt trong Action Server. Khi Rasa Core dự đoán cần thực hiện một action, Rasa Server sẽ gửi request sang Action Server. Action Server xử lý logic và trả về kết quả cho Rasa để phản hồi người dùng.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{\detokenize{content/source/rasa/sequence/seq_2_2_5_nlu_pipeline.png}}
+    \caption{Biểu đồ tuần tự luồng xử lý NLU tiếng Việt với PhoBERT}
+    \label{fig:rasa-nlu-sequence}
+\end{figure}
 
-\subsection*{Danh sách custom actions chính}
+Trong code, \texttt{PhoBERTIntentClassifier} thực hiện chuỗi xử lý gồm chuẩn hóa văn bản, loại bớt một số ký tự, tách từ bằng VnCoreNLP, token hóa bằng PhoBERT tokenizer, suy luận trên mô hình và tạo \texttt{intent\_ranking}. Sau đó \texttt{RegexEntityExtractor} và \texttt{EntitySynonymMapper} bổ sung, chuẩn hóa entity; cuối cùng \texttt{FallbackClassifier} kiểm tra ngưỡng \texttt{0.65} và độ nhập nhằng \texttt{0.05} để quyết định giữ intent hay chuyển sang \texttt{nlu\_fallback}. PhoBERT chỉ đảm nhiệm bước hiểu câu hỏi, còn việc chọn phản hồi vẫn do Rasa Core và Action Server quyết định.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
-\textbf{Action} & \textbf{Chức năng} \\
-\hline
-action\_get\_major\_list & Lấy danh sách ngành đào tạo \\
-\hline
-action\_get\_major\_detail & Lấy thông tin chi tiết ngành \\
-\hline
-action\_get\_benchmark\_score & Lấy điểm chuẩn theo ngành, năm \\
-\hline
-action\_get\_tuition\_fee & Lấy học phí \\
-\hline
-action\_get\_admission\_method & Lấy phương thức xét tuyển \\
-\hline
-action\_get\_subject\_combination & Lấy tổ hợp xét tuyển \\
-\hline
-action\_get\_admission\_time & Lấy thời gian tuyển sinh \\
-\hline
-action\_call\_rag & Gọi phân hệ RAG để trả lời câu hỏi mở \\
-\hline
-action\_handle\_fallback & Xử lý fallback \\
-\hline
-action\_save\_conversation\_log & Lưu lịch sử hội thoại \\
-\hline
-action\_collect\_unanswered\_question & Lưu câu hỏi chưa trả lời được \\
-\hline
-\end{tabular}
-\end{table}
-
-\subsection*{Luồng xử lý Custom Action}
-
-Luồng xử lý tổng quát của một Custom Action gồm các bước:
-\begin{enumerate}
-    \item Nhận intent, entities, slots và câu hỏi gốc từ Rasa.
-    \item Kiểm tra dữ liệu đầu vào.
-    \item Nếu thiếu thông tin quan trọng, yêu cầu người dùng bổ sung.
-    \item Nếu đủ thông tin, gọi Backend API hoặc RAG service.
-    \item Nhận kết quả trả về.
-    \item Định dạng câu trả lời.
-    \item Gửi phản hồi cho người dùng.
-    \item Cập nhật slot nếu cần.
-\end{enumerate}
-
-\subsection*{Ví dụ action lấy điểm chuẩn}
-
-\begin{verbatim}
-class ActionGetBenchmarkScore(Action):
-
-    def name(self) -> Text:
-        return "action_get_benchmark_score"
-
-    def run(
-        self,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any]
-    ) -> List[Dict[Text, Any]]:
-
-        major = tracker.get_slot("major")
-        year = tracker.get_slot("year")
-
-        if not major:
-            dispatcher.utter_message(
-                text="Bạn muốn hỏi điểm chuẩn của ngành nào?"
-            )
-            return []
-
-        if not year:
-            year = "2024"
-
-        response = requests.get(
-            f"{BACKEND_API_URL}/admissions/benchmark-score",
-            params={
-                "major": major,
-                "year": year
-            }
-        )
-
-        if response.status_code != 200:
-            dispatcher.utter_message(
-                text="Hiện tại mình chưa lấy được thông tin điểm chuẩn. Bạn vui lòng thử lại sau."
-            )
-            return []
-
-        data = response.json()
-
-        if not data:
-            dispatcher.utter_message(
-                text=f"Mình chưa tìm thấy điểm chuẩn ngành {major} năm {year}."
-            )
-            return []
-
-        message = (
-            f"Điểm chuẩn ngành {major} năm {year} là {data['score']} điểm. "
-            f"Phương thức xét tuyển: {data.get('method', 'chưa có thông tin')}."
-        )
-
-        dispatcher.utter_message(text=message)
-
-        return [
-            SlotSet("last_answer_type", "dynamic")
-        ]
-\end{verbatim}
-
-\subsection*{Thiết kế nguyên tắc cho Custom Action}
-
-Custom Action không nên chứa quá nhiều logic phức tạp về dữ liệu. Các nghiệp vụ chính như truy vấn ngành, học phí, điểm chuẩn nên được đặt ở Backend API. Action Server chỉ đóng vai trò trung gian giữa Rasa và Backend.
-
-Cách thiết kế này giúp hệ thống dễ bảo trì hơn. Nếu dữ liệu tuyển sinh thay đổi, chỉ cần cập nhật Backend API hoặc cơ sở dữ liệu, không cần chỉnh sửa trực tiếp logic của chatbot.

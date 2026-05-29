@@ -1,210 +1,27 @@
-﻿\section{Thiết kế cơ chế gọi RAG thông qua Custom Action}
+\section{Thiết kế Dialogue Management}
 
-Trong hệ thống, RAG không được tích hợp trực tiếp vào Rasa Core mà được gọi thông qua Custom Action. Cách thiết kế này giúp tách biệt rõ giữa phần điều phối hội thoại của Rasa và phần truy xuất tri thức của RAG.
+Dialogue Management là lớp quyết định chatbot sẽ làm gì sau khi NLU đã phân tích câu hỏi. Đây là phần biến intent thành action.
 
-\subsection*{Vai trò của RAG trong chatbot tuyển sinh}
+Công thức khái quát có thể mô tả như sau:
 
-RAG được sử dụng để xử lý các câu hỏi:
-\begin{itemize}
-    \item Có nội dung dài hoặc phức tạp.
-    \item Cần truy xuất từ tài liệu tuyển sinh.
-    \item Có khả năng thay đổi theo từng năm.
-    \item Không phù hợp để viết thành câu trả lời tĩnh.
-    \item Cần trích dẫn nguồn từ tài liệu.
-\end{itemize}
+\[
+action_t = Policy(intent_t, confidence_t, entity_t, slots_t, history_t)
+\]
 
-Ví dụ các câu hỏi nên gọi RAG:
-\begin{itemize}
-    \item Quy định xét tuyển thẳng năm nay như thế nào?
-    \item Điều kiện đăng ký xét tuyển bằng chứng chỉ quốc tế là gì?
-    \item Hãy giải thích chi tiết đề án tuyển sinh của trường.
-    \item Ngành công nghệ thông tin khác gì ngành an toàn thông tin?
-\end{itemize}
+Trong đó, \texttt{intent\_t} là ý định hiện tại của người dùng, \texttt{confidence\_t} là độ tin cậy của intent, \texttt{entity\_t} là thực thể được trích xuất, \texttt{slots\_t} là trạng thái hội thoại đang lưu và \texttt{history\_t} là lịch sử các lượt hội thoại trước.
 
-\subsection*{Luồng gọi RAG}
+Rasa sử dụng các thành phần như RulePolicy, MemoizationPolicy hoặc TEDPolicy để quyết định action. Với các luồng đơn giản, RulePolicy được dùng để ánh xạ trực tiếp intent sang action, ví dụ \texttt{chao\_hoi} sang \texttt{utter\_chao\_hoi}, \texttt{cam\_on} sang \texttt{utter\_cam\_on}, \texttt{tam\_biet} sang \texttt{utter\_tam\_biet}.
 
-\begin{verbatim}
-Người dùng
-   ↓
-Frontend Web
-   ↓
-Backend API
-   ↓
-Rasa Server
-   ↓
-Custom Action: action_call_rag
-   ↓
-RAG Service
-   ↓
-Vector Store / Document Store / Knowledge Graph
-   ↓
-LLM sinh câu trả lời
-   ↓
-Custom Action
-   ↓
-Rasa Server
-   ↓
-Backend API
-   ↓
-Frontend Web
-   ↓
-Người dùng
-\end{verbatim}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/rasa/Quan hệ giữa DM, domain, NLG template và action server.png}}
+    \caption{Quan hệ giữa Dialogue Manager, domain, NLG template và action server}
+    \label{fig:rasa-dm-domain-nlg-action}
+\end{figure}
 
-\subsection*{Thiết kế request từ Custom Action sang RAG Service}
+Hình~\ref{fig:rasa-dm-domain-nlg-action} thể hiện mối quan hệ giữa intent ranking, tracker history, slot state, Dialogue Manager, template response và custom action. Nếu action được chọn là template, hệ thống lấy phản hồi từ domain. Nếu action cần xử lý nghiệp vụ, Rasa gọi Action Server.
 
-\begin{verbatim}
-{
-  "query": "Quy định xét tuyển thẳng năm nay như thế nào?",
-  "conversation_id": "conv_001",
-  "user_id": "user_001",
-  "slots": {
-    "major": "công nghệ thông tin",
-    "year": "2025"
-  },
-  "metadata": {
-    "source": "rasa",
-    "language": "vi"
-  }
-}
-\end{verbatim}
+Với các luồng cần ngữ cảnh, tracker và slot được sử dụng để ghi nhớ thông tin. Ví dụ, người dùng hỏi ``Ngành An toàn thông tin xét tổ hợp nào?'' rồi hỏi tiếp ``Thế điểm chuẩn năm ngoái là bao nhiêu?''. Ở lượt thứ hai, câu hỏi không nhắc lại tên ngành, nhưng hệ thống có thể dùng slot \texttt{nganh = An toàn thông tin} từ lượt trước để hiểu ngữ cảnh.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
-\textbf{Trường} & \textbf{Ý nghĩa} \\
-\hline
-query & Câu hỏi gốc của người dùng \\
-\hline
-conversation\_id & Mã hội thoại \\
-\hline
-user\_id & Mã người dùng \\
-\hline
-slots & Thông tin ngữ cảnh Rasa đã trích xuất \\
-\hline
-metadata & Thông tin bổ sung như nguồn gọi, ngôn ngữ \\
-\hline
-\end{tabular}
-\end{table}
+Thiết kế Dialogue Management cần bảo đảm chatbot xử lý được ba nhóm luồng: luồng một lượt, luồng nhiều lượt và luồng fallback. Luồng một lượt xảy ra khi người dùng hỏi rõ và hệ thống trả lời ngay. Luồng nhiều lượt xảy ra khi người dùng hỏi thiếu thông tin, bot hỏi lại và người dùng bổ sung. Luồng fallback xảy ra khi câu hỏi mơ hồ hoặc ngoài phạm vi, bot xin làm rõ hoặc ghi nhận câu hỏi.
 
-\subsection*{Thiết kế response từ RAG Service}
-
-\begin{verbatim}
-{
-  "answer": "Theo đề án tuyển sinh, thí sinh đạt giải học sinh giỏi cấp quốc gia có thể được xét tuyển thẳng theo quy định của Bộ Giáo dục và Đào tạo...",
-  "sources": [
-    {
-      "title": "Đề án tuyển sinh 2025",
-      "page": 12,
-      "url": "/documents/de-an-tuyen-sinh-2025.pdf",
-      "score": 0.87
-    }
-  ],
-  "confidence": 0.82,
-  "answer_type": "rag"
-}
-\end{verbatim}
-
-\subsection*{Ví dụ action\_call\_rag}
-
-\begin{verbatim}
-class ActionCallRAG(Action):
-
-    def name(self) -> Text:
-        return "action_call_rag"
-
-    def run(
-        self,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any]
-    ) -> List[Dict[Text, Any]]:
-
-        user_query = tracker.latest_message.get("text")
-        sender_id = tracker.sender_id
-
-        major = tracker.get_slot("major")
-        year = tracker.get_slot("year")
-
-        payload = {
-            "query": user_query,
-            "conversation_id": sender_id,
-            "slots": {
-                "major": major,
-                "year": year
-            },
-            "metadata": {
-                "source": "rasa",
-                "language": "vi"
-            }
-        }
-
-        try:
-            response = requests.post(
-                f"{RAG_SERVICE_URL}/rag/query",
-                json=payload,
-                timeout=15
-            )
-
-            if response.status_code != 200:
-                dispatcher.utter_message(
-                    text="Mình chưa truy xuất được tài liệu phù hợp. Bạn vui lòng thử lại sau."
-                )
-                return [SlotSet("last_answer_type", "fallback")]
-
-            result = response.json()
-
-            answer = result.get("answer")
-            sources = result.get("sources", [])
-            confidence = result.get("confidence", 0)
-
-            if not answer or confidence < 0.5:
-                dispatcher.utter_message(
-                    text=(
-                        "Mình chưa tìm thấy thông tin đủ chắc chắn trong tài liệu. "
-                        "Bạn có thể hỏi lại cụ thể hơn, ví dụ: ngành nào, năm nào hoặc phương thức xét tuyển nào."
-                    )
-                )
-                return [SlotSet("last_answer_type", "fallback")]
-
-            message = answer
-
-            if sources:
-                message += "\n\nNguồn tham khảo:"
-                for index, source in enumerate(sources[:3], start=1):
-                    title = source.get("title", "Tài liệu tuyển sinh")
-                    page = source.get("page")
-                    if page:
-                        message += f"\n{index}. {title}, trang {page}"
-                    else:
-                        message += f"\n{index}. {title}"
-
-            dispatcher.utter_message(text=message)
-
-            return [
-                SlotSet("rag_query", user_query),
-                SlotSet("last_answer_type", "rag")
-            ]
-
-        except Exception:
-            dispatcher.utter_message(
-                text=(
-                    "Hệ thống truy xuất tài liệu hiện chưa phản hồi. "
-                    "Bạn có thể thử lại sau hoặc hỏi các thông tin phổ biến như ngành học, điểm chuẩn, học phí."
-                )
-            )
-
-            return [SlotSet("last_answer_type", "fallback")]
-\end{verbatim}
-
-\subsection*{Ưu điểm của thiết kế gọi RAG qua Custom Action}
-
-Thiết kế này có các ưu điểm sau:
-\begin{itemize}
-    \item Rasa chỉ tập trung vào hiểu intent và điều phối hội thoại.
-    \item RAG Service hoạt động độc lập, dễ nâng cấp mà không ảnh hưởng đến Rasa.
-    \item Có thể thay đổi mô hình embedding, vector database hoặc LLM mà không cần thay đổi logic hội thoại.
-    \item Câu trả lời có thể kèm nguồn tài liệu, giúp tăng độ tin cậy.
-    \item Hệ thống có khả năng mở rộng khi số lượng tài liệu tuyển sinh tăng lên.
-\end{itemize}

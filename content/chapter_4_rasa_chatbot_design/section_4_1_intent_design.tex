@@ -1,203 +1,32 @@
-﻿\section{Thiết kế tập intent}
+\section{Vai trò của chatbot Rasa trong hệ thống}
 
-Trong hệ thống chatbot tư vấn tuyển sinh, intent được sử dụng để biểu diễn ý định của người dùng khi nhập câu hỏi. Việc thiết kế intent đóng vai trò quan trọng vì đây là cơ sở để Rasa NLU phân loại câu hỏi và lựa chọn luồng xử lý phù hợp.
+Trong hệ thống KMA Chatbot tuyển sinh, Rasa đóng vai trò là phân hệ hội thoại chính dùng để xử lý các câu hỏi phổ biến, các luồng hỏi đáp định sẵn và các nghiệp vụ có cấu trúc rõ ràng. Khác với mô hình sinh văn bản tự do, Rasa được thiết kế theo hướng kiểm soát luồng hội thoại, trong đó mỗi câu hỏi của người dùng được phân tích thành ý định, trạng thái hội thoại và hành động phản hồi tương ứng.
 
-Đối với bài toán tư vấn tuyển sinh, người dùng chủ yếu là thí sinh, phụ huynh hoặc người quan tâm đến thông tin tuyển sinh của nhà trường. Các câu hỏi thường xoay quanh ngành đào tạo, phương thức xét tuyển, tổ hợp môn, điểm chuẩn, học phí, hồ sơ đăng ký, thời gian tuyển sinh và thông tin liên hệ.
+Trước khi phân tích kiến trúc Rasa sử dụng NLU và PhoBERT, cần phân biệt với mô hình chatbot dựa trên luật. Chatbot rule-based vận hành chủ yếu dựa vào tập quy tắc if--then, từ khóa và các mẫu câu được định nghĩa trước. Cách tiếp cận này đơn giản, dễ kiểm soát nhưng kém linh hoạt khi người dùng diễn đạt câu hỏi theo nhiều cách khác nhau.
 
-Tập intent được thiết kế theo hướng vừa đủ chi tiết để chatbot hiểu đúng câu hỏi, nhưng không chia quá nhỏ gây khó khăn trong quá trình huấn luyện và bảo trì dữ liệu. Các intent được chia thành các nhóm chính như sau:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.82\textwidth]{\detokenize{content/source/rasa/trợ lý ảo dựa trên rule.png}}
+    \caption{Kiến trúc chatbot dựa trên luật}
+    \label{fig:rasa-rule-based-assistant}
+\end{figure}
 
-\subsection*{Nhóm intent giao tiếp cơ bản}
+Hình~\ref{fig:rasa-rule-based-assistant} mô tả kiến trúc chatbot dựa trên luật. Câu hỏi của người dùng được đưa qua bộ xử lý ngôn ngữ để tách từ khóa, chuẩn hóa văn bản và so khớp với tập quy tắc. Nếu tìm được quy tắc phù hợp, hệ thống lấy câu trả lời từ cơ sở dữ liệu hoặc bộ tạo phản hồi. Ưu điểm của kiến trúc này là dễ triển khai và dễ kiểm soát nội dung. Tuy nhiên, khi câu hỏi có nhiều cách diễn đạt khác nhau hoặc chứa ngữ cảnh phức tạp, chatbot rule-based dễ thất bại do phụ thuộc mạnh vào từ khóa và luật được viết thủ công.
 
-Nhóm này dùng để xử lý các tương tác thông thường giữa người dùng và chatbot.
+Khác với cách tiếp cận rule-based, Rasa kết hợp NLU, intent classification, entity extraction, tracker, policy và action để xử lý hội thoại linh hoạt hơn. Khi tích hợp PhoBERTIntentClassifier, hệ thống không chỉ so khớp từ khóa mà còn học biểu diễn ngữ nghĩa của câu hỏi tiếng Việt, từ đó phân biệt tốt hơn các intent gần nghĩa như hỏi điểm chuẩn, hỏi phương thức xét tuyển, hỏi học phí hoặc hỏi chương trình đào tạo.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
-\textbf{Intent} & \textbf{Ý nghĩa} \\
-\hline
-greet & Người dùng chào chatbot \\
-\hline
-goodbye & Người dùng kết thúc hội thoại \\
-\hline
-thank & Người dùng cảm ơn \\
-\hline
-affirm & Người dùng xác nhận đồng ý \\
-\hline
-deny & Người dùng phủ định \\
-\hline
-bot\_challenge & Người dùng hỏi chatbot là ai \\
-\hline
-\end{tabular}
-\end{table}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{\detokenize{content/source/rasa/trợ lý ảo dựa trên NLP.png}}
+    \caption{Kiến trúc trợ lý ảo dựa trên NLP và mô hình học máy}
+    \label{fig:rasa-nlp-based-assistant}
+\end{figure}
 
-Ví dụ dữ liệu huấn luyện:
+Hình~\ref{fig:rasa-nlp-based-assistant} thể hiện hướng tiếp cận chatbot dựa trên NLP và học máy. Câu hỏi của người dùng được phân tích để nhận diện ý định, trích xuất thông tin quan trọng và chuyển thành dữ liệu có cấu trúc cho bộ quản lý hội thoại.
 
-\begin{verbatim}
-- intent: greet
-  examples: |
-    - xin chào
-    - chào bot
-    - hello
-    - hi
-    - em cần tư vấn tuyển sinh
+Luồng chat thường của hệ thống bắt đầu từ giao diện hội thoại tại route \texttt{/} hoặc \texttt{/home\_chat}. Người dùng nhập câu hỏi vào giao diện, frontend gửi nội dung về backend chatbot, sau đó backend phối hợp với Rasa để xác định intent, entity, rule/story và action phù hợp. Phạm vi nghiệp vụ chính gồm tư vấn phương thức tuyển sinh, học phí, giấy báo trúng tuyển, hồ sơ nhập học và thông tin ngành đào tạo.
 
-- intent: goodbye
-  examples: |
-    - tạm biệt
-    - bye
-    - hẹn gặp lại
-    - cảm ơn, em không hỏi nữa
+Trong kiến trúc tổng thể, Rasa không trực tiếp thay thế toàn bộ hệ thống hỏi đáp, mà đảm nhiệm phần hiểu ý định và điều phối hội thoại. Khi người dùng hỏi các câu thuộc nhóm đã được định nghĩa sẵn, Rasa có thể phản hồi nhanh bằng template trong domain. Khi câu hỏi cần xử lý logic hoặc không đủ chắc chắn, Rasa chuyển sang custom action hoặc fallback để tránh trả lời sai.
 
-- intent: thank
-  examples: |
-    - cảm ơn
-    - em cảm ơn ạ
-    - thanks
-    - thông tin hữu ích quá
-\end{verbatim}
+Vì vậy, phân hệ Rasa được thiết kế theo nguyên tắc: câu hỏi đơn giản và phổ biến được xử lý bằng intent, rule và response template; câu hỏi cần logic được xử lý bằng action server; câu hỏi mơ hồ hoặc ngoài phạm vi được đưa vào fallback hoặc ghi log để cải thiện dữ liệu huấn luyện.
 
-\subsection*{Nhóm intent hỏi thông tin tuyển sinh chung}
-
-Đây là nhóm intent cốt lõi của chatbot tuyển sinh, dùng để xử lý các câu hỏi phổ biến của thí sinh.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
-\textbf{Intent} & \textbf{Ý nghĩa} \\
-\hline
-ask\_admission\_overview & Hỏi tổng quan tuyển sinh \\
-\hline
-ask\_major & Hỏi về ngành đào tạo \\
-\hline
-ask\_major\_detail & Hỏi chi tiết về một ngành cụ thể \\
-\hline
-ask\_admission\_method & Hỏi phương thức xét tuyển \\
-\hline
-ask\_subject\_combination & Hỏi tổ hợp xét tuyển \\
-\hline
-ask\_benchmark\_score & Hỏi điểm chuẩn \\
-\hline
-ask\_tuition\_fee & Hỏi học phí \\
-\hline
-ask\_quota & Hỏi chỉ tiêu tuyển sinh \\
-\hline
-ask\_application\_profile & Hỏi hồ sơ xét tuyển \\
-\hline
-ask\_admission\_time & Hỏi thời gian tuyển sinh \\
-\hline
-ask\_contact & Hỏi thông tin liên hệ \\
-\hline
-ask\_location & Hỏi địa chỉ trường \\
-\hline
-ask\_scholarship & Hỏi học bổng \\
-\hline
-ask\_dormitory & Hỏi ký túc xá \\
-\hline
-ask\_job\_opportunity & Hỏi cơ hội việc làm sau tốt nghiệp \\
-\hline
-\end{tabular}
-\end{table}
-
-Ví dụ:
-
-\begin{verbatim}
-- intent: ask_major
-  examples: |
-    - trường có những ngành nào
-    - các ngành đào tạo của trường là gì
-    - năm nay trường tuyển những ngành nào
-    - cho em biết danh sách ngành tuyển sinh
-
-- intent: ask_major_detail
-  examples: |
-    - ngành công nghệ thông tin học những gì
-    - ngành an toàn thông tin ra trường làm gì
-    - em muốn biết thông tin ngành [công nghệ thông tin](major)
-    - ngành [kỹ thuật phần mềm](major) có phù hợp với em không
-
-- intent: ask_admission_method
-  examples: |
-    - trường xét tuyển bằng những phương thức nào
-    - có xét học bạ không
-    - trường có xét điểm thi tốt nghiệp không
-    - phương thức tuyển sinh năm nay là gì
-
-- intent: ask_subject_combination
-  examples: |
-    - ngành công nghệ thông tin xét tổ hợp nào
-    - tổ hợp xét tuyển của ngành [an toàn thông tin](major) là gì
-    - em thi khối A00 có xét được không
-    - ngành này xét A01 không
-
-- intent: ask_benchmark_score
-  examples: |
-    - điểm chuẩn năm trước là bao nhiêu
-    - ngành công nghệ thông tin lấy bao nhiêu điểm
-    - điểm chuẩn ngành [an toàn thông tin](major) năm 2024 là bao nhiêu
-    - em được 25 điểm có đỗ không
-
-- intent: ask_tuition_fee
-  examples: |
-    - học phí của trường là bao nhiêu
-    - ngành công nghệ thông tin học phí bao nhiêu
-    - học phí một năm khoảng bao nhiêu
-    - trường có tăng học phí không
-\end{verbatim}
-
-\subsection*{Nhóm intent xử lý câu hỏi cần RAG}
-
-Một số câu hỏi có tính mở, yêu cầu thông tin dài, có thể thay đổi theo từng năm hoặc nằm trong tài liệu tuyển sinh. Các câu hỏi này không nên viết cố định toàn bộ trong \texttt{domain.yml}, mà nên được chuyển sang phân hệ RAG để truy xuất từ tài liệu.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|p{9cm}|}
-\hline
-\textbf{Intent} & \textbf{Ý nghĩa} \\
-\hline
-ask\_rag\_question & Câu hỏi cần truy xuất tài liệu \\
-\hline
-ask\_policy\_detail & Hỏi chi tiết quy định, chính sách \\
-\hline
-ask\_complex\_admission\_info & Hỏi thông tin tuyển sinh phức tạp \\
-\hline
-ask\_compare\_major & So sánh các ngành \\
-\hline
-ask\_followup\_question & Câu hỏi nối tiếp cần ngữ cảnh \\
-\hline
-\end{tabular}
-\end{table}
-
-Ví dụ:
-
-\begin{verbatim}
-- intent: ask_rag_question
-  examples: |
-    - cho em biết chi tiết đề án tuyển sinh năm nay
-    - quy định xét tuyển thẳng như thế nào
-    - điều kiện ưu tiên xét tuyển là gì
-    - em muốn biết toàn bộ thông tin về ngành công nghệ thông tin
-    - chính sách học bổng được quy định ở đâu
-
-- intent: ask_compare_major
-  examples: |
-    - ngành công nghệ thông tin và an toàn thông tin khác nhau như thế nào
-    - nên học kỹ thuật phần mềm hay hệ thống thông tin
-    - so sánh ngành CNTT và ATTT giúp em
-\end{verbatim}
-
-\subsection*{Nhóm intent ngoài phạm vi}
-
-Nhóm này dùng để nhận diện các câu hỏi không thuộc phạm vi tuyển sinh.
-
-\begin{verbatim}
-- intent: out_of_scope
-  examples: |
-    - hôm nay thời tiết thế nào
-    - kể chuyện cười đi
-    - tư vấn mua điện thoại
-    - bạn có biết nấu ăn không
-\end{verbatim}
-
-Việc thiết kế intent theo nhóm giúp hệ thống dễ mở rộng. Khi cần bổ sung một nội dung tuyển sinh mới, có thể thêm intent mới hoặc mở rộng examples cho intent hiện có mà không làm thay đổi toàn bộ kiến trúc chatbot.

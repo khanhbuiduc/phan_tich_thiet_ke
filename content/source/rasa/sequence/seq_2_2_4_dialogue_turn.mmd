@@ -1,0 +1,40 @@
+sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant RASA as Rasa Server
+    participant NLU as NLU Pipeline
+    participant PHO as PhoBERTIntentClassifier
+    participant FB as FallbackClassifier
+    participant TR as Tracker
+    participant CORE as Rasa Core
+    participant NLG as Domain NLG
+    participant ACT as Action Server
+    participant RAG as LightRAG
+
+    U->>RASA: Gui message text
+    RASA->>NLU: parse(message)
+    NLU->>PHO: Tien xu ly + VnCoreNLP + PhoBERT predict
+    PHO-->>NLU: intent, confidence, intent_ranking
+    NLU->>NLU: RegexEntityExtractor + EntitySynonymMapper
+    NLU->>FB: Kiem tra threshold 0.65 va ambiguity 0.05
+    alt Confidence thap hoac gan nhau
+        FB-->>NLU: intent = nlu_fallback
+    else Du tin cay
+        FB-->>NLU: Giu intent du doan
+    end
+    NLU-->>RASA: parse_data
+    RASA->>TR: Cap nhat latest_message, slots, events
+    RASA->>CORE: Du doan next action bang RulePolicy/MemoizationPolicy
+    alt Action la utter_*
+        CORE->>NLG: Lay response template tu domain.yml
+        NLG-->>RASA: text/buttons
+    else Custom action
+        CORE->>ACT: run(action, tracker, domain)
+        alt Fallback hoac can tra cuu tri thuc
+            ACT->>RAG: Query theo cau hoi va ngu canh
+            RAG-->>ACT: Cau tra loi / references
+        end
+        ACT-->>RASA: events + response
+    end
+    RASA->>TR: Ghi bot events
+    RASA-->>U: Tra response payload

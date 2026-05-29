@@ -1,0 +1,12 @@
+flowchart TD
+    A([Bắt đầu]) --> B[NLP Admin tạo/sửa/xóa dữ liệu NLP]
+    B --> C[Training Data UI gửi thay đổi]
+    C --> D[Validate schema, tham chiếu và conflict]
+    D --> E{Dữ liệu hợp lệ?}
+    E -- Không --> F[Trả danh sách lỗi và vị trí cần sửa]
+    F --> Z([Kết thúc])
+    E -- Có --> G[Lưu bản nháp hoặc bản active vào DB]
+    G --> H[Commit version training data]
+    H --> I[Ghi audit thay đổi]
+    I --> J[Thông báo lưu thành công]
+    J --> Z

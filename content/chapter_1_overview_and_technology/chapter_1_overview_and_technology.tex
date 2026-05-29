@@ -1,102 +1,27 @@
-\chapter{TỔNG QUAN VỀ ĐỀ TÀI VÀ CÔNG NGHỆ SỬ DỤNG}
+\chapter{GIỚI THIỆU}
+\label{chap:introduction}
 
-\section{Lý do chọn đề tài}
-Trong những năm gần đây, với sự phát triển mạnh mẽ của công nghệ thông tin và trí tuệ nhân tạo, việc ứng dụng các giải pháp công nghệ vào lĩnh vực giáo dục đã trở thành một xu thế tất yếu. Đặc biệt, trong mỗi mùa tuyển sinh, các trường đại học và học viện phải đối mặt với một khối lượng lớn câu hỏi từ thí sinh và phụ huynh. Các câu hỏi thường xoay quanh những chủ đề lặp đi lặp lại như: chỉ tiêu tuyển sinh, điểm chuẩn các năm, phương thức xét tuyển, học phí, chương trình đào tạo và các thủ tục nhập học. 
+\section{Giới thiệu bài toán}
+\label{sec:problem_introduction}
+Trong những năm gần đây, việc ứng dụng trí tuệ nhân tạo vào giáo dục ngày càng rõ nét, đặc biệt ở các bài toán hỗ trợ tư vấn và tra cứu thông tin. Mỗi mùa tuyển sinh, các cơ sở giáo dục đại học phải tiếp nhận số lượng lớn câu hỏi từ thí sinh và phụ huynh. Nội dung câu hỏi thường lặp lại, tập trung vào chỉ tiêu tuyển sinh, điểm chuẩn các năm trước, phương thức xét tuyển, học phí, chương trình đào tạo và các thủ tục nhập học.
 
-Tại Học viện Kỹ thuật Mật mã (KMA), công tác tư vấn tuyển sinh đóng vai trò rất quan trọng nhằm thu hút những sinh viên có năng lực và đam mê với các lĩnh vực như An toàn thông tin, Công nghệ thông tin và Kỹ thuật điện tử viễn thông. Tuy nhiên, việc tư vấn truyền thống qua điện thoại, email hay fanpage thường đòi hỏi nguồn nhân lực lớn, đặc biệt là trong các thời điểm cao điểm. Đội ngũ tư vấn viên có thể bị quá tải, dẫn đến việc chậm trễ trong phản hồi hoặc sai sót trong cung cấp thông tin.
+Tại Học viện Kỹ thuật Mật mã (KMA), tư vấn tuyển sinh không chỉ là hoạt động cung cấp thông tin mà còn góp phần thu hút và định hướng thí sinh vào các ngành đào tạo trọng điểm như An toàn thông tin, Công nghệ thông tin và Kỹ thuật Điện tử Viễn thông. Tuy nhiên, các kênh tư vấn truyền thống như điện thoại, email và mạng xã hội bộc lộ nhiều hạn chế trong giai đoạn cao điểm: cần nhiều nhân sự, phản hồi chậm và khó giữ thông tin thống nhất giữa các lượt tư vấn.
 
-Bên cạnh đó, thông tin tuyển sinh và quy chế đào tạo thường xuyên được cập nhật theo từng năm. Việc đảm bảo mọi tư vấn viên đều nắm bắt chính xác và kịp thời các thông tin này không phải là điều dễ dàng. Từ thực tiễn đó, nhu cầu về một hệ thống trợ lý ảo thông minh (chatbot) có khả năng tự động giải đáp các thắc mắc của thí sinh một cách chính xác, nhanh chóng và hoạt động 24/7 là rất cấp thiết.
+Bên cạnh đó, thông tin tuyển sinh và quy chế đào tạo thay đổi theo từng năm học. Việc cập nhật đồng đều cho toàn bộ đội ngũ tư vấn vì thế trở thành một yêu cầu khó nhưng bắt buộc.
 
-Nhận thấy tiềm năng của công nghệ Xử lý ngôn ngữ tự nhiên (NLP) và Trí tuệ nhân tạo (AI) trong việc giải quyết bài toán trên, đề tài \textbf{"Nghiên cứu và xây dựng hệ thống KMA Chatbot hỗ trợ tư vấn tuyển sinh"} được lựa chọn. Hệ thống không chỉ ứng dụng nền tảng Rasa để xử lý các kịch bản hội thoại có cấu trúc, mà còn tích hợp công nghệ RAG (Retrieval-Augmented Generation) để truy xuất linh hoạt thông tin từ các tài liệu tuyển sinh đa dạng.
+Từ thực tế đó, việc xây dựng một hệ thống trợ lý ảo hỗ trợ giải đáp thắc mắc cho thí sinh là cần thiết. Hệ thống này giúp giảm tải cho đội ngũ tư vấn, rút ngắn thời gian phản hồi và tăng khả năng cung cấp thông tin nhất quán.
 
-\section{Mục tiêu nghiên cứu}
-Mục tiêu cốt lõi của đề tài là xây dựng thành công một hệ thống phần mềm chatbot tích hợp AI có khả năng hỗ trợ đắc lực cho công tác tư vấn tuyển sinh tại Học viện Kỹ thuật Mật mã. Cụ thể, đề tài hướng tới các mục tiêu chi tiết sau:
+Từ đó, đề tài \textbf{"Nghiên cứu và xây dựng hệ thống KMA Chatbot hỗ trợ tư vấn tuyển sinh"} được lựa chọn. Hệ thống đề xuất không chỉ xử lý các kịch bản hội thoại cố định bằng Rasa mà còn tích hợp RAG (Retrieval-Augmented Generation) để truy xuất thông tin từ kho tài liệu tuyển sinh. Cách kết hợp này phù hợp với các câu hỏi phức tạp hoặc thay đổi thường xuyên theo tài liệu nghiệp vụ.
 
+\section{Giới thiệu tài liệu}
+\label{sec:document_introduction}
+Tài liệu này trình bày chi tiết về quá trình phân tích, thiết kế, và triển khai hệ thống "KMA Chatbot hỗ trợ tư vấn tuyển sinh". Nội dung của tài liệu được cấu trúc một cách có hệ thống để người đọc có thể dễ dàng theo dõi và nắm bắt được toàn bộ quy trình phát triển của dự án. Cấu trúc của tài liệu bao gồm các chương chính sau:
 \begin{itemize}
-    \item \textbf{Về mặt lý thuyết:} Tìm hiểu, nghiên cứu các công nghệ hiện đại trong xử lý ngôn ngữ tự nhiên, đặc biệt là nền tảng xây dựng chatbot Rasa (Rasa NLU, Rasa Core) và phương pháp RAG kết hợp với các Mô hình ngôn ngữ lớn (LLM). Nghiên cứu cách thức xử lý dữ liệu tiếng Việt và biểu diễn tri thức dưới dạng vector.
-    \item \textbf{Về mặt thực tiễn:} Xây dựng hệ thống KMA Chatbot có khả năng:
-    \begin{itemize}
-        \item Hiểu và phản hồi chính xác các ý định (intent) thông dụng của thí sinh liên quan đến tuyển sinh.
-        \item Xử lý linh hoạt các câu hỏi phức tạp, đòi hỏi phải tra cứu thông tin từ tài liệu văn bản (Quy chế tuyển sinh, Điểm chuẩn, Chương trình đào tạo) thông qua RAG.
-        \item Có một hệ thống quản trị (Admin Dashboard) hoàn chỉnh giúp người quản trị dễ dàng cập nhật tài liệu ngữ cảnh, theo dõi thống kê lịch sử hội thoại và quản lý người dùng theo vai trò (RBAC).
-    \end{itemize}
-    \item \textbf{Về mặt hiệu năng:} Đảm bảo hệ thống hoạt động ổn định, có khả năng mở rộng và thời gian phản hồi nhanh, mang lại trải nghiệm tốt cho người dùng cuối.
+    \item \textbf{Giới thiệu:} Trình bày tổng quan về bài toán tư vấn tuyển sinh, bối cảnh lựa chọn đề tài và cấu trúc tài liệu.
+    \item \textbf{Chương 1 - Khảo sát và phân tích yêu cầu hệ thống:} Tập trung vào việc khảo sát bài toán, xác định nhóm người dùng, phân tích yêu cầu chức năng, phi chức năng và đặc tả các ca sử dụng chính.
+    \item \textbf{Chương 2 - Phân tích và thiết kế hệ thống:} Trình bày kiến trúc tổng thể, thiết kế chatbot Rasa, phân hệ RAG, API hệ thống và phân hệ quản trị.
+    \item \textbf{Chương 3 - Xây dựng:} Dành cho nội dung xây dựng và triển khai hệ thống.
 \end{itemize}
 
-\section{Đối tượng và phạm vi nghiên cứu}
-\subsection{Đối tượng nghiên cứu}
-\begin{itemize}
-    \item Nền tảng xây dựng chatbot mã nguồn mở Rasa (phiên bản 3.x).
-    \item Kỹ thuật Retrieval-Augmented Generation (RAG) và các thành phần liên quan: Vector Database (Qdrant), Embedding Models (BAAI/bge-m3) và Large Language Models (LLM).
-    \item Kiến trúc hệ thống phần mềm hướng dịch vụ (Microservices), quy trình ingest tài liệu và xử lý ngôn ngữ tự nhiên tiếng Việt.
-\end{itemize}
 
-\subsection{Phạm vi nghiên cứu}
-\begin{itemize}
-    \item \textbf{Về mặt dữ liệu:} Đề tài tập trung vào việc thu thập, tiền xử lý và xây dựng tập dữ liệu huấn luyện xoay quanh lĩnh vực tư vấn tuyển sinh đại học của Học viện Kỹ thuật Mật mã (điểm chuẩn, phương thức tuyển sinh, thông tin ngành học từ năm 2017 đến nay).
-    \item \textbf{Về mặt chức năng:} Hệ thống phục vụ hai nhóm người dùng chính là Người dùng cuối (thí sinh, phụ huynh) và Người quản trị. Chức năng giới hạn ở việc hỏi đáp văn bản (text-based), quản lý kho tài liệu văn bản (PDF, DOCX, XLSX) và xem báo cáo thống kê.
-    \item \textbf{Về mặt triển khai:} Hệ thống được thiết kế và triển khai để có thể hoạt động trên môi trường web, giao tiếp qua RESTful API.
-\end{itemize}
-
-\section{Tổng quan bài toán tư vấn tuyển sinh}
-Bài toán tư vấn tuyển sinh đại học có những đặc thù riêng biệt so với các bài toán chăm sóc khách hàng thông thường ở các lĩnh vực khác:
-
-\begin{enumerate}
-    \item \textbf{Tính thời vụ cao:} Lưu lượng tương tác và số lượng câu hỏi thường tăng đột biến vào các mốc thời gian cụ thể trong năm như: kỳ thi tốt nghiệp THPT, thời gian công bố điểm, và thời hạn chót đăng ký nguyện vọng. Hệ thống cần khả năng chịu tải tốt trong các khoảng thời gian này.
-    \item \textbf{Tính chính xác và cập nhật liên tục:} Thông tin về điểm chuẩn, chỉ tiêu và quy chế tuyển sinh thay đổi theo từng năm. Một tư vấn sai lệch có thể ảnh hưởng trực tiếp đến quyết định chọn trường và tương lai của thí sinh. Do đó, hệ thống không thể chỉ dựa vào một mô hình học máy được huấn luyện tĩnh trên dữ liệu cũ, mà cần có cơ sở dữ liệu tri thức linh hoạt, dễ dàng cập nhật.
-    \item \textbf{Tính đa dạng trong cách diễn đạt:} Thí sinh có thể hỏi cùng một vấn đề nhưng bằng nhiều cách khác nhau, sử dụng từ viết tắt, ngôn ngữ mạng hoặc sai chính tả (ví dụ: "ATTT lấy bn điểm", "an toàn thông tin điểm chuẩn thế nào"). Hệ thống cần một module NLU (Natural Language Understanding) đủ mạnh để trích xuất đúng ý định.
-\end{enumerate}
-
-Để giải quyết bài toán này, một giải pháp lai (hybrid) kết hợp giữa kịch bản định sẵn (Rule-based/Intent-based) và sinh văn bản tự động dựa trên truy xuất tài liệu (RAG) là lựa chọn tối ưu nhất.
-
-\section{Tổng quan về trợ lý ảo trong hệ thống tuyển sinh}
-Trợ lý ảo (Virtual Assistant) hay Chatbot trong giáo dục đang dần trở thành một tiêu chuẩn mới để nâng cao trải nghiệm của học sinh và sinh viên. Trong hệ thống tuyển sinh, trợ lý ảo đảm nhận vai trò như một nhân viên tư vấn số hoạt động không biết mệt mỏi.
-
-Lợi ích của việc tích hợp trợ lý ảo vào hệ thống tuyển sinh bao gồm:
-\begin{itemize}
-    \item \textbf{Tính sẵn sàng cao:} Hoạt động 24/7, phản hồi ngay lập tức, giúp thí sinh nhận được câu trả lời bất kể ngày đêm, xóa bỏ rào cản về thời gian làm việc hành chính.
-    \item \textbf{Tối ưu hóa nguồn lực con người:} Tự động hóa việc trả lời lên tới 80\% các câu hỏi lặp lại, cho phép đội ngũ tư vấn viên là con người tập trung vào xử lý các trường hợp đặc biệt, phức tạp hoặc cần tư vấn tâm lý chuyên sâu.
-    \item \textbf{Thu thập dữ liệu và thấu hiểu người dùng:} Thông qua lịch sử hội thoại, hệ thống có thể thống kê được những mối quan tâm lớn nhất của thí sinh (ví dụ: ngành nào đang được hỏi nhiều nhất), từ đó giúp ban tuyển sinh có chiến lược truyền thông phù hợp.
-\end{itemize}
-
-\section{Tổng quan về nền tảng Rasa}
-Rasa là một framework mã nguồn mở (Open Source) hàng đầu trong việc xây dựng các trợ lý ảo đàm thoại có tính năng học máy (Machine Learning). Khác với các hệ thống chatbot dựa trên luật (rule-based) cứng nhắc, Rasa cung cấp khả năng hiểu ngôn ngữ tự nhiên linh hoạt và quản lý luồng hội thoại thông minh.
-
-Rasa được cấu thành từ hai thành phần chính:
-\begin{itemize}
-    \item \textbf{Rasa NLU (Natural Language Understanding):} Chịu trách nhiệm phân tích tin nhắn của người dùng để xác định "Ý định" (Intent) và trích xuất các "Thực thể" (Entity). Ví dụ, với câu "Cho em hỏi điểm chuẩn ngành ATTT", Rasa NLU sẽ phân loại Intent là \texttt{ask\_admission\_score} và Entity là \texttt{major: ATTT}.
-    \item \textbf{Rasa Core:} Chịu trách nhiệm quản lý ngữ cảnh và quyết định hành động tiếp theo của chatbot (Dialogue Management) dựa trên lịch sử hội thoại. Rasa Core sử dụng các mô hình học máy (như TED Policy) để dự đoán hành động thay vì chỉ dựa vào cây quyết định (decision tree) tĩnh.
-\end{itemize}
-
-Lý do chọn Rasa cho dự án: Rasa hỗ trợ toàn quyền kiểm soát dữ liệu (On-premise deployment), giúp bảo mật thông tin. Đồng thời, kiến trúc pipeline của Rasa cho phép lập trình viên tùy chỉnh và tích hợp các mô hình ngôn ngữ dành riêng cho tiếng Việt (như PhoBERT) để tăng độ chính xác trong NLU.
-
-\section{Tổng quan về RAG trong hỏi đáp tri thức}
-RAG (Retrieval-Augmented Generation) là một kiến trúc AI đột phá kết hợp giữa khả năng truy xuất thông tin (Retrieval) và khả năng sinh văn bản tự nhiên của các Mô hình ngôn ngữ lớn (Generation - LLM). 
-
-Trong các hệ thống Chatbot truyền thống (như thuần Rasa), mọi câu trả lời đều phải được người quản trị định nghĩa trước. Nếu người dùng hỏi một thông tin chi tiết nằm trong một tài liệu PDF dài 50 trang, Chatbot truyền thống sẽ thất bại hoặc yêu cầu tạo ra hàng trăm intent khác nhau. RAG giải quyết triệt để vấn đề này theo quy trình sau:
-\begin{enumerate}
-    \item \textbf{Ingestion (Thu thập và Xử lý dữ liệu):} Các tài liệu văn bản (Quy chế, biểu mẫu) được cắt nhỏ thành các đoạn (chunks) và chuyển đổi thành các vector toán học (Embeddings) lưu vào Cơ sở dữ liệu Vector.
-    \item \textbf{Retrieval (Truy hồi):} Khi có câu hỏi mới, hệ thống cũng chuyển đổi câu hỏi thành vector và tìm kiếm các đoạn văn bản có ý nghĩa gần giống nhất trong Vector DB.
-    \item \textbf{Generation (Sinh văn bản):} Câu hỏi cùng với các đoạn văn bản truy hồi được (ngữ cảnh) sẽ được đưa vào LLM. LLM sử dụng năng lực ngôn ngữ của mình để tổng hợp và sinh ra một câu trả lời hoàn chỉnh, chính xác dựa trên \textit{ngữ cảnh} được cung cấp.
-\end{enumerate}
-
-Sự kết hợp giữa Rasa (để điều phối luồng hội thoại) và RAG (để hỏi đáp tri thức tài liệu) tạo ra một hệ thống Chatbot KMA toàn diện: vừa nhanh chóng trong các câu hỏi thông thường, vừa sâu sắc và chính xác trong các câu hỏi cần tra cứu tài liệu nghiệp vụ.
-
-\section{So sánh Rasa với các nền tảng chatbot khác}
-Hiện nay trên thị trường có rất nhiều nền tảng xây dựng chatbot phổ biến như Dialogflow (Google), Wit.ai (Meta), IBM Watson Assistant, v.v. Dưới đây là sự so sánh để làm nổi bật lý do Rasa được lựa chọn cho hệ thống tuyển sinh:
-
-\begin{table}[H]
-\centering
-\caption{So sánh Rasa với một số nền tảng phổ biến}
-\label{tab:comparison-rasa}
-\begin{tabular}{|p{3.5cm}|p{4.5cm}|p{4.5cm}|p{3.5cm}|}
-\hline
-\textbf{Tiêu chí} & \textbf{Rasa} & \textbf{Dialogflow (Google)} & \textbf{Wit.ai (Meta)} \\ \hline
-\textbf{Mã nguồn \& Chi phí} & Mã nguồn mở, miễn phí sử dụng (bản Open Source). & Nền tảng đám mây, tính phí theo lượng API calls. & Miễn phí nhưng giới hạn quyền kiểm soát. \\ \hline
-\textbf{Bảo mật \& Dữ liệu} & Có thể triển khai nội bộ (On-premise), toàn quyền kiểm soát dữ liệu người dùng. & Dữ liệu được gửi lên server của Google. & Dữ liệu gửi lên server của Meta. \\ \hline
-\textbf{Khả năng tùy chỉnh} & Cực kỳ linh hoạt, cho phép tích hợp các mô hình NLP riêng (PhoBERT, v.v.). & Ít linh hoạt hơn, sử dụng mô hình đóng của Google. & Ít tùy biến sâu vào pipeline xử lý. \\ \hline
-\textbf{Luồng hội thoại} & Dựa trên Machine Learning (TED Policy) cho phép rẽ nhánh linh hoạt. & Dựa nhiều vào State Machine và Context cứng nhắc. & Phù hợp với NLU đơn giản, ít mạnh về Dialogue Management. \\ \hline
-\end{tabular}
-\end{table}
-
-Qua bảng so sánh, có thể thấy với yêu cầu của một trường Đại học/Học viện về việc bảo mật thông tin, tùy biến sâu mô hình học máy và không bị phụ thuộc vào bên thứ ba (vendor lock-in), Rasa là sự lựa chọn tối ưu và bền vững nhất để làm nền tảng cốt lõi cho KMA Chatbot.
+Với yêu cầu về bảo mật thông tin, khả năng tùy biến sâu mô hình học máy và hạn chế phụ thuộc vào bên thứ ba, Rasa là lựa chọn phù hợp để làm nền tảng cốt lõi cho KMA Chatbot.

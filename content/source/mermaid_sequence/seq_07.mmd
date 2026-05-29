@@ -1,0 +1,23 @@
+﻿sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant FE as Chat UI
+    participant API as Chat API
+    participant Detector as Quality Detector
+    participant DB as Conversation DB
+    participant Queue as Review Queue
+    participant Admin as NLP Admin
+
+    U->>FE: Hoi cau hoi
+    FE->>API: Gui message
+    API->>Detector: Danh gia confidence, fallback, sentiment, repeat
+    alt Xu ly khong tot
+        Detector-->>API: Mark unresolved/low_quality
+        API->>DB: Luu conversation + label
+        API->>Queue: Tao item can review
+        Queue-->>Admin: Xuat hien trong danh sach can gan nhan
+    else Xu ly tot
+        Detector-->>API: OK
+        API->>DB: Luu binh thuong
+    end
+    API-->>FE: Tra cau tra loi hoac fallback

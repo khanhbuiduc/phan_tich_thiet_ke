@@ -1,0 +1,21 @@
+flowchart TD
+    A([Bắt đầu]) --> B[NLP Admin chọn active training data]
+    B --> C[Training API gán version ACTIVE]
+    C --> D[NLP Admin bấm Train model]
+    D --> E[Lấy training data ACTIVE]
+    E --> F[Chạy rasa train]
+    F --> G{Train thành công?}
+    G -- Không --> H[Lưu trạng thái model FAILED]
+    H --> I[Hiển thị validation/training log]
+    I --> Z([Kết thúc])
+    G -- Có --> J[Lưu model artifact]
+    J --> K[Tạo model version READY]
+    K --> L{Có cấu hình tự run model mới?}
+    L -- Không --> M[Trả metrics và trạng thái READY]
+    M --> Z
+    L -- Có --> N[Rasa Runtime reload model]
+    N --> O{Reload thành công?}
+    O -- Có --> P[Cập nhật model ACTIVE]
+    P --> Q[Trả metrics và thông báo model đang chạy]
+    Q --> Z
+    O -- Không --> H

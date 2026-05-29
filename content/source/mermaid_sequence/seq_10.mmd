@@ -1,0 +1,21 @@
+﻿sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant FE as Chat UI
+    participant API as Feedback API
+    participant DB as Feedback DB
+    participant Queue as Improvement Queue
+    participant Admin as NLP/RAG Admin
+    participant Dataset as Training Dataset
+
+    U->>FE: Bam like/dislike va nhap gop y
+    FE->>API: POST /feedback {messageId, rating, comment}
+    API->>DB: Luu feedback gan voi cau hoi/cau tra loi
+    alt Feedback tieu cuc
+        API->>Queue: Tao task review
+        Queue-->>Admin: Dua vao hang doi cai thien
+        Admin->>Dataset: Sua response, rule, story hoac bo sung tai lieu RAG
+    else Feedback tich cuc
+        API->>DB: Ghi nhan tin hieu chat luong
+    end
+    API-->>FE: Da ghi nhan feedback

@@ -1,0 +1,22 @@
+﻿sequenceDiagram
+    autonumber
+    actor Admin as System Admin
+    participant UI as User Admin UI
+    participant API as User/RBAC API
+    participant Auth as Auth Service
+    participant DB as User DB
+    participant Policy as Permission Engine
+    participant Log as Audit Log
+
+    Admin->>UI: Gan role/permission cho user
+    UI->>API: PUT /users/{id}/roles
+    API->>Auth: Xac thuc admin va lay claims
+    API->>Policy: Kiem tra quyen manage_users
+    alt Du quyen
+        API->>DB: Cap nhat roles, permissions
+        API->>Auth: Invalidate/refresh token neu can
+        API->>Log: Ghi audit RBAC
+        API-->>UI: Cap nhat thanh cong
+    else Khong du quyen
+        API-->>UI: 403 Forbidden
+    end

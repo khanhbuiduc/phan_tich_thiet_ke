@@ -1,0 +1,28 @@
+﻿sequenceDiagram
+    autonumber
+    actor Admin as Quan tri vien
+    participant UI as Admin UI
+    participant API as Admin API
+    participant Store as Model Storage
+    participant Registry as Model Registry
+    participant Rasa as Rasa Runtime
+    participant Log as Audit Log
+
+    Admin->>UI: Upload model .tar.gz
+    UI->>API: POST /admin/models
+    API->>API: Validate file, version, checksum
+    API->>Store: Luu model artifact
+    Store-->>API: modelUri
+    API->>Registry: Tao model version=PENDING
+    API->>Rasa: Load/reload model
+    alt Load thanh cong
+        Rasa-->>API: Active model info
+        API->>Registry: Cap nhat ACTIVE
+        API->>Log: Ghi audit upload/run model
+        API-->>UI: Thanh cong
+    else Load loi
+        Rasa-->>API: Error
+        API->>Registry: Cap nhat FAILED
+        API->>Log: Ghi audit loi
+        API-->>UI: Tra loi loi
+    end

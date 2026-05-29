@@ -1,0 +1,17 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Người dùng gửi hoặc nhận tin nhắn]
+    B --> C[Chat UI phát sinh message event]
+    C --> D[Chat API chuẩn hóa conversationId, sender, timestamp, metadata]
+    D --> E[Upsert conversation và message vào Conversation DB]
+    E --> F[Index nội dung và metadata vào Search/Analytics Index]
+    F --> G[Trả ack/response cho Chat UI]
+    G --> H{Có yêu cầu truy xuất lịch sử?}
+    H -- Không --> Z([Kết thúc])
+    H -- Có --> I[Admin/User nhập bộ lọc user, session hoặc keyword]
+    I --> J[Chat API truy vấn timeline trong DB]
+    J --> K{Có keyword/filter tìm kiếm?}
+    K -- Có --> L[Tìm trong Search/Analytics Index]
+    L --> M[Gộp timeline và kết quả tìm kiếm]
+    K -- Không --> M
+    M --> N[Trả lịch sử hội thoại]
+    N --> Z

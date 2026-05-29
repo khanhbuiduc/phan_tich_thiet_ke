@@ -1,0 +1,18 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Quản trị viên upload tài liệu]
+    B --> C[RAG Admin API nhận file]
+    C --> D[Validate định dạng, dung lượng, quyền truy cập]
+    D --> E{File hợp lệ?}
+    E -- Không --> F[Trả lỗi upload]
+    F --> Z([Kết thúc])
+    E -- Có --> G[Lưu file gốc vào Object Storage]
+    G --> H[Parser/OCR trích xuất text, table, metadata]
+    H --> I[Chunker chia tài liệu thành chunks]
+    I --> J[Khởi tạo vòng lặp xử lý chunks]
+    J --> K{Còn chunk?}
+    K -- Có --> L[Tạo embedding cho chunk]
+    L --> M[Upsert vector, text và metadata vào Vector DB]
+    M --> K
+    K -- Không --> N[Lưu document status=INGESTED]
+    N --> O[Thông báo ingest thành công]
+    O --> Z

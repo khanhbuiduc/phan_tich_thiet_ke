@@ -1,96 +1,33 @@
-﻿\section{Thiết kế xử lý fallback}
+\section{Thiết kế intent, entity và dữ liệu huấn luyện}
 
-Fallback là cơ chế xử lý khi chatbot không hiểu câu hỏi hoặc không đủ tự tin để đưa ra câu trả lời. Trong hệ thống tư vấn tuyển sinh, fallback rất quan trọng vì nếu chatbot trả lời sai thông tin tuyển sinh có thể gây ảnh hưởng đến quyết định của thí sinh.
+Intent là nhãn biểu diễn mục đích của người dùng. Trong hệ thống tư vấn tuyển sinh, intent cần được thiết kế theo nhóm nghiệp vụ thay vì thiết kế rời rạc theo từng câu hỏi cụ thể.
 
-Fallback được chia thành ba mức:
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{8.5cm}|}
+\hline
+\textbf{Nhóm intent} & \textbf{Intent tiêu biểu} \\
+\hline
+Giao tiếp cơ bản & \texttt{chao\_hoi}, \texttt{cam\_on}, \texttt{tam\_biet}, \texttt{hoi\_kha\_nang\_ho\_tro} \\
+\hline
+Tuyển sinh & \texttt{hoi\_phuong\_thuc\_tuyen\_sinh}, \texttt{hoi\_to\_hop\_xet\_tuyen}, \texttt{hoi\_diem\_chuan}, \texttt{hoi\_chi\_tieu\_tuyen\_sinh}, \texttt{hoi\_thoi\_gian\_tuyen\_sinh}, \texttt{hoi\_dieu\_kien\_xet\_tuyen} \\
+\hline
+Ngành đào tạo & \texttt{hoi\_nganh\_an\_toan\_thong\_tin}, \texttt{hoi\_nganh\_cong\_nghe\_thong\_tin}, \texttt{hoi\_nganh\_dien\_tu\_vien\_thong}, \texttt{hoi\_chuong\_trinh\_dao\_tao}, \texttt{hoi\_co\_hoi\_viec\_lam} \\
+\hline
+Thủ tục & \texttt{hoi\_ho\_so\_nhap\_hoc}, \texttt{hoi\_giay\_bao\_trung\_tuyen}, \texttt{hoi\_hoc\_phi}, \texttt{hoi\_ky\_tuc\_xa}, \texttt{hoi\_bao\_hiem\_y\_te} \\
+\hline
+Điều khiển hội thoại & \texttt{yeu\_cau\_tom\_tat}, \texttt{yeu\_cau\_noi\_ro\_hon}, \texttt{hoi\_nguon\_thong\_tin}, \texttt{nlu\_fallback} \\
+\hline
+\end{tabular}
+\caption{Các nhóm intent chính trong chatbot tuyển sinh}
+\label{tab:rasa-intent-groups}
+\end{table}
 
-\subsection*{Mức 1: Fallback do NLU không tự tin}
+Entity là thông tin cụ thể cần trích xuất trong câu hỏi. Với hệ thống tuyển sinh, entity có thể gồm \texttt{nganh}, \texttt{ma\_nganh}, \texttt{to\_hop\_mon}, \texttt{nam\_tuyen\_sinh}, \texttt{phuong\_thuc\_xet\_tuyen}, \texttt{co\_so\_dao\_tao}, \texttt{loai\_giay\_to} và \texttt{doi\_tuong\_thi\_sinh}.
 
-Trường hợp này xảy ra khi intent confidence thấp hơn ngưỡng cấu hình.
+Ví dụ, với câu hỏi ``Ngành An toàn thông tin năm 2025 lấy bao nhiêu điểm?'', hệ thống cần nhận diện intent là \texttt{hoi\_diem\_chuan}, entity \texttt{nganh} là ``An toàn thông tin'' và entity \texttt{nam\_tuyen\_sinh} là ``2025''.
 
-Ví dụ cấu hình:
+Dữ liệu huấn luyện cần có nhiều biến thể cho mỗi intent để mô hình học được ý định thay vì học thuộc một câu cụ thể. Ví dụ với intent \texttt{hoi\_hoc\_phi}, dữ liệu mẫu có thể gồm: ``học phí của học viện là bao nhiêu'', ``ngành công nghệ thông tin học phí thế nào'', ``em muốn hỏi mức học phí năm nay'', ``học phí một kỳ khoảng bao nhiêu'', ``học phí ngành an toàn thông tin có cao không''.
 
-\begin{verbatim}
-- name: FallbackClassifier
-  threshold: 0.45
-  ambiguity_threshold: 0.1
-\end{verbatim}
+Việc thiết kế intent và entity phải bảo đảm ba yêu cầu: đủ bao phủ nghiệp vụ tuyển sinh, không trùng nghĩa quá gần giữa các intent, và có dữ liệu mẫu đa dạng theo cách hỏi thực tế của người dùng.
 
-Nếu mô hình không xác định chắc chắn intent, Rasa sẽ gán intent là \texttt{nlu\_fallback}.
-
-\subsection*{Mức 2: Fallback do thiếu dữ liệu}
-
-Trường hợp này xảy ra khi intent đã đúng nhưng thiếu slot cần thiết.
-
-Ví dụ người dùng hỏi: \textit{Điểm chuẩn là bao nhiêu?}
-
-Câu hỏi trên thiếu ngành và năm. Khi đó chatbot không nên trả lời ngay mà cần hỏi lại: \textit{Bạn muốn hỏi điểm chuẩn của ngành nào?}
-
-\subsection*{Mức 3: Fallback sang RAG}
-
-Nếu câu hỏi không thuộc nhóm intent cố định nhưng vẫn liên quan đến tuyển sinh, hệ thống sẽ chuyển câu hỏi sang RAG để truy xuất từ tài liệu.
-
-Ví dụ: \textit{Quy định xét tuyển thẳng đối với học sinh giỏi cấp tỉnh như thế nào?}
-
-\subsection*{Thiết kế action\_handle\_fallback}
-
-\begin{verbatim}
-class ActionHandleFallback(Action):
-
-    def name(self) -> Text:
-        return "action_handle_fallback"
-
-    def run(
-        self,
-        dispatcher: CollectingDispatcher,
-        tracker: Tracker,
-        domain: Dict[Text, Any]
-    ) -> List[Dict[Text, Any]]:
-
-        user_message = tracker.latest_message.get("text")
-
-        if self.is_admission_related(user_message):
-            # Chuyển sang RAG nếu câu hỏi có liên quan tuyển sinh
-            return [FollowupAction("action_call_rag")]
-
-        dispatcher.utter_message(
-            text=(
-                "Mình chưa hiểu rõ câu hỏi của bạn. "
-                "Bạn có thể hỏi về ngành đào tạo, điểm chuẩn, học phí, "
-                "phương thức xét tuyển, hồ sơ hoặc thời gian tuyển sinh."
-            )
-        )
-
-        return [
-            SlotSet("last_answer_type", "fallback")
-        ]
-
-    def is_admission_related(self, message: Text) -> bool:
-        admission_keywords = [
-            "tuyển sinh",
-            "xét tuyển",
-            "ngành",
-            "điểm chuẩn",
-            "học phí",
-            "hồ sơ",
-            "tổ hợp",
-            "phương thức",
-            "học bổng",
-            "ký túc xá"
-        ]
-
-        message = message.lower()
-
-        return any(keyword in message for keyword in admission_keywords)
-\end{verbatim}
-
-\subsection*{Nguyên tắc xử lý fallback}
-
-Khi xử lý fallback, hệ thống cần tuân thủ các nguyên tắc sau:
-\begin{itemize}
-    \item Không trả lời bịa khi không có dữ liệu chắc chắn.
-    \item Ưu tiên hỏi lại nếu câu hỏi thiếu thông tin.
-    \item Nếu câu hỏi liên quan tuyển sinh nhưng không khớp intent, chuyển sang RAG.
-    \item Nếu câu hỏi ngoài phạm vi, phản hồi lịch sự và gợi ý các chủ đề có thể hỗ trợ.
-    \item Lưu lại các câu hỏi fallback để quản trị viên bổ sung dữ liệu huấn luyện về sau.
-\end{itemize}

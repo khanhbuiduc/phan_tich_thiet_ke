@@ -1,0 +1,64 @@
+flowchart TB
+    subgraph L1["Lop giao tiep"]
+        U["Nguoi dung / Admin"]
+        UI["Web UI / API Client"]
+        U --> UI
+    end
+
+    subgraph L2["Lop API dieu phoi"]
+        API["KmaRAG API Server (FastAPI)"]
+    end
+
+    subgraph L3["Lop loi dieu phoi"]
+        CORE["KmaRAG Core Engine / Orchestrator"]
+    end
+
+    subgraph L4["Cac pipeline chuc nang"]
+        INGEST["Data Ingest Pipeline"]
+        QUERY["Query Pipeline"]
+        GRAPH["Graph Pipeline"]
+    end
+
+    subgraph L5["Luu tru da tang"]
+        REDIS["Redis KV / Doc Status / Cache"]
+        QDRANT["Qdrant Vector Store"]
+        MEM["Memgraph Knowledge Graph"]
+        DOC["Document Store / Raw Files"]
+    end
+
+    subgraph L6["Mo hinh va sinh cau tra loi"]
+        EMB["Embedding Model"]
+        LLM["LLM Generation"]
+    end
+
+    OUT["Cau tra loi + nguon tham chieu"]
+
+    UI --> API
+    API --> CORE
+    CORE --> INGEST
+    CORE --> QUERY
+    CORE --> GRAPH
+
+    INGEST --> DOC
+    INGEST --> EMB
+    INGEST --> QDRANT
+    INGEST --> MEM
+    INGEST --> REDIS
+
+    QUERY --> REDIS
+    QUERY --> QDRANT
+    QUERY --> MEM
+    QUERY --> DOC
+    QUERY --> EMB
+    QUERY --> LLM
+
+    GRAPH --> MEM
+    GRAPH --> QDRANT
+    GRAPH --> REDIS
+
+    REDIS --> QUERY
+    QDRANT --> QUERY
+    MEM --> QUERY
+    DOC --> QUERY
+    EMB --> QUERY
+    LLM --> OUT

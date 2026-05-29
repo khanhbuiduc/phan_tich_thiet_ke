@@ -1,6 +1,6 @@
 ﻿\section{Kiến trúc tổng thể hệ thống}
 
-Hệ thống trợ lý ảo tư vấn tuyển sinh được thiết kế theo kiến trúc nhiều lớp, kết hợp giữa các thành phần truyền thống của một hệ thống web và các thành phần xử lý ngôn ngữ tự nhiên, truy hồi tri thức và sinh câu trả lời. Mục tiêu của kiến trúc là đảm bảo hệ thống có khả năng tiếp nhận câu hỏi từ người dùng, phân tích ý định, truy xuất dữ liệu tuyển sinh chính xác và phản hồi một cách tự nhiên, dễ hiểu.
+Hệ thống trợ lý ảo tư vấn tuyển sinh được tổ chức theo kiến trúc nhiều lớp, kết hợp giữa các thành phần của hệ thống web với các thành phần xử lý ngôn ngữ tự nhiên, truy hồi tri thức và sinh câu trả lời. Cách tổ chức này giúp hệ thống tiếp nhận câu hỏi, phân tích ý định, truy xuất dữ liệu tuyển sinh và trả phản hồi theo một luồng rõ ràng.
 
 Về tổng thể, hệ thống gồm các nhóm thành phần chính:
 \begin{itemize}
@@ -18,4 +18,9 @@ Về tổng thể, hệ thống gồm các nhóm thành phần chính:
 
 Kiến trúc này giúp hệ thống không phụ thuộc hoàn toàn vào một phương pháp trả lời duy nhất. Với các câu hỏi đơn giản, có cấu trúc rõ ràng, Rasa có thể xử lý trực tiếp thông qua intent, entity và rule/story. Với các câu hỏi phức tạp, cần thông tin từ tài liệu dài hoặc thay đổi thường xuyên, hệ thống sẽ chuyển sang phân hệ RAG để truy hồi bằng chứng trước khi sinh câu trả lời.
 
-\textbf{Gợi ý chèn Hình 3.1:} Sơ đồ kiến trúc tổng thể hệ thống.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{content/source/Hình 3.1 Sơ đồ kiến trúc tổng thể hệ thống..png}
+    \caption{Sơ đồ kiến trúc tổng thể hệ thống}
+    \label{fig:overall_system_architecture}
+\end{figure}

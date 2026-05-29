@@ -1,0 +1,39 @@
+sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant FE as Frontend Chat UI
+    participant API as Backend API
+    participant SVC as ChatbotService
+    participant DB as MongoDB / Redis
+    participant FL as Flask Rasa API
+    participant RASA as Rasa Server
+    participant ACT as Action Server
+
+    U->>FE: Nhap cau hoi
+    FE->>FE: Tao conversationId neu chua co
+    FE->>FE: Hien thi user message tam thoi
+    FE->>API: POST /api/v1/chatbot/{id}/chat
+    API->>API: Rate limit + validate params/body
+    API->>SVC: chat(chatbotId, body)
+    SVC->>DB: Lay chatbot runtime tu cache/setting/default
+    DB-->>SVC: ip, flaskPort, botId
+    SVC->>FL: POST /chat voi message, sender_id, conversation_id
+    FL->>RASA: POST /webhooks/rest/webhook
+    RASA->>RASA: NLU parse intent, confidence, entities
+    RASA->>RASA: Core chon next action theo tracker/policy
+    alt Action la utter_*
+        RASA-->>FL: Domain response text/buttons
+    else Action tuy bien
+        RASA->>ACT: Goi custom action
+        ACT-->>RASA: Events va response
+        RASA-->>FL: Bot response
+    end
+    opt Nguoi dung da dang nhap
+        FL->>DB: Luu conversation vao MongoDB
+    end
+    FL-->>SVC: ApiResponse {responses}
+    SVC->>DB: Gan messageId/sourceType va luu ChatMessage
+    SVC-->>API: successResponse(enrichedResponses)
+    API-->>FE: 200 OK
+    FE->>FE: Them bot messages voi recipient_id = bot
+    FE-->>U: Hien thi phan hoi chatbot

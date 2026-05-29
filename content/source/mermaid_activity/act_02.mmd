@@ -1,0 +1,24 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Người dùng gửi câu hỏi]
+    B --> C[Chat UI mở SSE/WebSocket tới Chat Stream API]
+    C --> D[Lưu user message]
+    D --> E[Gọi Rasa xử lý nhanh]
+    E --> F{Rasa tự tin và có response?}
+    F -- Có --> G[Stream response Rasa về UI]
+    G --> H[Lưu bot response với source=Rasa]
+    H --> Z([Kết thúc])
+    F -- Không --> I[Gửi event routing=RAG về UI]
+    I --> J[RAG tạo embedding cho câu hỏi]
+    J --> K[Search topK chunks trong Vector DB]
+    K --> L[Rerank và lọc theo ngưỡng]
+    L --> M{Có chunk phù hợp?}
+    M -- Không --> N[Stream fallback answer hoặc yêu cầu hỏi lại]
+    N --> O[Lưu fallback response]
+    O --> Z
+    M -- Có --> P[Tạo prompt từ question, context, policy]
+    P --> Q[Gọi LLM streaming]
+    Q --> R[Stream từng token và citation về UI]
+    R --> S{LLM đã hoàn tất?}
+    S -- Chưa --> R
+    S -- Rồi --> T[Lưu bot response với source=RAG và citations]
+    T --> Z

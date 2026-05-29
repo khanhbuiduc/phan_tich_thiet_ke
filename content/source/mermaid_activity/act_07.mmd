@@ -1,0 +1,14 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Người dùng gửi câu hỏi]
+    B --> C[Chatbot xử lý và tạo câu trả lời]
+    C --> D[Quality Detector đánh giá confidence, fallback, repeat, sentiment]
+    D --> E{Câu trả lời có dấu hiệu xử lý không tốt?}
+    E -- Không --> F[Lưu hội thoại bình thường]
+    F --> G[Trả câu trả lời cho người dùng]
+    G --> Z([Kết thúc])
+    E -- Có --> H[Đánh dấu unresolved/low_quality]
+    H --> I[Lưu hội thoại kèm label]
+    I --> J[Tạo item trong Review Queue]
+    J --> K[NLP Admin review và gán nhãn]
+    K --> L[Bổ sung intent/entity/response/story/rule hoặc tài liệu RAG]
+    L --> G

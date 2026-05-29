@@ -1,8 +1,8 @@
-\chapter{THIẾT KẾ API HỆ THỐNG}
+﻿\chapter{THIẾT KẾ API HỆ THỐNG}
 
 Chương này trình bày thiết kế API cho hệ thống chatbot tư vấn tuyển sinh. API đóng vai trò là lớp trung gian kết nối giữa giao diện người dùng, backend, Rasa Server, Action Server, cơ sở dữ liệu tuyển sinh và phân hệ RAG. Thông qua API, hệ thống có thể tiếp nhận câu hỏi từ người dùng, xử lý xác thực, quản lý dữ liệu huấn luyện chatbot, vận hành mô hình Rasa, truy xuất dữ liệu tuyển sinh và gọi kho tri thức khi cần trả lời các câu hỏi phức tạp.
 
-Hệ thống API được thiết kế theo hướng RESTful, sử dụng đường dẫn có cấu trúc rõ ràng, hỗ trợ phân quyền và dễ mở rộng. Các API chính được đặt dưới tiền tố \texttt{/api/v1}. Dữ liệu trao đổi giữa client và server sử dụng định dạng JSON. Với các chức năng chat thời gian thực, hệ thống có thể sử dụng cơ chế streaming để trả lời từng phần, giúp cải thiện trải nghiệm người dùng.
+Hệ thống API được tổ chức theo hướng RESTful, sử dụng đường dẫn có cấu trúc rõ ràng, hỗ trợ phân quyền và thuận tiện cho mở rộng. Các API chính được đặt dưới tiền tố \texttt{/api/v1}. Dữ liệu trao đổi giữa client và server dùng định dạng JSON. Với các chức năng chat thời gian thực, hệ thống có thể dùng cơ chế streaming để trả lời từng phần, giúp cải thiện trải nghiệm người dùng.
 
 \section{Nguyên tắc thiết kế API}
 
@@ -171,6 +171,20 @@ Response là các câu trả lời mẫu được Rasa sử dụng trong phần 
 
 Mỗi response có thể chứa tên response, nội dung câu trả lời, biến động nếu có và trạng thái hoạt động. Ví dụ, response \texttt{utter\_greet} có thể chứa nhiều biến thể câu chào để chatbot trả lời tự nhiên hơn.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng quản lý intent entity response rule story action.png}}
+    \caption{Biểu đồ tuần tự luồng quản lý intent, entity, response, rule, story và action}
+    \label{fig:seq-manage-rasa-training-data}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_05.png}}
+    \caption{Biểu đồ hoạt động luồng quản lý intent, entity, response, rule, story và action}
+    \label{fig:act-manage-rasa-training-data}
+\end{figure}
+
 \subsection{API quản lý Action}
 
 Action là hành động mà Rasa thực hiện sau khi nhận diện intent và trạng thái hội thoại. Action có thể là câu trả lời tĩnh hoặc custom action gọi sang backend để lấy dữ liệu.
@@ -197,6 +211,20 @@ Action là hành động mà Rasa thực hiện sau khi nhận diện intent và
 
 Đối với hệ thống tư vấn tuyển sinh, các custom action quan trọng gồm action tra cứu ngành học, action tra cứu học phí, action tra cứu điểm chuẩn, action tra cứu phương thức xét tuyển và action gọi RAG khi câu hỏi cần truy hồi tài liệu.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/seq_04.png}}
+    \caption{Biểu đồ tuần tự luồng push và chạy Action Server}
+    \label{fig:seq-push-run-actions}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_04.png}}
+    \caption{Biểu đồ hoạt động luồng push và chạy Action Server}
+    \label{fig:act-push-run-actions}
+\end{figure}
+
 \section{Thiết kế API Chatbot và huấn luyện mô hình}
 
 Nhóm API chatbot phục vụ quá trình gửi câu hỏi, nhận phản hồi, kiểm tra trạng thái chatbot và vận hành các tiến trình liên quan đến Rasa.
@@ -220,6 +248,34 @@ Nhóm API chatbot phục vụ quá trình gửi câu hỏi, nhận phản hồi,
 \texttt{POST} & \texttt{/v1/chatbot/\{id\}/train-active} & Huấn luyện model từ các rule và story đang hoạt động. \\
 \hline
 \end{longtable}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng upload run model.png}}
+    \caption{Biểu đồ tuần tự luồng upload và chạy model Rasa}
+    \label{fig:seq-upload-run-model}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_03.png}}
+    \caption{Biểu đồ hoạt động luồng upload và chạy model Rasa}
+    \label{fig:act-upload-run-model}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng active training data và train model.png}}
+    \caption{Biểu đồ tuần tự luồng active training data và train model}
+    \label{fig:seq-active-training-data-train-model}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_activity/act_06.png}}
+    \caption{Biểu đồ hoạt động luồng active training data và train model}
+    \label{fig:act-active-training-data-train-model}
+\end{figure}
 
 Endpoint \texttt{/v1/chatbot/chat/stream} là API trung tâm trong quá trình tương tác với người dùng. Khi người dùng nhập câu hỏi, frontend gửi nội dung câu hỏi đến API này. Backend sau đó chuyển tiếp tin nhắn đến Rasa Server. Rasa phân tích intent, entity, trạng thái hội thoại và quyết định action cần thực hiện. Nếu cần dữ liệu nghiệp vụ, Rasa gọi Action Server. Nếu cần truy hồi tài liệu, Action Server gọi phân hệ RAG.
 
@@ -366,8 +422,16 @@ Luồng xử lý câu hỏi thông thường như sau:
 
 Với thiết kế này, mỗi thành phần trong hệ thống có nhiệm vụ rõ ràng. Frontend chỉ phụ trách giao diện và trải nghiệm người dùng. Backend phụ trách xác thực, điều phối và quản lý dữ liệu. Rasa phụ trách hiểu ý định và quản lý hội thoại. Action Server xử lý nghiệp vụ động. RAG phụ trách truy hồi tài liệu và sinh câu trả lời dựa trên kho tri thức.
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{\detokenize{content/source/mermaid_sequence/IMG/Luồng lưu lịch sử hội thoại.png}}
+    \caption{Biểu đồ tuần tự luồng lưu lịch sử hội thoại}
+    \label{fig:seq-conversation-history}
+\end{figure}
+
 \section{Kết luận chương}
 
 Chương này đã trình bày thiết kế API cho hệ thống chatbot tư vấn tuyển sinh. Các API được chia thành các nhóm chính gồm API xác thực, API quản lý dữ liệu Rasa, API chatbot, API huấn luyện mô hình, API dữ liệu tuyển sinh và API RAG. Thiết kế này giúp hệ thống có cấu trúc rõ ràng, dễ mở rộng và phù hợp với mô hình kết hợp giữa Rasa và RAG.
 
 Thông qua lớp API, hệ thống có thể quản lý dữ liệu huấn luyện chatbot, vận hành Rasa, gọi custom actions, truy xuất dữ liệu tuyển sinh và khai thác kho tri thức. Đây là nền tảng quan trọng để triển khai các chức năng hỏi đáp tự động, quản trị nội dung và cải thiện chất lượng tư vấn tuyển sinh trong quá trình vận hành.
+

@@ -1,0 +1,23 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Người dùng nhập câu hỏi]
+    B --> C[Chat UI gửi message lên Chat API]
+    C --> D[Lưu user message vào Chat DB]
+    D --> E[Gửi message sang Rasa]
+    
+    %% Bẻ nhánh sang cột thứ 2
+    E --> F[Rasa NLU parse intent/entity]
+    
+    %% Cột 2 đi dọc xuống
+    F --> G[Rasa Core dự đoán next action]
+    G --> H{Có cần custom action?}
+    
+    H -- Có --> I[Action Server xử lý]
+    I --> J[Trả events & response về Rasa]
+    H -- Không --> K[Lấy từ domain/template]
+    
+    J --> L[Chat API nhận bot response]
+    K --> L
+    L --> M[Lưu bot message/metadata]
+    M --> N[Trả response về Chat UI]
+    N --> O[Hiển thị câu trả lời]
+    O --> P([Kết thúc])

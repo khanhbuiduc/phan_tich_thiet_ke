@@ -1,0 +1,31 @@
+\clearpage
+\chapter*{KẾT LUẬN}
+\phantomsection
+\addcontentsline{toc}{chapter}{KẾT LUẬN}
+
+Báo cáo đã trình bày toàn bộ quá trình phân tích kỹ thuật cho hệ thống trợ lý ảo tư vấn tuyển sinh KMA theo hai hướng chính: chatbot hội thoại dựa trên Rasa và phân hệ truy xuất tri thức dựa trên KmaRAG. Ở phía chatbot, tài liệu đã làm rõ kiến trúc frontend, backend Node.js, Flask bridge, Rasa Server, Action Server, cơ chế phân loại intent bằng PhoBERT, quản lý hội thoại, fallback và quy trình huấn luyện mô hình. Ở phía RAG, báo cáo đã mô tả kiến trúc nhiều lớp, các pipeline ingest và query, lớp lưu trữ đa tầng, cơ chế xây dựng knowledge graph, truy hồi ngữ nghĩa, xây dựng context và sinh câu trả lời có nguồn tham chiếu.
+
+Kết quả phân tích cho thấy hệ thống có cấu trúc tách lớp rõ ràng, thuận lợi cho mở rộng và bảo trì. Việc kết hợp giữa luồng hội thoại có kiểm soát của Rasa và luồng truy xuất tri thức của KmaRAG giúp hệ thống xử lý tốt cả câu hỏi phổ biến lẫn câu hỏi cần bám theo tài liệu nghiệp vụ. Trên nền tảng này, hệ thống có thể tiếp tục được cải thiện ở các hướng như nâng cao chất lượng retrieval, tối ưu citation, mở rộng tập tri thức và tăng cường đánh giá chất lượng phản hồi.
+
+\clearpage
+\chapter*{TÀI LIỆU THAM KHẢO}
+\phantomsection
+\addcontentsline{toc}{chapter}{TÀI LIỆU THAM KHẢO}
+
+\begingroup
+\footnotesize
+\renewcommand{\baselinestretch}{1.0}\selectfont
+\setlength{\parskip}{0pt}
+\setlength{\itemsep}{1pt}
+\setlength{\parsep}{0pt}
+\setlength{\topsep}{2pt}
+\begin{enumerate}[leftmargin=1.2cm,label={[\arabic*]},itemsep=1pt,topsep=2pt]
+\item Rasa Technologies, \textit{Rasa Open Source Documentation}, \url{https://rasa.com/docs/rasa/}.
+\item D. Q. Nguyen, A. T. Nguyen, \textit{PhoBERT: Pre-trained language models for Vietnamese}, Findings of EMNLP 2020.
+\item Qdrant, \textit{Qdrant Documentation}, \url{https://qdrant.tech/documentation/}.
+\item Redis, \textit{Redis Documentation}, \url{https://redis.io/docs/}.
+\item Memgraph, \textit{Memgraph Documentation}, \url{https://memgraph.com/docs}.
+\item Mã nguồn và tài liệu kỹ thuật nội bộ của các phân hệ \texttt{kmarag-main}, \texttt{rasa\_flask\_api}, \texttt{rasa\_m\_be}, \texttt{rasa\_fe}.
+\item Tài liệu tuyển sinh, tài liệu nghiệp vụ, biểu mẫu và dữ liệu vận hành nội bộ dùng để xây dựng tập tri thức của hệ thống.
+\end{enumerate}
+\endgroup

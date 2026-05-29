@@ -1,0 +1,42 @@
+\section{Thiết kế fallback và kiểm soát confidence}
+
+Fallback là cơ chế bắt buộc trong chatbot tuyển sinh vì hệ thống không được trả lời tùy tiện khi không hiểu câu hỏi. FallbackClassifier kiểm tra confidence của intent. Nếu confidence thấp hơn ngưỡng thiết kế, hệ thống không chấp nhận intent mà chuyển sang nhánh fallback.
+
+Logic xử lý có thể mô tả như sau:
+
+\begin{center}
+\begin{tabular}{c}
+\texttt{Nếu max(confidence) >= threshold} \\
+$\downarrow$ \\
+\texttt{Chấp nhận intent} \\
+\texttt{Ngược lại} \\
+$\downarrow$ \\
+\texttt{Kích hoạt fallback}
+\end{tabular}
+\end{center}
+
+Fallback có thể chia thành nhiều cấp. Fallback cấp 1 là bot hỏi lại để làm rõ ý định. Fallback cấp 2 là bot gợi ý một số nhóm câu hỏi có thể hỗ trợ. Fallback cấp 3 là bot ghi log câu hỏi chưa xử lý được để quản trị viên bổ sung dữ liệu. Fallback cấp 4 là bot thông báo chưa có thông tin phù hợp thay vì tự trả lời.
+
+Ví dụ, khi người dùng hỏi ``Cái ngành đó thì sao?'', bot có thể phản hồi: ``Bạn đang muốn hỏi về ngành nào ạ? Bạn có thể nhập tên ngành như An toàn thông tin, Công nghệ thông tin hoặc Điện tử viễn thông.''
+
+Fallback không chỉ là xử lý lỗi. Đây là cơ chế bảo vệ chất lượng thông tin. Đặc biệt với lĩnh vực tuyển sinh, câu trả lời sai về điểm chuẩn, học phí, hồ sơ hoặc thời gian nhập học có thể gây ảnh hưởng trực tiếp đến người dùng. Vì vậy, khi không đủ chắc chắn, hệ thống nên hỏi lại hoặc từ chối có kiểm soát.
+
+\subsection*{Thiết kế luồng hội thoại mẫu}
+
+\subsection*{Luồng chào hỏi}
+
+Luồng chào hỏi gồm bốn bước: người dùng nhập ``Xin chào'', NLU nhận diện intent \texttt{chao\_hoi}, Core chọn action \texttt{utter\_chao\_hoi}, sau đó bot phản hồi rằng hệ thống có thể hỗ trợ thông tin tuyển sinh, ngành học, học phí và hồ sơ nhập học.
+
+Đây là luồng đơn giản, nên xử lý bằng rule và response template.
+
+\subsection*{Luồng hỏi học phí}
+
+Khi người dùng hỏi ``Học phí ngành An toàn thông tin là bao nhiêu?'', NLU cần nhận diện intent \texttt{hoi\_hoc\_phi} và entity \texttt{nganh = An toàn thông tin}. Core lưu slot ngành và chọn action trả lời học phí. Luồng này có thể dùng template nếu học phí cố định, hoặc custom action nếu học phí phụ thuộc ngành, năm học hoặc hệ đào tạo.
+
+\subsection*{Luồng hỏi thiếu thông tin}
+
+Khi người dùng hỏi ``Điểm chuẩn là bao nhiêu?'', hệ thống có thể nhận diện intent \texttt{hoi\_diem\_chuan} nhưng thiếu ngành và năm. Core kiểm tra slot bắt buộc và yêu cầu người dùng bổ sung: ``Bạn muốn hỏi điểm chuẩn ngành nào và năm nào?''. Sau khi người dùng trả lời ``Ngành Công nghệ thông tin năm 2025'', hệ thống cập nhật slot và trả lời theo thông tin phù hợp.
+
+\subsection*{Luồng fallback}
+
+Khi người dùng hỏi ``Cái kia đăng ký sao?'', confidence thấp hoặc intent không rõ. FallbackClassifier kích hoạt \texttt{nlu\_fallback}. Core chọn \texttt{action\_fallback}. Action đọc intent ranking, pending question và số lần hỏi lại, sau đó phản hồi: ``Bạn có thể nói rõ bạn muốn đăng ký nội dung nào không: xét tuyển, nhập học, ký túc xá hay giấy tờ?''

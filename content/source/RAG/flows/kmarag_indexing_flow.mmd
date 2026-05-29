@@ -1,0 +1,19 @@
+flowchart TD
+    A["Admin upload / scan / reprocess document"] --> B["API ingest tao doc_status = PENDING"]
+    B --> C["Lay danh sach document PENDING / FAILED / PROCESSING"]
+    C --> D["Kiem tra tinh nhat quan full_docs va doc_status"]
+    D --> E["Dat lock namespace va tao job batch"]
+    E --> F["Xu ly tung document voi max_parallel_insert"]
+    F --> G["Chunking by token size<br/>co overlap va metadata chunk"]
+    G --> H["Cap nhat doc_status = PROCESSING"]
+    H --> I["Stage 1: luu text_chunks va chunks_vdb"]
+    I --> J["Sinh embedding cho chunks"]
+    J --> K["Stage 2: extract_entities() bang LLM<br/>co llm_response_cache"]
+    K --> L["merge_nodes_and_edges()"]
+    L --> M["Ghi entity / relation vao Memgraph<br/>va vector DB lien quan"]
+    M --> N["Luu entity_chunks / relation_chunks<br/>de truy vet nguon"]
+    N --> O{Thanh cong?}
+    O -- Co --> P["doc_status = PROCESSED"]
+    O -- Khong --> Q["doc_status = FAILED<br/>ghi error_msg / cancellation"]
+    P --> R["_insert_done() persist tat ca storage"]
+    Q --> R

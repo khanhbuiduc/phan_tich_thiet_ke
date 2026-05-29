@@ -1,0 +1,14 @@
+flowchart TD
+    A[Nguon du lieu nghiep vu<br/>FAQ, de an tuyen sinh,<br/>kich ban tu van, lich su chat] --> B[Gan nhan intent<br/>chuan hoa entity va response]
+    B --> C[Backend tao bo cau hinh train<br/>nlu.yml, stories.yml, rules.yml, domain.yml]
+    C --> D[Flask API POST /train<br/>ghi cac file YAML vao data/]
+    D --> E[PhoBERTIntentClassifier.doc training_data]
+    E --> F[Tien xu ly text<br/>normalize, bo . va ;]
+    F --> G[VnCoreNLP word segmentation]
+    G --> H[Map intent -> intent_id]
+    H --> I{Fresh training<br/>va du lieu it?}
+    I -- Co --> J[Data augmentation co kiem soat<br/>synonym + abbreviation + shuffle]
+    I -- Khong --> K[Giu nguyen du lieu]
+    J --> L[Tap training examples cuoi cung]
+    K --> L
+    L --> M[Luu training_data cho EWC<br/>va buoc train tiep theo]

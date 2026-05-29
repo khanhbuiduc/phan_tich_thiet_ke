@@ -1,65 +1,97 @@
 \section{Biểu đồ Use Case tổng thể}
 
-Biểu đồ Use Case tổng thể được sử dụng để mô tả các tác nhân tham gia hệ thống và các chức năng chính mà từng tác nhân có thể thực hiện. Dựa trên các chức năng đã triển khai, hệ thống KMA Chatbot tuyển sinh có ba nhóm tác nhân chính: người dùng hỏi đáp, người quản trị nội dung và người quản trị hệ thống.
-
-Trong đó, người dùng hỏi đáp tương tác trực tiếp với chatbot để đặt câu hỏi tuyển sinh và nhận phản hồi từ Rasa hoặc RAG. Người quản trị nội dung quản lý tài liệu, biểu mẫu, tài liệu ngữ cảnh RAG và dữ liệu phục vụ hỏi đáp. Người quản trị hệ thống chịu trách nhiệm quản lý tài khoản, vai trò, quyền truy cập và theo dõi các báo cáo thống kê của hệ thống.
+Biểu đồ Use Case tổng thể được sử dụng để mô tả các tác nhân tham gia hệ thống và các nhóm chức năng chính mà từng tác nhân có thể thực hiện. Dựa trên phạm vi triển khai, hệ thống trợ lý ảo tuyển sinh gồm bốn vai trò chính: Khách, Người dùng, Quản lý và Admin.
 
 \subsection{Danh sách tác nhân}
 \begin{table}[H]
 \centering
 \caption{Danh sách tác nhân trong hệ thống}
 \label{tab:actors_list}
-\begin{tabular}{|p{3.5cm}|p{6.5cm}|p{5cm}|}
+\begin{tabular}{|p{3.2cm}|p{6.8cm}|p{5cm}|}
 \hline
 \textbf{Tác nhân} & \textbf{Mô tả} & \textbf{Phạm vi sử dụng} \\ \hline
-Người dùng hỏi đáp & Là người sử dụng chatbot để tra cứu thông tin tuyển sinh, ngành học, học phí, thủ tục, văn bản và biểu mẫu & Hỏi đáp với Rasa, hỏi đáp với RAG \\ \hline
-Người quản trị nội dung & Là người phụ trách cập nhật, quản lý và kiểm soát nguồn dữ liệu phục vụ chatbot & Quản lý tài liệu biểu mẫu, tài liệu ngữ cảnh RAG, dữ liệu huấn luyện và câu hỏi gợi ý \\ \hline
-Người quản trị hệ thống & Là người quản lý vận hành, phân quyền và giám sát hệ thống & Quản lý người dùng, vai trò, quyền truy cập và thống kê hệ thống \\ \hline
+Khách & Là người truy cập hệ thống khi chưa đăng nhập, có nhu cầu hỏi đáp nhanh với trợ lý ảo & Hỏi đáp với Rasa \\ \hline
+Người dùng & Là người sử dụng hệ thống sau khi đăng nhập để hỏi đáp và theo dõi thông tin hội thoại của bản thân & Hỏi đáp với Rasa, quản lý lịch sử hội thoại \\ \hline
+Quản lý & Là người phụ trách vận hành dữ liệu nghiệp vụ, tài liệu, biểu mẫu, bộ dữ liệu và các cấu hình phục vụ chatbot & Quản lý bộ dữ liệu, văn bản biểu mẫu, bộ API, người dùng theo phạm vi được cấp quyền \\ \hline
+Admin & Là người quản trị cấp cao, chịu trách nhiệm phân quyền, quản trị người dùng và theo dõi báo cáo thống kê toàn hệ thống & Quản lý người dùng, vai trò, quyền hạn và báo cáo thống kê \\ \hline
 \end{tabular}
 \end{table}
 
 \subsection{Danh sách Use Case tổng thể}
 
-Dựa trên chức năng đã triển khai trong hệ thống, các Use Case chính được xác định như sau:
-
 \begin{table}[H]
 \centering
 \caption{Danh sách Use Case tổng thể}
 \label{tab:usecase_list}
-\begin{tabular}{|p{1.5cm}|p{3.5cm}|p{3cm}|p{7cm}|}
+\begin{tabular}{|p{1.5cm}|p{4.2cm}|p{3cm}|p{6.3cm}|}
 \hline
 \textbf{Mã Use Case} & \textbf{Tên Use Case} & \textbf{Tác nhân chính} & \textbf{Mô tả} \\ \hline
-UC-01 & Hỏi đáp thường với Rasa & Người dùng hỏi đáp & Người dùng đặt câu hỏi phổ biến, câu hỏi theo luồng định sẵn hoặc nghiệp vụ có cấu trúc \\ \hline
-UC-02 & Hỏi đáp RAG theo tài liệu & Người dùng hỏi đáp & Người dùng đặt câu hỏi và nhận câu trả lời dựa trên tài liệu đã upload, ingest và chia chunks \\ \hline
-UC-03 & Chọn tài liệu ngữ cảnh khi hỏi RAG & Người dùng hỏi đáp & Người dùng chọn tài liệu cụ thể để làm ngữ cảnh cho quá trình hỏi đáp RAG \\ \hline
-UC-04 & Quản lý tài liệu biểu mẫu & Người quản trị nội dung & Quản lý tài liệu tại /docs, gồm tìm kiếm, lọc, tạo tài liệu, theo dõi loại file và dung lượng \\ \hline
-UC-05 & Quản lý tài liệu ngữ cảnh RAG & Người quản trị nội dung & Quản lý tài liệu tại /context-docs, gồm upload, scan, retry pipeline và theo dõi trạng thái xử lý \\ \hline
-UC-06 & Theo dõi trạng thái xử lý tài liệu & Người quản trị nội dung & Theo dõi trạng thái processed, pending, failed và số chunks của tài liệu \\ \hline
-UC-07 & Quản lý câu hỏi gợi ý và dữ liệu huấn luyện & Người quản trị nội dung & Bổ sung hoặc điều chỉnh dữ liệu phục vụ chatbot/Rasa \\ \hline
-UC-08 & Xem báo cáo thống kê & Người quản trị hệ thống & Xem thống kê người dùng, hội thoại, chatbot, NLP và tài liệu tại nhóm /statistics/* \\ \hline
-UC-09 & Quản lý vai trò & Người quản trị hệ thống & Quản lý vai trò tại /roles \\ \hline
-UC-10 & Quản lý quyền & Người quản trị hệ thống & Quản lý quyền sử dụng chức năng tại /permissions \\ \hline
-UC-11 & Quản lý người dùng & Người quản trị hệ thống & Quản lý danh sách tài khoản, vai trò, trạng thái và thao tác quản trị tại /users \\ \hline
+UC-01 & Hỏi đáp với Rasa & Khách, Người dùng & Tác nhân đặt câu hỏi tuyển sinh và nhận phản hồi từ trợ lý ảo Rasa \\ \hline
+UC-02 & Đăng nhập & Người dùng, Quản lý, Admin & Xác thực tài khoản trước khi sử dụng các chức năng cần phân quyền \\ \hline
+UC-03 & Quản lý lịch sử hội thoại & Người dùng & Xem và quản lý các hội thoại đã thực hiện với chatbot \\ \hline
+UC-04 & Quản lý các bộ dữ liệu & Quản lý & Thêm, xem chi tiết, thu thập dữ liệu và quản lý câu hỏi gợi ý \\ \hline
+UC-05 & Quản lý văn bản, biểu mẫu & Quản lý & Quản lý văn bản và tài liệu ngữ cảnh phục vụ tra cứu, hỏi đáp \\ \hline
+UC-06 & Quản lý bộ API & Quản lý & Quản lý các API hoặc tài liệu API phục vụ tích hợp hệ thống \\ \hline
+UC-07 & Quản lý chatbot Rasa & Admin & Quản lý intent, entity, action, response, rule, story, slot và cấu hình chatbot \\ \hline
+UC-08 & Quản lý người dùng & Quản lý, Admin & CRUD người dùng, ban/unban, thiết lập vai trò và cấp chatbot \\ \hline
+UC-09 & Quản lý vai trò và quyền hạn & Admin & Quản lý vai trò, quyền hạn, gán quyền cho vai trò và gán vai trò cho người dùng \\ \hline
+UC-10 & Báo cáo thống kê & Admin & Xem thống kê người dùng, hội thoại, chatbot, NLP và văn bản \\ \hline
 \end{tabular}
 \end{table}
 
 \subsection{Mô tả quan hệ giữa các Use Case}
 
-Trong hệ thống, một số Use Case có quan hệ mở rộng hoặc bao gồm nhau.
+Các Use Case dành cho Người dùng, Quản lý và Admin đều cần thực hiện đăng nhập trước khi truy cập chức năng tương ứng. Vai trò Khách chỉ sử dụng chức năng hỏi đáp cơ bản với Rasa; khi cần lưu lịch sử hoặc dùng các chức năng cá nhân, Khách có thể chuyển thành Người dùng sau khi đăng nhập.
 
-Use Case Hỏi đáp RAG theo tài liệu có liên quan đến Use Case Chọn tài liệu ngữ cảnh khi hỏi RAG, vì khi sử dụng RAG Chat, người dùng có thể lựa chọn tài liệu cụ thể để giới hạn phạm vi truy xuất. Điều này giúp câu trả lời tập trung hơn vào tài liệu mà người dùng quan tâm.
+Nhóm chức năng của Quản lý tập trung vào dữ liệu nghiệp vụ, văn bản, biểu mẫu, bộ dữ liệu và bộ API. Nhóm chức năng của Admin tập trung vào quản trị quyền hạn, người dùng, chatbot Rasa và báo cáo thống kê. Cách phân tách này giúp hệ thống kiểm soát rõ phạm vi thao tác giữa người vận hành nội dung và người quản trị cấp cao.
 
-Use Case Quản lý tài liệu ngữ cảnh RAG bao gồm các thao tác như upload tài liệu, scan tài liệu mới, retry pipeline và theo dõi trạng thái xử lý. Vì vậy, Use Case Theo dõi trạng thái xử lý tài liệu có thể được xem là một phần quan trọng trong quản lý tài liệu ngữ cảnh.
-
-Use Case Xem báo cáo thống kê phục vụ người quản trị hệ thống trong việc giám sát hoạt động. Các thống kê có thể bao gồm thống kê người dùng, hội thoại, chatbot, NLP và tài liệu.
-
-Use Case Quản lý vai trò, Quản lý quyền và Quản lý người dùng thuộc nhóm quản trị hệ thống. Các Use Case này có mối quan hệ chặt chẽ vì quyền truy cập của người dùng phụ thuộc vào vai trò được gán và các quyền tương ứng.
-
-\subsection{Biểu đồ Use Case tổng thể}
+\subsection{Biểu đồ Use Case tổng thể và phân rã}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\textwidth]{source/usecase_tong_the.png}
-    \caption{Biểu đồ Use Case tổng thể của hệ thống KMA Chatbot tuyển sinh}
+    \includegraphics[width=\textwidth]{\detokenize{content/source/usecase/tong_quat.png}}
+    \caption{Biểu đồ Use Case tổng thể của hệ thống}
     \label{fig:overall_use_case}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.92\textwidth]{\detokenize{content/source/usecase/quan ly thuong.png}}
+    \caption{Biểu đồ phân rã Use Case quản lý thường}
+    \label{fig:usecase_decomposition_common}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{\detokenize{content/source/usecase/quản lý chuyên gia.png}}
+    \caption{Biểu đồ phân rã Use Case quản lý chatbot Rasa}
+    \label{fig:usecase_decomposition_rasa_chatbot}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/usecase/quản lý người dùng.png}}
+    \caption{Biểu đồ phân rã Use Case quản lý người dùng}
+    \label{fig:usecase_decomposition_users}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/usecase/quản lý văn bản biểu mẫu.png}}
+    \caption{Biểu đồ phân rã Use Case quản lý văn bản, biểu mẫu}
+    \label{fig:usecase_decomposition_documents_forms}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/usecase/Quản lý RABC.png}}
+    \caption{Biểu đồ phân rã Use Case quản lý vai trò và quyền hạn}
+    \label{fig:usecase_decomposition_rbac}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{\detokenize{content/source/usecase/bao_cao_thong_ke.png}}
+    \caption{Biểu đồ phân rã Use Case báo cáo thống kê}
+    \label{fig:usecase_decomposition_statistics}
 \end{figure}

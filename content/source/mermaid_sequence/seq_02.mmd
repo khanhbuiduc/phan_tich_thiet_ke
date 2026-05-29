@@ -1,0 +1,44 @@
+﻿sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant FE as Chat UI
+    participant API as Chat Stream API
+    participant Rasa as Rasa Server
+    participant RAG as RAG Service
+    participant Emb as Embedding Service
+    participant VDB as Vector DB
+    participant LLM as LLM
+    participant DB as Chat DB
+
+    U->>FE: Gui cau hoi
+    FE->>API: Open SSE/WebSocket /chat/stream
+    API->>DB: Luu user message
+    API->>Rasa: Xu ly nhanh bang Rasa
+    Rasa-->>API: intent, confidence, response hoac fallback
+    alt Rasa tu tin va co response
+        API-->>FE: Stream chunk tu response Rasa
+        FE-->>U: Hien thi tung phan
+        API->>DB: Luu bot response + source=Rasa
+    else Rasa fallback hoac confidence thap
+        API-->>FE: Event routing=RAG
+        API->>RAG: Generate answer(question, conversation context)
+        RAG->>Emb: Tao embedding cho question
+        Emb-->>RAG: Query vector
+        RAG->>VDB: Similarity search topK
+        VDB-->>RAG: Chunks + metadata + score
+        RAG->>RAG: Loc nguong, rerank, tao prompt
+        alt Khong co chunk dat nguong
+            RAG-->>API: Fallback answer / yeu cau hoi lai
+            API-->>FE: Stream fallback message
+        else Co ngu canh phu hop
+            RAG->>LLM: Prompt gom question + context + policy
+            loop LLM streaming tokens
+                LLM-->>RAG: Token
+                RAG-->>API: Token + citation metadata
+                API-->>FE: SSE/WebSocket chunk
+                FE-->>U: Cap nhat cau tra loi
+            end
+            RAG-->>API: Done + citations
+        end
+        API->>DB: Luu bot response + source=RAG + citations
+    end

@@ -1,0 +1,16 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Người dùng bấm like/dislike hoặc nhập góp ý]
+    B --> C[Chat UI gửi feedback]
+    C --> D[Lưu feedback gắn với messageId]
+    D --> E{Feedback tiêu cực?}
+    E -- Không --> F[Ghi nhận tín hiệu chất lượng tích cực]
+    F --> G[Thông báo đã ghi nhận feedback]
+    G --> Z([Kết thúc])
+    E -- Có --> H[Tạo task trong Improvement Queue]
+    H --> I[NLP/RAG Admin review feedback]
+    I --> J{Nguyên nhân thuộc Rasa hay RAG?}
+    J -- Rasa --> K[Sửa response, rule, story, intent hoặc action]
+    J -- RAG --> L[Bổ sung/sửa tài liệu hoặc cấu hình retrieval]
+    K --> M[Đưa thay đổi vào dataset cải thiện]
+    L --> M
+    M --> G

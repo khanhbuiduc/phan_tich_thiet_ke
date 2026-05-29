@@ -1,0 +1,13 @@
+flowchart TD
+    A([Bắt đầu]) --> B[System Admin chọn user và role/permission]
+    B --> C[User Admin UI gửi yêu cầu cập nhật]
+    C --> D[Auth Service xác thực admin]
+    D --> E[Permission Engine kiểm tra quyền manage_users]
+    E --> F{Admin đủ quyền?}
+    F -- Không --> G[Trả 403 Forbidden]
+    G --> Z([Kết thúc])
+    F -- Có --> H[Cập nhật role/permission trong User DB]
+    H --> I[Invalidate hoặc refresh token nếu cần]
+    I --> J[Ghi audit RBAC]
+    J --> K[Thông báo cập nhật thành công]
+    K --> Z

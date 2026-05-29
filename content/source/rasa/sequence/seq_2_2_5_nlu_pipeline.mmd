@@ -1,0 +1,42 @@
+sequenceDiagram
+    autonumber
+    participant RASA as Rasa NLU Runtime
+    participant MSG as Message
+    participant PRE as VietnameseTextPreprocessor
+    participant SEG as VnCoreNLP Segmenter
+    participant PHO as PhoBERTIntentClassifier
+    participant TOK as PhoBERT Tokenizer
+    participant MODEL as PhoBERT Model
+    participant RANK as Confidence / Ranking
+    participant REG as RegexEntityExtractor
+    participant SYN as EntitySynonymMapper
+    participant FB as FallbackClassifier
+
+    RASA->>PHO: process(messages)
+    loop Moi user message
+        PHO->>MSG: get(TEXT)
+        PHO->>PRE: preprocess(text)
+        PRE-->>PHO: text da chuan hoa
+        PHO->>PHO: Bo ky tu . va ;
+        PHO->>SEG: word_segment(text)
+        SEG-->>PHO: text da tach tu tieng Viet
+        PHO->>TOK: encode_plus(max_seq_length)
+        TOK-->>PHO: input_ids, attention_mask
+        PHO->>MODEL: forward inference
+        MODEL-->>PHO: logits va embedding
+        PHO->>RANK: softmax, margin, OOD factor, top-k
+        RANK-->>PHO: intent_id, confidence, intent_ranking
+        PHO->>MSG: set intent
+        PHO->>MSG: set intent_ranking
+    end
+    RASA->>REG: Extract regex entities
+    REG-->>RASA: entities
+    RASA->>SYN: Map entity synonyms
+    SYN-->>RASA: normalized entities
+    RASA->>FB: Kiem tra confidence va ambiguity
+    alt Dat nguong
+        FB-->>RASA: Giu intent PhoBERT
+    else Khong dat nguong
+        FB-->>RASA: Chuyen sang nlu_fallback
+    end
+    RASA-->>RASA: parse_data = intent + confidence + ranking + entities

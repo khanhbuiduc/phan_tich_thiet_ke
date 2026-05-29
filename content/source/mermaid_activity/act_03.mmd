@@ -1,0 +1,19 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Quản trị viên upload model]
+    B --> C[Admin UI gửi file lên Admin API]
+    C --> D[Validate file, version, checksum]
+    D --> E{File hợp lệ?}
+    E -- Không --> F[Trả lỗi upload]
+    F --> Z([Kết thúc])
+    E -- Có --> G[Lưu model artifact vào Model Storage]
+    G --> H[Tạo model version trạng thái PENDING]
+    H --> I[Yêu cầu Rasa Runtime load/reload model]
+    I --> J{Load thành công?}
+    J -- Có --> K[Cập nhật model version ACTIVE]
+    K --> L[Ghi audit upload/run model]
+    L --> M[Thông báo thành công]
+    M --> Z
+    J -- Không --> N[Cập nhật model version FAILED]
+    N --> O[Ghi audit lỗi]
+    O --> P[Trả lỗi load model]
+    P --> Z

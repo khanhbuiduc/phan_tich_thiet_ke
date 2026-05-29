@@ -1,0 +1,28 @@
+﻿sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant FE as Chat UI
+    participant API as Chat API
+    participant DB as Chat DB
+    participant Rasa as Rasa Server
+    participant NLU as Rasa NLU
+    participant Core as Rasa Core
+    participant Action as Action Server
+
+    U->>FE: Nhap question
+    FE->>API: POST /chat {conversationId, message}
+    API->>DB: Luu user message
+    API->>Rasa: POST /webhooks/rest/webhook
+    Rasa->>NLU: Parse message
+    NLU-->>Rasa: Intent, entities, confidence
+    Rasa->>Core: Lay tracker va predict next action
+    alt Can custom action
+        Core->>Action: Run action voi slots/context
+        Action-->>Core: Events va response
+    else Response tinh trong domain
+        Core-->>Rasa: Template response
+    end
+    Rasa-->>API: Bot response
+    API->>DB: Luu bot message va metadata
+    API-->>FE: Response JSON
+    FE-->>U: Hien thi cau tra loi

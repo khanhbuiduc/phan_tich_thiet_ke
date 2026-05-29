@@ -1,0 +1,24 @@
+flowchart TD
+    A[TrainingData sau chuan bi] --> B[Auto Tuner phan tich du lieu<br/>samples, classes, imbalance,<br/>avg length, min samples]
+    B --> C[Chon hyperparameters<br/>batch_size, epochs, learning_rate,<br/>max_seq_length, warmup_ratio]
+    C --> D[Quyet dinh mode train<br/>fresh training hay fine-tuning]
+    D --> E{Fine-tuning?}
+    E -- Co --> F[Load model cu<br/>bat adapters + EWC]
+    E -- Khong --> G[Khoi tao EnhancedPhoBERT moi]
+    F --> H[Train/val split stratified]
+    G --> H
+    H --> I[ClassBalancedBatchSampler<br/>neu bat contrastive learning]
+    I --> J[Train loop<br/>optimizer AdamW + scheduler]
+    J --> K[Loss tong hop<br/>classification + contrastive + EWC]
+    K --> L[FP16 + gradient accumulation<br/>clip grad + OOM auto-retry]
+    L --> M[Danh gia val accuracy moi epoch]
+    M --> N{Con cai thien?}
+    N -- Co --> O[Luu best checkpoint]
+    N -- Khong --> P[Dem patience]
+    P --> Q{Dat early stopping?}
+    Q -- Chua --> J
+    Q -- Roi --> R[Restore best model]
+    O --> J
+    R --> S[Temperature scaling tren val set]
+    S --> T[Tinh class centroids cho OOD]
+    T --> U[Persist weights, config,<br/>intent_ids, training_data]

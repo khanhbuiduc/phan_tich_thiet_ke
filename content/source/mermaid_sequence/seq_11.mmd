@@ -1,0 +1,20 @@
+﻿sequenceDiagram
+    autonumber
+    actor U as Nguoi dung
+    participant FE as Chat UI
+    participant API as Chat API
+    participant DB as Conversation DB
+    participant Search as Search/Analytics Index
+    participant Admin as Admin UI
+
+    U->>FE: Gui/nhan tin nhan
+    FE->>API: Message event
+    API->>DB: Upsert conversation, message, sender, timestamp, metadata
+    API->>Search: Index noi dung va metadata
+    API-->>FE: Ack/response
+    Admin->>API: Truy xuat lich su theo user/session/keyword
+    API->>DB: Lay conversation timeline
+    API->>Search: Tim kiem neu co keyword/filter
+    DB-->>API: Message history
+    Search-->>API: Ket qua phu hop
+    API-->>Admin: Hien thi lich su hoi thoai

@@ -1,105 +1,13 @@
-﻿\section{Thiết kế stories và rules}
+﻿\section{Cấu trúc xử lý trong một lượt hội thoại}
 
-Stories và rules được sử dụng để thiết kế luồng hội thoại trong Rasa Core.
+Trong một lượt hội thoại, message của người dùng lần lượt đi qua các nhóm NLU, tracker, policy, NLG và custom action. Các khối này liên kết với nhau theo đúng thứ tự thực thi trong Rasa thay vì hoạt động độc lập.
 
-Stories mô tả các kịch bản hội thoại có tính linh hoạt, gồm nhiều bước tương tác giữa người dùng và chatbot. Rules mô tả các quy tắc cố định, thường dùng cho các tình huống đơn giản hoặc bắt buộc như chào hỏi, tạm biệt, fallback.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{\detokenize{content/source/rasa/sequence/seq_2_2_4_dialogue_turn.png}}
+    \caption{Biểu đồ tuần tự cấu trúc xử lý trong một lượt hội thoại}
+    \label{fig:rasa-dialogue-processing-groups}
+\end{figure}
 
-\subsection*{Thiết kế rules}
+Hình~\ref{fig:rasa-dialogue-processing-groups} cho thấy các điểm quyết định quan trọng trong một lượt hội thoại. Sau khi \texttt{PhoBERTIntentClassifier} và các thành phần entity hoàn tất xử lý, \texttt{FallbackClassifier} kiểm tra confidence và độ nhập nhằng của intent. Nếu đạt ngưỡng, Rasa Core tiếp tục chọn action bằng \texttt{RulePolicy} và \texttt{MemoizationPolicy}; nếu không đạt, luồng sẽ chuyển sang nhánh fallback. Với các action dạng \texttt{utter\_*}, hệ thống lấy phản hồi từ \texttt{domain.yml}; còn với các action nghiệp vụ hoặc truy xuất tri thức, Action Server và LightRAG mới được gọi.
 
-Rules phù hợp cho các intent có phản hồi cố định.
-
-\begin{verbatim}
-version: "3.1"
-
-rules:
-  - rule: Chào người dùng
-    steps:
-      - intent: greet
-      - action: utter_greet
-
-  - rule: Tạm biệt người dùng
-    steps:
-      - intent: goodbye
-      - action: utter_goodbye
-
-  - rule: Cảm ơn
-    steps:
-      - intent: thank
-      - action: utter_thank
-
-  - rule: Hỏi chatbot là ai
-    steps:
-      - intent: bot_challenge
-      - action: utter_iamabot
-\end{verbatim}
-
-Rule xử lý fallback:
-
-\begin{verbatim}
-  - rule: Xử lý fallback khi NLU không chắc chắn
-    steps:
-      - intent: nlu_fallback
-      - action: action_handle_fallback
-\end{verbatim}
-
-Rule gọi RAG:
-
-\begin{verbatim}
-  - rule: Xử lý câu hỏi bằng RAG
-    steps:
-      - intent: ask_rag_question
-      - action: action_call_rag
-\end{verbatim}
-
-\subsection*{Thiết kế stories}
-
-Stories được dùng cho các kịch bản cần nhiều bước, ví dụ người dùng hỏi điểm chuẩn nhưng chưa cung cấp ngành.
-
-\begin{verbatim}
-stories:
-  - story: Hỏi điểm chuẩn có đủ ngành và năm
-    steps:
-      - intent: ask_benchmark_score
-        entities:
-          - major: "công nghệ thông tin"
-          - year: "2024"
-      - slot_was_set:
-          - major: "công nghệ thông tin"
-          - year: "2024"
-      - action: action_get_benchmark_score
-
-  - story: Hỏi điểm chuẩn thiếu ngành
-    steps:
-      - intent: ask_benchmark_score
-      - action: utter_ask_major
-      - intent: inform_major
-        entities:
-          - major: "an toàn thông tin"
-      - slot_was_set:
-          - major: "an toàn thông tin"
-      - action: action_get_benchmark_score
-\end{verbatim}
-
-Kịch bản hỏi học phí:
-
-\begin{verbatim}
-  - story: Hỏi học phí theo ngành
-    steps:
-      - intent: ask_tuition_fee
-        entities:
-          - major: "công nghệ thông tin"
-      - slot_was_set:
-          - major: "công nghệ thông tin"
-      - action: action_get_tuition_fee
-\end{verbatim}
-
-Kịch bản hỏi ngành đào tạo:
-
-\begin{verbatim}
-  - story: Hỏi danh sách ngành đào tạo
-    steps:
-      - intent: ask_major
-      - action: action_get_major_list
-\end{verbatim}
-
-Stories và rules giúp chatbot phản hồi nhất quán, đồng thời cho phép mở rộng các tình huống hội thoại phức tạp trong tương lai.

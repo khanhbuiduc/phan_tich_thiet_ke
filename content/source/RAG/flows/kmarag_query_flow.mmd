@@ -1,0 +1,22 @@
+flowchart TD
+    A["User query + QueryParam"] --> B["API /query hoac /query/stream"]
+    B --> C["Validate input, mode, top_k,<br/>token budget, stream, rerank"]
+    C --> D{Mode truy van}
+    D -- local/global/hybrid/mix --> E["kg_query()"]
+    D -- naive --> F["naive_query()"]
+    D -- bypass --> G["Goi LLM truc tiep"]
+
+    E --> H["Trich low-level va high-level keywords<br/>bang LLM + cache"]
+    H --> I["Truy hoi tu graph + vector DB + chunks"]
+    I --> J["Hop nhat bang chung va cat theo token budget"]
+    J --> K["Xay context_data + rag_response prompt"]
+    K --> L["Goi LLM (stream hoac non-stream)"]
+
+    F --> M["Vector retrieval tren chunk store"]
+    M --> N["Xay context tu cac chunks lien quan"]
+    N --> L
+
+    G --> L
+
+    L --> O["Tra QueryResult:<br/>content, raw_data, metadata"]
+    O --> P["References / citations / source chunks"]

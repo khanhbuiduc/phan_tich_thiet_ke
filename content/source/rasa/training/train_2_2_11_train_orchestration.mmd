@@ -1,0 +1,18 @@
+flowchart TD
+    A[Backend/Admin gui POST /train<br/>modelName, nlu, stories,<br/>rules, domain, actions, firetune] --> B[Flask API validate request<br/>va kiem tra training_status]
+    B --> C[Ghi nlu.yml, stories.yml,<br/>rules.yml, domain.yml]
+    C --> D{Co actions moi?}
+    D -- Co --> E[Rewrite actions.py<br/>va restart Action Server]
+    D -- Khong --> F[Bo qua buoc actions]
+    E --> G[Khoi tao train command]
+    F --> G
+    G --> H{firetune = true?}
+    H -- Co --> I[python -m rasa train<br/>--epoch-fraction 0.5]
+    H -- Khong --> J[python -m rasa train]
+    I --> K[Background training thread<br/>cap nhat training_status = training]
+    J --> K
+    K --> L[Model .tar.gz sinh ra trong models/]
+    L --> M[Upload model len MinIO]
+    M --> N[Cap nhat URL/model info vao MongoDB]
+    N --> O[GET /training-status = completed]
+    O --> P[Backend goi POST /run-model<br/>de load model moi vao Rasa]

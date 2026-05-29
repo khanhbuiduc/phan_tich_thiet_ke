@@ -1,0 +1,68 @@
+[
+    {
+        "Number":  1,
+        "Title":  "Luồng chat thường qua Rasa",
+        "Mmd":  "act_01.mmd",
+        "Png":  "act_01.png"
+    },
+    {
+        "Number":  2,
+        "Title":  "Luồng chat stream có phân nhánh Rasa/RAG và fallback RAG",
+        "Mmd":  "act_02.mmd",
+        "Png":  "act_02.png"
+    },
+    {
+        "Number":  3,
+        "Title":  "Luồng upload/run model",
+        "Mmd":  "act_03.mmd",
+        "Png":  "act_03.png"
+    },
+    {
+        "Number":  4,
+        "Title":  "Luồng push/run actions",
+        "Mmd":  "act_04.mmd",
+        "Png":  "act_04.png"
+    },
+    {
+        "Number":  5,
+        "Title":  "Luồng quản lý intent/entity/response/rule/story/action",
+        "Mmd":  "act_05.mmd",
+        "Png":  "act_05.png"
+    },
+    {
+        "Number":  6,
+        "Title":  "Luồng active training data và train model",
+        "Mmd":  "act_06.mmd",
+        "Png":  "act_06.png"
+    },
+    {
+        "Number":  7,
+        "Title":  "Luồng ghi nhận câu hỏi chưa xử lý tốt",
+        "Mmd":  "act_07.mmd",
+        "Png":  "act_07.png"
+    },
+    {
+        "Number":  8,
+        "Title":  "Luồng ingest tài liệu RAG",
+        "Mmd":  "act_08.mmd",
+        "Png":  "act_08.png"
+    },
+    {
+        "Number":  9,
+        "Title":  "Luồng phân quyền RBAC",
+        "Mmd":  "act_09.mmd",
+        "Png":  "act_09.png"
+    },
+    {
+        "Number":  10,
+        "Title":  "Luồng feedback câu trả lời để cải thiện chatbot",
+        "Mmd":  "act_10.mmd",
+        "Png":  "act_10.png"
+    },
+    {
+        "Number":  11,
+        "Title":  "Luồng lưu lịch sử hội thoại",
+        "Mmd":  "act_11.mmd",
+        "Png":  "act_11.png"
+    }
+]

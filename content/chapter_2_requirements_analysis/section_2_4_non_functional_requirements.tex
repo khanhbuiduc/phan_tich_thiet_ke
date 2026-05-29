@@ -1,8 +1,6 @@
 \section{Phân tích yêu cầu phi chức năng}
 
-Yêu cầu phi chức năng mô tả các tiêu chí chất lượng mà hệ thống cần đáp ứng trong quá trình vận hành. Khác với yêu cầu chức năng tập trung vào việc hệ thống “làm gì”, yêu cầu phi chức năng tập trung vào việc hệ thống cần hoạt động “như thế nào”, bao gồm độ chính xác, khả năng truy vết, khả năng mở rộng, khả năng vận hành, bảo mật và phân quyền.
-
-Đối với hệ thống KMA Chatbot tuyển sinh, yêu cầu phi chức năng có vai trò đặc biệt quan trọng vì hệ thống xử lý các thông tin liên quan đến tuyển sinh, học phí, ngành đào tạo, thủ tục, văn bản và tài liệu chính thức. Nếu câu trả lời không đúng nguồn hoặc dữ liệu không được kiểm soát, người dùng có thể hiểu sai thông tin tuyển sinh. Vì vậy, hệ thống cần được thiết kế để đảm bảo câu trả lời có căn cứ, dữ liệu có thể kiểm tra lại và các chức năng quản trị được phân quyền rõ ràng.
+Yêu cầu phi chức năng mô tả các tiêu chí chất lượng mà hệ thống cần đáp ứng trong quá trình vận hành. Nếu yêu cầu chức năng trả lời câu hỏi hệ thống cần làm gì, thì yêu cầu phi chức năng tập trung vào cách hệ thống hoạt động sao cho ổn định, tin cậy, an toàn và phù hợp với môi trường sử dụng thực tế.
 
 \begin{figure}[H]
     \centering
@@ -11,181 +9,12 @@ Yêu cầu phi chức năng mô tả các tiêu chí chất lượng mà hệ th
     \label{fig:non_functional_groups}
 \end{figure}
 
-\subsection{Yêu cầu về tính đúng nguồn}
+Đối với hệ thống trợ lý ảo tuyển sinh, yêu cầu phi chức năng có vai trò quan trọng vì hệ thống xử lý các thông tin có ảnh hưởng trực tiếp đến người dùng như ngành đào tạo, học phí, điểm chuẩn, thủ tục, biểu mẫu và quy chế tuyển sinh. Do đó, hệ thống cần ưu tiên tính chính xác, hạn chế trả lời theo suy đoán và có khả năng dựa trên nguồn dữ liệu đã được quản lý.
 
-Tính đúng nguồn là yêu cầu quan trọng nhất đối với hệ thống hỏi đáp có sử dụng RAG. Đối với các câu hỏi cần truy xuất tài liệu, câu trả lời của hệ thống phải dựa trên kho tài liệu đã được upload, xử lý và ingest vào hệ thống. Chatbot không nên tự tạo ra câu trả lời vượt quá phạm vi dữ liệu hiện có.
+Hệ thống cần bảo đảm câu trả lời có căn cứ, đặc biệt với các câu hỏi sử dụng RAG. Khi người dùng hỏi về thông tin nằm trong tài liệu, hệ thống phải truy xuất nội dung liên quan trước khi sinh câu trả lời. Nếu không tìm thấy dữ liệu phù hợp, chatbot nên phản hồi rằng chưa đủ thông tin thay vì tự tạo ra nội dung không có trong nguồn tài liệu.
 
-Trong hệ thống, các tài liệu tuyển sinh, điểm chuẩn, chương trình đào tạo, quy chế và biểu mẫu được đưa vào kho RAG. Sau đó, hệ thống xử lý tài liệu thành các đoạn nhỏ, gọi là chunks, để phục vụ quá trình truy xuất. Khi người dùng đặt câu hỏi, RAG service cần tìm các chunks liên quan trước, sau đó mới sinh câu trả lời dựa trên nội dung truy xuất được.
+Bên cạnh tính đúng nguồn, hệ thống cũng cần có khả năng truy vết và vận hành ổn định. Tài liệu đưa vào hệ thống cần có trạng thái xử lý rõ ràng để quản trị viên biết tài liệu nào đã sẵn sàng sử dụng, tài liệu nào đang chờ xử lý và tài liệu nào bị lỗi. Các thao tác như upload, scan, retry pipeline, refresh dữ liệu và theo dõi thống kê giúp việc vận hành hệ thống thuận tiện hơn.
 
-Yêu cầu này giúp hạn chế hiện tượng chatbot trả lời theo suy đoán hoặc tạo ra thông tin không có trong tài liệu. Đặc biệt, với các câu hỏi về điểm chuẩn, học phí, quy chế tuyển sinh hoặc thời gian xét tuyển, hệ thống cần ưu tiên trả lời dựa trên dữ liệu chính thức đã được quản trị viên kiểm soát.
+Về bảo mật, hệ thống cần phân quyền rõ ràng giữa người dùng thông thường, người quản lý và admin. Người dùng thông thường chỉ nên được sử dụng các chức năng hỏi đáp và tra cứu; trong khi đó, các chức năng quản lý tài liệu, quản lý người dùng, phân quyền và xem thống kê cần được giới hạn cho các tài khoản có quyền phù hợp. Điều này giúp bảo vệ dữ liệu và tránh các thay đổi ngoài phạm vi trách nhiệm.
 
-\begin{table}[H]
-\centering
-\caption{Yêu cầu về tính đúng nguồn}
-\label{tab:nfr_source}
-\begin{tabular}{|p{2.5cm}|p{11.5cm}|}
-\hline
-\textbf{Mã yêu cầu} & \textbf{Nội dung} \\ \hline
-NFR-01 & Câu trả lời RAG phải dựa trên tài liệu đã được ingest vào hệ thống \\ \hline
-NFR-02 & Không sinh câu trả lời vượt quá phạm vi dữ liệu tìm thấy trong kho tài liệu \\ \hline
-NFR-03 & Với câu hỏi không tìm thấy nguồn phù hợp, hệ thống cần thông báo không có đủ dữ liệu \\ \hline
-NFR-04 & Các tài liệu dùng cho RAG cần được kiểm duyệt trước khi sử dụng \\ \hline
-NFR-05 & Câu trả lời về tuyển sinh, học phí, điểm chuẩn và quy chế cần ưu tiên nguồn chính thức \\ \hline
-\end{tabular}
-\end{table}
-
-Ví dụ, nếu người dùng hỏi: “Điểm chuẩn ngành Công nghệ thông tin năm 2025 là bao nhiêu?”, hệ thống cần truy xuất tài liệu điểm chuẩn hoặc file tuyển sinh đã được xử lý. Nếu không tìm thấy dữ liệu phù hợp, chatbot không nên tự đoán điểm chuẩn.
-
-\subsection{Yêu cầu về khả năng truy vết}
-
-Khả năng truy vết giúp quản trị viên theo dõi được quá trình xử lý tài liệu và kiểm tra lại nguồn dữ liệu khi cần. Mỗi tài liệu trong hệ thống cần có trạng thái xử lý, số lượng chunks, thời điểm cập nhật và mã theo dõi hoặc track id.
-
-Đối với hệ thống RAG, truy vết là yêu cầu quan trọng vì chất lượng trả lời phụ thuộc trực tiếp vào chất lượng tài liệu và trạng thái xử lý của tài liệu. Nếu một tài liệu chưa được xử lý thành công, đang pending hoặc bị failed, hệ thống cần hiển thị rõ để quản trị viên biết và xử lý.
-
-Các thông tin cần truy vết gồm:
-
-\begin{table}[H]
-\centering
-\caption{Các thông tin cần truy vết}
-\label{tab:traceability_info}
-\begin{tabular}{|p{5.5cm}|p{8.5cm}|}
-\hline
-\textbf{Thành phần cần truy vết} & \textbf{Ý nghĩa} \\ \hline
-Tên tài liệu & Xác định tài liệu được đưa vào hệ thống \\ \hline
-Trạng thái xử lý & Cho biết tài liệu đã processed, pending hay failed \\ \hline
-Số chunks & Cho biết tài liệu được chia thành bao nhiêu đoạn \\ \hline
-Thời điểm cập nhật & Xác định lần xử lý hoặc cập nhật gần nhất \\ \hline
-Track id & Phục vụ theo dõi tiến trình xử lý tài liệu \\ \hline
-Dung lượng hoặc độ dài nội dung & Hỗ trợ đánh giá quy mô tài liệu \\ \hline
-Nguồn sử dụng & Xác định tài liệu có được dùng cho RAG hay không \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Yêu cầu về khả năng truy vết}
-\label{tab:nfr_traceability}
-\begin{tabular}{|p{2.5cm}|p{11.5cm}|}
-\hline
-\textbf{Mã yêu cầu} & \textbf{Nội dung} \\ \hline
-NFR-06 & Mỗi tài liệu cần có trạng thái xử lý rõ ràng \\ \hline
-NFR-07 & Hệ thống cần hiển thị số chunks của từng tài liệu \\ \hline
-NFR-08 & Hệ thống cần lưu thời điểm cập nhật hoặc xử lý tài liệu \\ \hline
-NFR-09 & Hệ thống cần có track id hoặc mã theo dõi để phục vụ kiểm tra pipeline \\ \hline
-NFR-10 & Quản trị viên có thể kiểm tra tài liệu nào đang sẵn sàng dùng cho RAG \\ \hline
-\end{tabular}
-\end{table}
-
-Nhờ khả năng truy vết, khi chatbot trả lời sai hoặc không tìm được dữ liệu, quản trị viên có thể kiểm tra lại tài liệu liên quan đã được upload chưa, đã xử lý thành công chưa và có sinh đủ chunks hay không.
-
-\subsection{Yêu cầu về khả năng mở rộng}
-
-Hệ thống cần có khả năng mở rộng khi số lượng tài liệu, người dùng và câu hỏi tăng lên. Khả năng mở rộng được thể hiện qua việc hệ thống tách các lớp lưu trữ theo vai trò khác nhau, không gom toàn bộ dữ liệu vào một nơi duy nhất.
-
-Theo cấu hình RAG health đã quan sát, hệ thống sử dụng các thành phần lưu trữ như RedisKVStorage, RedisDocStatusStorage, MemgraphStorage và QdrantVectorDBStorage. Cách tổ chức này phù hợp với kiến trúc tách lớp, trong đó mỗi loại lưu trữ đảm nhiệm một vai trò riêng: Redis phục vụ key-value và trạng thái tài liệu, Memgraph phục vụ dữ liệu quan hệ/đồ thị tri thức, còn Qdrant phục vụ lưu trữ vector embedding cho truy xuất ngữ nghĩa.
-
-\begin{table}[H]
-\centering
-\caption{Các thành phần lưu trữ của hệ thống}
-\label{tab:storage_components}
-\begin{tabular}{|p{5.5cm}|p{8.5cm}|}
-\hline
-\textbf{Thành phần} & \textbf{Vai trò} \\ \hline
-RedisKVStorage & Lưu dữ liệu key-value, cache hoặc trạng thái xử lý nhanh \\ \hline
-RedisDocStatusStorage & Lưu trạng thái xử lý tài liệu \\ \hline
-MemgraphStorage & Lưu trữ quan hệ tri thức phục vụ graph context \\ \hline
-QdrantVectorDBStorage & Lưu vector embedding phục vụ tìm kiếm semantic \\ \hline
-Document Store/Input Directory & Lưu tài liệu gốc hoặc tài liệu đầu vào \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[H]
-\centering
-\caption{Yêu cầu về khả năng mở rộng}
-\label{tab:nfr_scalability2}
-\begin{tabular}{|p{2.5cm}|p{11.5cm}|}
-\hline
-\textbf{Mã yêu cầu} & \textbf{Nội dung} \\ \hline
-NFR-11 & Hệ thống cần hỗ trợ bổ sung thêm tài liệu mới mà không ảnh hưởng dữ liệu cũ \\ \hline
-NFR-12 & Kiến trúc lưu trữ cần tách biệt metadata, trạng thái, vector và quan hệ tri thức \\ \hline
-NFR-13 & Có thể mở rộng số lượng tài liệu và chunks trong kho RAG \\ \hline
-NFR-14 & Có thể thay đổi hoặc nâng cấp thành phần lưu trữ khi quy mô hệ thống tăng \\ \hline
-NFR-15 & Có thể mở rộng thêm loại tài liệu như PDF, DOCX, XLSX hoặc dữ liệu văn bản khác \\ \hline
-\end{tabular}
-\end{table}
-
-Khả năng mở rộng giúp hệ thống không chỉ phục vụ một số tài liệu tuyển sinh ban đầu, mà còn có thể bổ sung thêm nhiều tài liệu về đào tạo, quy chế, biểu mẫu, điểm chuẩn, học phí và chương trình học trong tương lai.
-
-\subsection{Yêu cầu về khả năng vận hành}
-
-Khả năng vận hành thể hiện ở việc hệ thống có thể được theo dõi, kiểm tra và xử lý lỗi trong quá trình chạy thực tế. Đối với hệ thống RAG, quá trình ingest tài liệu có thể gặp lỗi do định dạng file, lỗi trích xuất văn bản, lỗi OCR, lỗi chunking hoặc lỗi sinh embedding. Vì vậy, hệ thống cần có cơ chế theo dõi pipeline và xử lý lại các trường hợp thất bại.
-
-Trong hệ thống hiện tại, phân hệ quản trị tài liệu ngữ cảnh có các thao tác như pipeline status, retry failed, clear cache, refresh và các màn hình thống kê. Những chức năng này giúp quản trị viên dễ dàng theo dõi trạng thái xử lý tài liệu và can thiệp khi cần.
-
-\begin{table}[H]
-\centering
-\caption{Yêu cầu về khả năng vận hành}
-\label{tab:nfr_operability}
-\begin{tabular}{|p{2.5cm}|p{11.5cm}|}
-\hline
-\textbf{Mã yêu cầu} & \textbf{Nội dung} \\ \hline
-NFR-16 & Hệ thống cần hiển thị trạng thái pipeline xử lý tài liệu \\ \hline
-NFR-17 & Hệ thống cần hỗ trợ xử lý lại các tài liệu bị failed \\ \hline
-NFR-18 & Hệ thống cần hỗ trợ làm mới dữ liệu hiển thị trên giao diện quản trị \\ \hline
-NFR-19 & Hệ thống cần có chức năng clear cache khi cần cập nhật hoặc xử lý lại dữ liệu \\ \hline
-NFR-20 & Hệ thống cần cung cấp các màn hình thống kê để theo dõi hoạt động \\ \hline
-NFR-21 & Quản trị viên cần biết tài liệu nào đã xử lý thành công, tài liệu nào đang chờ và tài liệu nào bị lỗi \\ \hline
-\end{tabular}
-\end{table}
-
-Khả năng vận hành tốt giúp hệ thống phù hợp hơn với môi trường sử dụng thực tế. Khi có tài liệu tuyển sinh mới, quản trị viên có thể upload hoặc scan tài liệu, theo dõi quá trình xử lý, xử lý lại tài liệu lỗi và kiểm tra kết quả sau khi ingest.
-
-\subsection{Yêu cầu về bảo mật và phân quyền}
-
-Bảo mật và phân quyền là yêu cầu bắt buộc đối với hệ thống có phân hệ quản trị. Không phải người dùng nào cũng được phép truy cập vào các chức năng như quản lý tài liệu, upload tài liệu RAG, xem thống kê, quản lý vai trò, quản lý quyền hoặc quản lý tài khoản.
-
-Hệ thống hiện tại có giao diện RBAC, quản lý vai trò, quản lý quyền và quản lý người dùng. Điều này cho phép phân chia quyền truy cập theo vai trò, chẳng hạn người dùng thường chỉ được hỏi đáp, người quản trị nội dung được quản lý tài liệu, còn người quản trị hệ thống có quyền quản lý vai trò, quyền và tài khoản.
-
-Ngoài ra, tài liệu/form có phân biệt public/private trong phần thống kê tài liệu. Điều này cho thấy hệ thống cần kiểm soát phạm vi hiển thị và sử dụng tài liệu, tránh để các tài liệu nội bộ bị truy cập không đúng đối tượng.
-
-\begin{table}[H]
-\centering
-\caption{Yêu cầu về bảo mật và phân quyền}
-\label{tab:nfr_security2}
-\begin{tabular}{|p{2.5cm}|p{11.5cm}|}
-\hline
-\textbf{Mã yêu cầu} & \textbf{Nội dung} \\ \hline
-NFR-22 & Người dùng cần được phân quyền theo vai trò \\ \hline
-NFR-23 & Chức năng quản trị chỉ dành cho tài khoản có quyền phù hợp \\ \hline
-NFR-24 & Hệ thống cần có chức năng quản lý roles và permissions \\ \hline
-NFR-25 & Hệ thống cần quản lý danh sách người dùng và trạng thái tài khoản \\ \hline
-NFR-26 & Tài liệu/form cần hỗ trợ phân biệt public/private \\ \hline
-NFR-27 & Các API quản trị cần kiểm tra quyền trước khi thực hiện thao tác \\ \hline
-NFR-28 & Người dùng không có quyền không được phép truy cập chức năng quản lý tài liệu, thống kê hoặc RBAC \\ \hline
-\end{tabular}
-\end{table}
-
-Yêu cầu này giúp hệ thống đảm bảo an toàn dữ liệu, hạn chế rủi ro chỉnh sửa sai thông tin tuyển sinh và kiểm soát được phạm vi truy cập của từng nhóm người dùng.
-
-\subsection{Bảng tổng hợp yêu cầu phi chức năng}
-
-\begin{table}[H]
-\centering
-\caption{Tổng hợp yêu cầu phi chức năng}
-\label{tab:nfr_summary}
-\begin{tabular}{|p{3.2cm}|p{3.3cm}|p{7.5cm}|}
-\hline
-\textbf{Nhóm yêu cầu} & \textbf{Mã yêu cầu} & \textbf{Nội dung chính} \\ \hline
-Tính đúng nguồn & NFR-01 đến NFR-05 & Câu trả lời RAG phải dựa trên tài liệu đã ingest, không trả lời vượt quá dữ liệu \\ \hline
-Khả năng truy vết & NFR-06 đến NFR-10 & Mỗi tài liệu có trạng thái xử lý, số chunks, thời điểm cập nhật và track id \\ \hline
-Khả năng mở rộng & NFR-11 đến NFR-15 & Tách lớp lưu trữ metadata, trạng thái, đồ thị và vector; hỗ trợ mở rộng tài liệu/chunks \\ \hline
-Khả năng vận hành & NFR-16 đến NFR-21 & Có pipeline status, retry failed, clear cache, refresh và các màn hình thống kê \\ \hline
-Bảo mật và phân quyền & NFR-22 đến NFR-28 & Có RBAC, roles, permissions, users management và phân biệt public/private \\ \hline
-\end{tabular}
-\end{table}
-
-\subsection{Nhận xét}
-
-Các yêu cầu phi chức năng trên cho thấy hệ thống KMA Chatbot không chỉ tập trung vào việc trả lời câu hỏi, mà còn chú trọng đến tính tin cậy, khả năng kiểm soát và khả năng vận hành lâu dài. Đặc biệt, với một hệ thống tư vấn tuyển sinh có tích hợp RAG, yêu cầu “đúng nguồn” và “truy vết được tài liệu” là rất quan trọng. Đây là cơ sở để đảm bảo câu trả lời của chatbot có căn cứ, có thể kiểm tra lại và không gây hiểu nhầm cho người dùng.
-
-Bên cạnh đó, việc hệ thống sử dụng các thành phần lưu trữ tách biệt như Redis, Memgraph và Qdrant cho thấy kiến trúc có định hướng mở rộng. Các chức năng quản trị như pipeline status, retry failed, clear cache, thống kê, RBAC và users management giúp hệ thống phù hợp hơn với môi trường triển khai thực tế, nơi dữ liệu thường xuyên thay đổi và cần được kiểm soát bởi nhiều nhóm người dùng khác nhau.
+Ngoài ra, hệ thống cần có khả năng mở rộng khi số lượng người dùng, tài liệu và câu hỏi tăng lên. Việc tách các thành phần như lưu trữ tài liệu, trạng thái xử lý, vector database và dữ liệu quản trị giúp hệ thống dễ nâng cấp hơn trong tương lai. Nhìn chung, các yêu cầu phi chức năng giúp hệ thống không chỉ đáp ứng được nghiệp vụ hỏi đáp, mà còn có đủ độ tin cậy để triển khai và vận hành lâu dài.

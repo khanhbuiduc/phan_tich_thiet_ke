@@ -1,0 +1,31 @@
+﻿sequenceDiagram
+    autonumber
+    actor Admin as NLP Admin
+    participant UI as Training UI
+    participant API as Training API
+    participant DB as Training Data DB
+    participant Trainer as Rasa Trainer
+    participant Store as Model Storage
+    participant Registry as Model Registry
+    participant Rasa as Rasa Runtime
+
+    Admin->>UI: Active bo training data
+    UI->>API: POST /training-data/active
+    API->>DB: Gan version ACTIVE
+    Admin->>UI: Bam Train model
+    UI->>API: POST /models/train
+    API->>DB: Lay training data ACTIVE
+    API->>Trainer: Chay rasa train
+    alt Train thanh cong
+        Trainer-->>API: Model artifact + metrics
+        API->>Store: Luu model
+        API->>Registry: Tao version READY
+        API->>Rasa: Tuy chon run model moi
+        Rasa-->>API: Reload OK
+        API->>Registry: Cap nhat ACTIVE neu duoc phe duyet
+        API-->>UI: Tra ket qua train
+    else Train loi
+        Trainer-->>API: Validation/training error
+        API->>Registry: Cap nhat FAILED
+        API-->>UI: Hien thi log loi
+    end

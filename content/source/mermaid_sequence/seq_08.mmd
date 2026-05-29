@@ -1,0 +1,26 @@
+﻿sequenceDiagram
+    autonumber
+    actor Admin as Quan tri vien
+    participant UI as Document UI
+    participant API as RAG Admin API
+    participant Store as Object Storage
+    participant Parser as Parser/OCR
+    participant Chunker as Chunker
+    participant Emb as Embedding Service
+    participant VDB as Vector DB
+    participant Meta as Metadata DB
+
+    Admin->>UI: Upload tai lieu
+    UI->>API: POST /rag/documents
+    API->>Store: Luu file goc
+    API->>Parser: Trich xuat text, table, metadata
+    Parser-->>API: Parsed content
+    API->>Chunker: Chia chunk theo heading/token
+    Chunker-->>API: Chunks
+    loop Moi chunk
+        API->>Emb: Tao embedding
+        Emb-->>API: Vector
+        API->>VDB: Upsert vector + chunk text + metadata
+    end
+    API->>Meta: Luu document status=INGESTED
+    API-->>UI: Ingest thanh cong

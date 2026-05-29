@@ -1,0 +1,23 @@
+﻿sequenceDiagram
+    autonumber
+    actor Editor as NLP Admin
+    participant UI as Training Data UI
+    participant API as NLP Admin API
+    participant DB as Training Data DB
+    participant Validator as Rasa Validator
+    participant Git as Version Store
+    participant Log as Audit Log
+
+    Editor->>UI: Tao/sua/xoa intent, entity, response, rule, story, action
+    UI->>API: Submit thay doi
+    API->>Validator: Validate schema va conflict
+    alt Hop le
+        Validator-->>API: OK
+        API->>DB: Luu ban nhap hoac ban active
+        API->>Git: Commit version training data
+        API->>Log: Ghi audit change
+        API-->>UI: Luu thanh cong
+    else Khong hop le
+        Validator-->>API: Danh sach loi
+        API-->>UI: Hien thi loi va vi tri can sua
+    end

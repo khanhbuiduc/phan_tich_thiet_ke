@@ -1,0 +1,28 @@
+﻿sequenceDiagram
+    autonumber
+    actor Admin as Quan tri vien
+    participant UI as Admin UI
+    participant API as Admin API
+    participant Repo as Action Repo
+    participant CI as Build/CI
+    participant Runtime as Action Runtime
+    participant Rasa as Rasa Server
+    participant Log as Audit Log
+
+    Admin->>UI: Push hoac chon run actions
+    UI->>API: POST /admin/actions/deploy
+    API->>Repo: Lay source/version actions
+    Repo-->>API: Action code metadata
+    API->>CI: Build va test action image/package
+    alt Build/test thanh cong
+        CI-->>API: Artifact/image tag
+        API->>Runtime: Deploy action server
+        Runtime-->>API: Healthcheck OK
+        API->>Rasa: Cap nhat endpoint actions neu can
+        API->>Log: Ghi audit deploy action
+        API-->>UI: Actions dang chay
+    else Build/test/deploy loi
+        CI-->>API: Error
+        API->>Log: Ghi audit loi
+        API-->>UI: Hien thi loi
+    end

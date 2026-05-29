@@ -1,0 +1,17 @@
+flowchart TD
+    A([Bắt đầu]) --> B[Quản trị viên chọn push/run actions]
+    B --> C[Admin UI gọi Admin API]
+    C --> D[Lấy source hoặc version actions từ repo]
+    D --> E[Build và test action package/image]
+    E --> F{Build/test thành công?}
+    F -- Không --> G[Ghi audit lỗi]
+    G --> H[Hiển thị lỗi cho quản trị viên]
+    H --> Z([Kết thúc])
+    F -- Có --> I[Deploy Action Runtime]
+    I --> J[Healthcheck action server]
+    J --> K{Healthcheck OK?}
+    K -- Không --> G
+    K -- Có --> L[Cập nhật endpoint actions cho Rasa nếu cần]
+    L --> M[Ghi audit deploy action]
+    M --> N[Thông báo actions đang chạy]
+    N --> Z
