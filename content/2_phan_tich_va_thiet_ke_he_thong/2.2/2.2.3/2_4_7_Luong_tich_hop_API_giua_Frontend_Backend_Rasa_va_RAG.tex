@@ -1,0 +1,18 @@
+\subsection{Luồng tích hợp API giữa Frontend, Backend, Rasa và RAG}
+
+Trong hệ thống, frontend không gọi trực tiếp đến Rasa Server hoặc RAG Service mà gửi yêu cầu thông qua backend. Backend đóng vai trò điều phối, xác thực, ghi log hội thoại và chuyển tiếp request đến thành phần phù hợp.
+
+Luồng xử lý câu hỏi thông thường như sau:
+
+\begin{enumerate}
+    \item Người dùng nhập câu hỏi trên giao diện chat.
+    \item Frontend gọi API \texttt{POST /v1/chatbot/chat/stream}.
+    \item Backend ghi nhận tin nhắn và gửi câu hỏi đến Rasa Server.
+    \item Rasa Server nhận diện intent, entity và quyết định action.
+    \item Nếu action là phản hồi tĩnh, Rasa trả lời bằng response đã cấu hình.
+    \item Nếu action cần dữ liệu tuyển sinh, Action Server gọi API dữ liệu tuyển sinh của backend.
+    \item Nếu action cần tài liệu, Action Server gọi API \texttt{/v1/rag/query}.
+    \item Backend trả kết quả về frontend và lưu lịch sử hội thoại.
+\end{enumerate}
+
+Với thiết kế này, mỗi thành phần trong hệ thống có nhiệm vụ rõ ràng. Frontend chỉ phụ trách giao diện và trải nghiệm người dùng. Backend phụ trách xác thực, điều phối và quản lý dữ liệu. Rasa phụ trách hiểu ý định và quản lý hội thoại. Action Server xử lý nghiệp vụ động. RAG phụ trách truy hồi tài liệu và sinh câu trả lời dựa trên kho tri thức.

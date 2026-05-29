@@ -1,0 +1,8 @@
+\subsection{Kết luận chương}
+
+Chương này đã phân tích và thiết kế phân hệ chatbot Rasa theo hướng luồng hệ thống. Rasa được đặt ở vai trò điều phối hội thoại cho các câu hỏi tuyển sinh phổ biến, có cấu trúc và có thể kiểm soát bằng intent, entity, rule, story, domain response và custom action.
+
+Luồng xử lý chính bắt đầu từ câu hỏi của người dùng, đi qua frontend, backend, Rasa Server, NLU pipeline, Dialogue Management, Action Selection và cuối cùng trả response về giao diện. Trong đó, NLU sử dụng xử lý tiếng Việt với VnCoreNLP và PhoBERT Intent Classifier để dự đoán intent; Core dùng tracker, slot và policy để chọn action; domain và action server tạo phản hồi cuối cùng.
+
+Điểm quan trọng trong thiết kế là hệ thống không nên trả lời mọi câu hỏi bằng một nhánh duy nhất. Câu hỏi rõ ràng được trả lời trực tiếp bằng template hoặc action. Câu hỏi thiếu thông tin cần hỏi lại. Câu hỏi confidence thấp phải đi vào fallback. Câu hỏi chưa xử lý được cần ghi log để cải thiện dữ liệu huấn luyện. Cách thiết kế này giúp chatbot Rasa vận hành ổn định, dễ kiểm soát và phù hợp với yêu cầu tư vấn tuyển sinh.
+

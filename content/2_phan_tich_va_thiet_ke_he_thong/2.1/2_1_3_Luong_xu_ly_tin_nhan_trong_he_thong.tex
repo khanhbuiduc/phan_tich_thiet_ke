@@ -1,0 +1,24 @@
+\section{Cơ chế định tuyến nhánh}
+
+Cơ chế định tuyến nhánh quyết định câu hỏi của người dùng sẽ được chuyển sang nhánh xử lý theo luật hay nhánh LLM kết hợp RAG/GraphRAG. Việc định tuyến được thực hiện dựa trên độ tin cậy của intent, loại câu hỏi và trạng thái hội thoại hiện tại.
+
+\subsection{Logic định tuyến hội thoại}
+
+\begin{verbatim}
+IF intent_confidence >= 0.85 AND intent IN rule_registry:
+    -> Nhánh Rule-Based
+
+ELSE IF intent_confidence >= 0.5 OR question_type IN [OPEN, COMPLEX, SYNTHESIS]:
+    -> Nhánh LLM+RAG
+
+ELSE IF intent_confidence < 0.4 AND retry_count < 3:
+    -> Clarification question (hỏi làm rõ)
+
+ELSE IF retry_count >= 3 OR escalation_requested:
+    -> Human Escalation
+
+FALLBACK CHAIN: Rule-Based -> LLM+RAG -> Human Agent
+OVERRIDE: Admin có thể pin intent -> bắt buộc một nhánh cụ thể
+\end{verbatim}
+
+Theo cơ chế trên, hệ thống ưu tiên nhánh Rule-Based khi nhận diện được ý định với độ tin cậy cao và đã tồn tại kịch bản xử lý phù hợp. Với các câu hỏi mở, câu hỏi tổng hợp hoặc các trường hợp có độ tin cậy trung bình, hệ thống sẽ chuyển sang nhánh LLM+RAG để khai thác tri thức từ tài liệu. Nếu độ tin cậy quá thấp, hệ thống trước tiên sẽ yêu cầu người dùng làm rõ câu hỏi; sau nhiều lần không thành công hoặc khi có yêu cầu chuyển tiếp, cuộc hội thoại sẽ được chuyển sang tác nhân con người để xử lý.

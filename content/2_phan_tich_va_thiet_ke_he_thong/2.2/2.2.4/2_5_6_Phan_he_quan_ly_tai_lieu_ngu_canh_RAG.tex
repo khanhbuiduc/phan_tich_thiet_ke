@@ -1,0 +1,74 @@
+\subsection{Phân hệ quản lý tài liệu ngữ cảnh RAG}
+
+Phân hệ quản lý tài liệu ngữ cảnh RAG được truy cập thông qua route \texttt{/context-docs}. Đây là một trong những chức năng quan trọng nhất của hệ thống vì nó quyết định nguồn tri thức mà RAG sử dụng để truy hồi và sinh câu trả lời.
+
+\subsubsection{Mục đích của tài liệu ngữ cảnh}
+
+Tài liệu ngữ cảnh là các tài liệu được đưa vào pipeline xử lý của RAG. Sau khi upload hoặc scan, tài liệu được trích xuất nội dung, chia thành chunks, sinh embedding và lưu vào các lớp lưu trữ phục vụ truy hồi. Khi người dùng đặt câu hỏi, RAG sẽ tìm các chunks liên quan và sử dụng chúng làm ngữ cảnh để sinh câu trả lời.
+
+Trong hệ thống KMA Chatbot tuyển sinh, các tài liệu ngữ cảnh đã quan sát gồm quy chế tuyển sinh, điểm chuẩn, chương trình đào tạo, quy định đào tạo, kế hoạch hoạt động và các tài liệu liên quan đến học viện. Đây là nguồn tri thức quan trọng để chatbot trả lời các câu hỏi có nội dung dài, phức tạp hoặc cần bám sát tài liệu gốc.
+
+\subsubsection{Các thao tác trên màn hình Context Documents}
+
+Màn hình \texttt{/context-docs} hiển thị các nút chức năng như Scan New Docs, Retry Pipeline, Pipeline, Refresh, Clear All, Upload Documents, bộ lọc trạng thái và bảng danh sách tài liệu. Các thao tác này thể hiện rõ vai trò vận hành của phân hệ RAG.
+
+Ý nghĩa của các thao tác chính như sau:
+
+\begin{itemize}
+    \item \textbf{Scan New Docs}: quét tài liệu mới từ thư mục hoặc nguồn đầu vào đã cấu hình.
+    \item \textbf{Upload Documents}: tải tài liệu mới lên hệ thống.
+    \item \textbf{Retry Pipeline}: xử lý lại các tài liệu bị lỗi.
+    \item \textbf{Pipeline}: xem hoặc kiểm tra trạng thái pipeline xử lý tài liệu.
+    \item \textbf{Refresh}: làm mới danh sách tài liệu và trạng thái xử lý.
+    \item \textbf{Clear All}: xóa hoặc làm sạch danh sách tài liệu trong phạm vi được phép.
+    \item \textbf{Bộ lọc trạng thái}: lọc tài liệu theo trạng thái như processed, pending hoặc failed.
+\end{itemize}
+
+Việc có nút Retry Pipeline và trạng thái Failed cho thấy hệ thống đã tính đến các lỗi có thể xảy ra trong quá trình ingest, OCR, trích xuất văn bản, chia chunks hoặc sinh embedding. Đây là yêu cầu quan trọng đối với hệ thống RAG vận hành thực tế.
+
+\subsubsection{Trạng thái xử lý tài liệu}
+
+Mỗi tài liệu ngữ cảnh cần có trạng thái xử lý rõ ràng để người quản trị biết tài liệu đã sẵn sàng được sử dụng hay chưa. Các trạng thái chính gồm:
+
+\begin{itemize}
+    \item \textbf{Processed}: tài liệu đã được xử lý thành công và có thể phục vụ truy hồi.
+    \item \textbf{Pending}: tài liệu đang chờ xử lý.
+    \item \textbf{Processing}: tài liệu đang được pipeline xử lý.
+    \item \textbf{Failed}: tài liệu xử lý lỗi, cần kiểm tra hoặc retry.
+\end{itemize}
+
+Ngoài trạng thái, bảng tài liệu cần hiển thị số chunks, tóm tắt nội dung và thời điểm cập nhật. Đây là các thông tin giúp Admin đánh giá tài liệu đã được ingest đúng hay chưa.
+
+\subsubsection{Luồng xử lý tài liệu RAG}
+
+Luồng xử lý tài liệu RAG trong phân hệ quản trị có thể mô tả như sau:
+
+\begin{enumerate}
+    \item Admin hoặc Editor upload tài liệu mới.
+    \item Hệ thống kiểm tra định dạng file và dung lượng.
+    \item Tài liệu được đưa vào hàng đợi xử lý.
+    \item Pipeline trích xuất văn bản từ file.
+    \item Nội dung được làm sạch và chuẩn hóa.
+    \item Văn bản được chia thành các chunks.
+    \item Hệ thống sinh embedding cho từng chunk.
+    \item Chunks và metadata được lưu vào kho dữ liệu tương ứng.
+    \item Trạng thái tài liệu được cập nhật trên giao diện quản trị.
+\end{enumerate}
+
+\subsubsection{Thiết kế kiểm soát lỗi pipeline}
+
+Do pipeline xử lý tài liệu có nhiều bước, hệ thống cần thiết kế cơ chế kiểm soát lỗi rõ ràng. Khi một tài liệu bị lỗi, hệ thống cần lưu nguyên nhân lỗi, thời điểm lỗi và bước xử lý xảy ra lỗi. Người quản trị có thể nhấn Retry Pipeline để xử lý lại tài liệu sau khi nguyên nhân được khắc phục.
+
+Các lỗi có thể gặp gồm:
+
+\begin{itemize}
+    \item File không đúng định dạng.
+    \item File quá lớn hoặc bị hỏng.
+    \item Không trích xuất được văn bản từ PDF.
+    \item Lỗi encoding tiếng Việt.
+    \item Lỗi chia chunks.
+    \item Lỗi gọi mô hình embedding.
+    \item Lỗi ghi dữ liệu vào vector database.
+\end{itemize}
+
+Thiết kế này giúp phân hệ quản trị không chỉ là nơi upload tài liệu mà còn là nơi vận hành, giám sát và khắc phục sự cố của toàn bộ pipeline RAG.

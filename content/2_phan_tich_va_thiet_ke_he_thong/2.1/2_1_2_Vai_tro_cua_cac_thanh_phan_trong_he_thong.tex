@@ -1,0 +1,57 @@
+\section{Các nhánh xử lý chính}
+
+Hệ thống trợ lý ảo được tổ chức theo hai nhánh xử lý chính nhằm bảo đảm vừa phản hồi tốt các câu hỏi có kịch bản rõ ràng, vừa hỗ trợ các truy vấn mở cần tổng hợp thông tin từ nhiều nguồn tri thức.
+
+\subsection{Nhánh dựa trên luật và học máy/học sâu truyền thống}
+
+Nhánh này xử lý các câu hỏi có kịch bản xác định trước. PhoBERT phân loại intent với độ tin cậy cao, mô-đun xử lý theo luật sẽ tìm luật phù hợp và sinh phản hồi từ template. Nhánh này phù hợp với FAQ, quy trình tra cứu, đặt hàng, khiếu nại theo mẫu.
+
+\begin{table}[H]
+    \centering
+    \caption{Thành phần xử lý dựa trên luật}
+    \label{tab:rule_based_components}
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{0.26\textwidth}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{0.26\textwidth}|}
+        \hline
+        \textbf{Thành phần} & \textbf{Chức năng} & \textbf{Ưu điểm} \\
+        \hline
+        PhoBERT Intent Classifier & Nhận dạng ý định với độ chính xác cao cho tiếng Việt & Accuracy >90\%, latency <150ms \\
+        \hline
+        NER Engine & Trích xuất thông tin từ câu (ngày, mã đơn, số điện thoại...) & Cấu trúc hóa dữ liệu đầu vào \\
+        \hline
+        Rule Engine (Drools) & Khớp intent + entities + context với tập luật ưu tiên & Minh bạch, kiểm soát được, dễ debug \\
+        \hline
+        Slot Filling FSM & Thu thập thông tin còn thiếu qua nhiều lượt hỏi & Hội thoại tự nhiên dạng wizard \\
+        \hline
+        Template Renderer & Sinh câu trả lời từ mẫu + biến động & Nhất quán, dễ chỉnh sửa không code \\
+        \hline
+    \end{tabularx}
+\end{table}
+
+\subsection{Nhánh sử dụng LLM kết hợp với RAG/GraphRAG}
+
+Nhánh này xử lý câu hỏi mở, cần tổng hợp thông tin từ nhiều nguồn. RAG giúp câu trả lời được grounded trên tài liệu thực tế, hạn chế hallucination. Câu trả lời luôn kèm theo citation nguồn để tăng khả năng kiểm chứng.
+
+\begin{table}[H]
+    \centering
+    \caption{Thành phần xử lý dựa trên RAG}
+    \label{tab:rag_based_components}
+    \begin{tabularx}{\textwidth}{|>{\raggedright\arraybackslash}p{0.24\textwidth}|>{\raggedright\arraybackslash}X|>{\raggedright\arraybackslash}p{0.25\textwidth}|}
+        \hline
+        \textbf{Thành phần} & \textbf{Chức năng} & \textbf{Công nghệ} \\
+        \hline
+        Query Processor & Tiền xử lý, mở rộng, rewrite câu hỏi & Python NLP + LLM \\
+        \hline
+        Embedding Engine & Chuyển văn bản thành vector 1024-dim & BGE-M3 / VnBERT \\
+        \hline
+        Hybrid Search & BM25 full-text + Dense vector search & Elasticsearch + Qdrant \\
+        \hline
+        Reranker & CrossEncoder xếp hạng lại kết quả & ms-marco-MiniLM \\
+        \hline
+        Context Builder & Xây dựng prompt: system + context + history + query & LangChain / Custom \\
+        \hline
+        LLM Gateway & Gọi LLM, xử lý streaming, fallback & GPT-4o / Llama3-70B \\
+        \hline
+        Post-processor & Trích citation, kiểm tra an toàn, format & Custom Python \\
+        \hline
+    \end{tabularx}
+\end{table}

@@ -1,0 +1,40 @@
+\subsection{Thiết kế Embedding Layer}
+
+Embedding Layer có nhiệm vụ chuyển câu hỏi, chunk, entity và relation thành vector số để truy hồi theo ngữ nghĩa. Trong hệ thống hiện tại, embedding model được ghi nhận là BAAI/bge-m3. Đây là mô hình phù hợp cho truy hồi đa ngôn ngữ và có thể xử lý tốt các truy vấn tiếng Việt trong miền tuyển sinh.
+
+Trong Indexing Flow, embedding được sinh cho các chunk sau khi đã qua preprocessing. Trong thiết kế graph-based RAG, embedding cũng có thể được sinh cho entity và relation. Tài liệu Flow report nhấn mạnh bge-m3 được dùng để sinh vector cho chunk, entity và relation; đồng thời query cũng phải dùng cùng embedding model để bảo đảm vector có thể so sánh trong cùng không gian.
+
+Công thức mô tả:
+
+\begin{equation}
+v_i = E(d_i), \qquad v_q = E(q)
+\end{equation}
+
+Trong đó:
+
+\begin{itemize}
+    \item $E$ là hàm embedding.
+    \item $d_i$ là chunk tài liệu thứ $i$.
+    \item $q$ là câu hỏi người dùng.
+    \item $v_i$ là vector của chunk.
+    \item $v_q$ là vector của câu hỏi.
+\end{itemize}
+
+Độ tương đồng cosine được tính như sau:
+
+\begin{equation}
+sim(q, d_i) = \frac{v_q \cdot v_i}{\|v_q\| \|v_i\|}
+\end{equation}
+
+Khi người dùng hỏi ``CNTT có xét học bạ không?'', hệ thống cần truy hồi được chunk chứa các cụm tương đương như ``Công nghệ thông tin'', ``phương thức xét tuyển'', ``xét kết quả học tập THPT'' hoặc ``xét học bạ''. Điều này cho thấy embedding giúp hệ thống vượt qua giới hạn của keyword matching. Tuy nhiên, embedding cũng cần được kiểm soát bằng metadata và keyword search, vì các câu hỏi tuyển sinh thường chứa mã ngành, năm, tổ hợp môn và con số.
+
+Các điểm kiểm soát của Embedding Layer:
+
+\begin{itemize}
+    \item Indexing và query phải dùng cùng model embedding.
+    \item Vector dimension phải khớp với schema của vector database.
+    \item Cần lưu \texttt{embedding\_model}, \texttt{embedding\_version} và \texttt{created\_at}.
+    \item Cần rebuild vector index khi đổi model embedding.
+    \item Cần cache query embedding cho câu hỏi lặp.
+    \item Không embedding dữ liệu parse lỗi hoặc OCR confidence thấp.
+\end{itemize}

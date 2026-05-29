@@ -1,0 +1,30 @@
+\subsection{Thiết kế cơ sở dữ liệu phục vụ phân hệ quản trị}
+
+Để hỗ trợ phân hệ quản trị, hệ thống cần tổ chức các nhóm bảng dữ liệu phục vụ người dùng, vai trò, quyền, tài liệu, tài liệu RAG, chatbot và thống kê.
+
+\begin{table}[H]
+\centering
+\caption{Các bảng dữ liệu đề xuất cho phân hệ quản trị}
+\label{tab:admin-db}
+\begin{tabular}{|p{4cm}|p{5cm}|p{6cm}|}
+\hline
+\textbf{Nhóm dữ liệu} & \textbf{Bảng đề xuất} & \textbf{Mục đích} \\ \hline
+Người dùng & \texttt{Users} & Lưu thông tin tài khoản người dùng \\ \hline
+Vai trò & \texttt{Roles} & Lưu danh sách vai trò trong hệ thống \\ \hline
+Quyền & \texttt{Permissions} & Lưu danh sách quyền theo module hoặc endpoint \\ \hline
+Người dùng -- vai trò & \texttt{UserRoles} & Gán vai trò cho người dùng \\ \hline
+Vai trò -- quyền & \texttt{RolePermissions} & Gán quyền cho vai trò \\ \hline
+Chatbot & \texttt{Chatbots} & Lưu thông tin chatbot và trạng thái hoạt động \\ \hline
+Tài liệu biểu mẫu & \texttt{Documents} & Lưu thông tin tài liệu, biểu mẫu \\ \hline
+Tag tài liệu & \texttt{DocumentTags} & Phân loại tài liệu theo tag \\ \hline
+Tài liệu RAG & \texttt{ContextDocuments} & Lưu tài liệu ngữ cảnh phục vụ RAG \\ \hline
+Chunks & \texttt{DocumentChunks} & Lưu các đoạn văn bản sau khi chia nhỏ \\ \hline
+Trạng thái pipeline & \texttt{PipelineLogs} & Lưu trạng thái và lỗi xử lý tài liệu \\ \hline
+Hội thoại & \texttt{Conversations} & Lưu phiên hội thoại của người dùng \\ \hline
+Tin nhắn & \texttt{Messages} & Lưu câu hỏi và câu trả lời \\ \hline
+Thống kê & \texttt{StatisticSnapshots} & Lưu số liệu thống kê theo thời gian nếu cần \\ \hline
+Nhật ký thao tác & \texttt{AuditLogs} & Lưu lịch sử thao tác quản trị \\ \hline
+\end{tabular}
+\end{table}
+
+Quan hệ dữ liệu cơ bản được mô tả như sau: một người dùng có thể có nhiều vai trò, một vai trò có thể có nhiều quyền, một chatbot có thể có nhiều tài liệu, một tài liệu RAG có thể sinh ra nhiều chunks, một hội thoại có thể có nhiều tin nhắn và mỗi thao tác quản trị quan trọng cần được ghi vào audit log.

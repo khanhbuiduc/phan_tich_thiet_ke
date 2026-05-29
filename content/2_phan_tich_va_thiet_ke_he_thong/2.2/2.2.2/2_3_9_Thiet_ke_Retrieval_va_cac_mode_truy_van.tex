@@ -1,0 +1,64 @@
+\subsection{Thiết kế Retrieval và các mode truy vấn}
+
+Query Flow là luồng xử lý trực tuyến khi người dùng đặt câu hỏi. Đây là phần trực tiếp quyết định chất lượng trải nghiệm hỏi đáp của người dùng.
+
+Bước chuẩn hóa query cần xử lý các vấn đề như viết tắt CNTT thành Công nghệ thông tin, nhận diện mã ngành 7480201KMA, nhận diện tổ hợp môn A00, A01, D01, chuẩn hóa cụm ``năm nay'' thành năm tuyển sinh hiện hành, sửa lỗi chính tả nhẹ và xử lý câu hỏi nối tiếp dựa vào lịch sử hội thoại.
+
+Ví dụ:
+
+\begin{itemize}
+    \item Query gốc: ``CNTT năm nay xét học bạ không?''
+    \item Sau chuẩn hóa: ``Ngành Công nghệ thông tin tuyển sinh năm 2026 có xét học bạ không?''
+\end{itemize}
+
+Để phù hợp với nhiều loại câu hỏi, RAG nên hỗ trợ nhiều mode truy vấn thay vì chỉ dùng một chiến lược duy nhất.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.2cm}|p{9.6cm}|}
+\hline
+\textbf{Mode} & \textbf{Mô tả} \\
+\hline
+Naive mode & Truy hồi trực tiếp trên chunks vector database bằng vector search. \\
+\hline
+Local mode & Truy hồi entity liên quan, sau đó mở rộng quan hệ lân cận trong graph. \\
+\hline
+Global mode & Truy hồi relation hoặc chủ đề rộng trong graph. \\
+\hline
+Hybrid mode & Kết hợp entity retrieval và relation retrieval. \\
+\hline
+Mix mode & Kết hợp graph retrieval với chunk vector retrieval. \\
+\hline
+Bypass mode & Gọi LLM trực tiếp, chỉ dùng cho câu hỏi giao tiếp chung, không dùng cho dữ liệu tuyển sinh. \\
+\hline
+\end{tabular}
+\caption{Các mode truy vấn đề xuất cho phân hệ RAG}
+\label{tab:rag-query-modes}
+\end{table}
+
+Bảng lựa chọn mode:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{6cm}|p{6.8cm}|}
+\hline
+\textbf{Câu hỏi} & \textbf{Mode phù hợp} \\
+\hline
+``CNTT có xét học bạ không?'' & local / mix \\
+\hline
+``Các ngành nào xét D01?'' & global / mix \\
+\hline
+``Mã ngành 7480201 xét A00 không?'' & hybrid \\
+\hline
+``Điểm chuẩn ngành ATTT năm 2025?'' & naive / mix \\
+\hline
+``So sánh xét học bạ và xét điểm thi'' & global / mix \\
+\hline
+``Viết lời chào cho chatbot'' & bypass \\
+\hline
+\end{tabular}
+\caption{Gợi ý lựa chọn mode truy vấn theo loại câu hỏi}
+\label{tab:rag-mode-selection}
+\end{table}
+
+Trong hệ thống tuyển sinh, mix mode thường an toàn nhất cho câu hỏi quan trọng vì vừa dùng graph để hiểu quan hệ, vừa dùng chunk nguồn để trích dẫn. Tuy nhiên, mode này có thể tốn nhiều thời gian và context token hơn, nên cần cân nhắc giữa chất lượng, độ trễ và chi phí.

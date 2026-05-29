@@ -1,0 +1,37 @@
+\subsection{Thiết kế Index Layer và các lớp lưu trữ}
+
+Phân hệ RAG không nên chỉ dùng một loại cơ sở dữ liệu. Hệ thống hiện tại đã sử dụng nhiều lớp lưu trữ khác nhau: RedisKVStorage, RedisDocStatusStorage, QdrantVectorDBStorage và MemgraphStorage. Mỗi lớp phục vụ một mục đích riêng.
+
+Trong Index Layer, vector entry không được xem là dữ liệu độc lập. Mỗi kết quả truy hồi từ vector database phải truy ngược được về chunk, metadata và tài liệu gốc để phục vụ citation.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/RAG/Quan hệ giữa document index chunk index metadata index vector database và graph index trong Index Layer của KmaRAG.png}}
+    \caption{Quan hệ giữa document index, chunk index, metadata index và vector database}
+    \label{fig:rag-index-layer-relation}
+\end{figure}
+
+Thiết kế các lớp lưu trữ:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4.3cm}|p{8.7cm}|}
+\hline
+\textbf{Kho lưu trữ} & \textbf{Vai trò} \\
+\hline
+Document Store & Lưu tài liệu gốc, nội dung đã chuẩn hóa và chunk text. \\
+\hline
+RedisDocStatusStorage & Theo dõi trạng thái xử lý tài liệu. \\
+\hline
+QdrantVectorDBStorage & Lưu vector embedding phục vụ semantic search. \\
+\hline
+MemgraphStorage & Lưu entity, relation và knowledge graph. \\
+\hline
+RedisKVStorage & Lưu cache, key-value metadata và kết quả trung gian. \\
+\hline
+\end{tabular}
+\caption{Các lớp lưu trữ trong phân hệ RAG}
+\label{tab:rag-storage-layers}
+\end{table}
+
+Ưu điểm của thiết kế đa tầng là mỗi loại dữ liệu được lưu ở nơi phù hợp. Vector database tối ưu cho tìm kiếm tương đồng, nhưng không phù hợp để lưu đầy đủ tài liệu gốc. Graph database phù hợp với quan hệ entity-relation, nhưng không thay thế được chunk text. Redis phù hợp với trạng thái nhanh và cache, nhưng không phải kho tri thức chính.

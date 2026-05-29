@@ -1,0 +1,22 @@
+\subsection{Thiết kế fallback và kiểm soát confidence}
+
+Fallback là cơ chế bắt buộc trong chatbot tuyển sinh vì hệ thống không được trả lời tùy tiện khi không hiểu câu hỏi. FallbackClassifier kiểm tra confidence của intent. Nếu confidence thấp hơn ngưỡng thiết kế, hệ thống không chấp nhận intent mà chuyển sang nhánh fallback.
+
+Logic xử lý có thể mô tả như sau:
+
+\begin{center}
+\begin{tabular}{c}
+\texttt{Nếu max(confidence) >= threshold} \\
+$\downarrow$ \\
+\texttt{Chấp nhận intent} \\
+\texttt{Ngược lại} \\
+$\downarrow$ \\
+\texttt{Kích hoạt fallback}
+\end{tabular}
+\end{center}
+
+Fallback có thể chia thành nhiều cấp. Fallback cấp 1 là bot hỏi lại để làm rõ ý định. Fallback cấp 2 là bot gợi ý một số nhóm câu hỏi có thể hỗ trợ. Fallback cấp 3 là bot ghi log câu hỏi chưa xử lý được để quản trị viên bổ sung dữ liệu. Fallback cấp 4 là bot thông báo chưa có thông tin phù hợp thay vì tự trả lời.
+
+Ví dụ, khi người dùng hỏi ``Cái ngành đó thì sao?'', bot có thể phản hồi: ``Bạn đang muốn hỏi về ngành nào ạ? Bạn có thể nhập tên ngành như An toàn thông tin, Công nghệ thông tin hoặc Điện tử viễn thông.''
+
+Fallback không chỉ là xử lý lỗi. Đây là cơ chế bảo vệ chất lượng thông tin. Đặc biệt với lĩnh vực tuyển sinh, câu trả lời sai về điểm chuẩn, học phí, hồ sơ hoặc thời gian nhập học có thể gây ảnh hưởng trực tiếp đến người dùng. Vì vậy, khi không đủ chắc chắn, hệ thống nên hỏi lại hoặc từ chối có kiểm soát.

@@ -1,0 +1,34 @@
+\subsection{Tích hợp RAG với Rasa}
+
+Trong hệ thống tổng thể, Rasa và RAG cần phối hợp với nhau. Rasa xử lý intent, hội thoại, fallback và các câu hỏi định sẵn. RAG xử lý các câu hỏi cần truy xuất tài liệu.
+
+Có thể thiết kế luồng tích hợp như sau:
+
+\begin{center}
+\begin{tabular}{p{12cm}}
+Người dùng gửi câu hỏi \\
+$\downarrow$ \\
+Rasa NLU phân loại intent \\
+$\downarrow$ \\
+Nếu intent rõ và thuộc FAQ: Rasa trả lời bằng domain/action \\
+$\downarrow$ \\
+Nếu intent cần tài liệu: Custom action gọi RAG API \\
+$\downarrow$ \\
+Nếu confidence thấp: fallback hoặc hỏi lại, có thể chuyển sang RAG nếu câu hỏi có dạng truy vấn tài liệu
+\end{tabular}
+\end{center}
+
+Các intent nên chuyển sang RAG:
+
+\begin{itemize}
+    \item \texttt{hoi\_diem\_chuan}.
+    \item \texttt{hoi\_phuong\_thuc\_tuyen\_sinh}.
+    \item \texttt{hoi\_chuong\_trinh\_dao\_tao}.
+    \item \texttt{hoi\_quy\_che}.
+    \item \texttt{hoi\_hoc\_phi}.
+    \item \texttt{hoi\_ho\_so\_nhap\_hoc}.
+    \item \texttt{hoi\_van\_ban\_bieu\_mau}.
+    \item \texttt{hoi\_nguon\_tai\_lieu}.
+\end{itemize}
+
+Custom action có thể gọi endpoint \texttt{/v1/chat/completions} hoặc \texttt{/v1/chunks}. Rasa giữ vai trò điều phối hội thoại, còn RAG giữ vai trò tìm bằng chứng và sinh câu trả lời theo tài liệu. Điều này giúp hệ thống tận dụng ưu điểm của cả hai: Rasa kiểm soát luồng, RAG mở rộng tri thức.

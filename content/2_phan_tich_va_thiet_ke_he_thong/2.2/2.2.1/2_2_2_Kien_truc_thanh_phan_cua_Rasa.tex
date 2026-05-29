@@ -1,0 +1,40 @@
+\subsection{Kiến trúc thành phần của Rasa}
+
+Rasa được tổ chức thành nhiều thành phần phối hợp với nhau để tạo thành một pipeline hội thoại hoàn chỉnh. Các thành phần quan trọng gồm Agent, NLU Pipeline, Dialogue Policies, Tracker Store, Lock Store, Domain, File System và Action Server.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.95\textwidth]{\detokenize{content/source/rasa/các thành phần hệ thống rasa.png}}
+    \caption{Các thành phần chính trong kiến trúc Rasa}
+    \label{fig:rasa-components}
+\end{figure}
+
+Hình~\ref{fig:rasa-components} cho thấy kiến trúc nội bộ của Rasa. Agent là thành phần điều phối trung tâm. NLU Pipeline chịu trách nhiệm phân tích câu hỏi để tạo intent, entity và confidence. Dialogue Policies sử dụng trạng thái hội thoại để chọn hành động tiếp theo. Tracker Store lưu lịch sử hội thoại và trạng thái slot. Lock Store giúp kiểm soát truy cập đồng thời khi nhiều message đến cùng một phiên. Domain định nghĩa phạm vi hoạt động của chatbot, bao gồm intents, entities, slots, responses và actions.
+
+Action Server là thành phần mở rộng quan trọng. Khi Rasa Core chọn một custom action, Rasa gửi trạng thái hội thoại hiện tại sang Action Server. Action Server có thể đọc tracker, gọi backend, kiểm tra dữ liệu nghiệp vụ, ghi log hoặc tạo phản hồi động.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4cm}|p{8.5cm}|}
+\hline
+\textbf{Thành phần} & \textbf{Vai trò trong thiết kế} \\
+\hline
+NLU Pipeline & Chuyển câu hỏi tự nhiên thành intent, entity, confidence và ranking. \\
+\hline
+Dialogue Management & Dựa trên intent, slot và lịch sử để chọn action tiếp theo. \\
+\hline
+Tracker Store & Lưu trạng thái hội thoại, slot và lịch sử các hành động. \\
+\hline
+Domain & Định nghĩa intents, entities, slots, responses, forms và actions hợp lệ. \\
+\hline
+NLG Template & Sinh các phản hồi cố định, ổn định và dễ kiểm soát. \\
+\hline
+Action Server & Thực hiện logic nghiệp vụ, fallback nâng cao và ghi nhận câu hỏi chưa xử lý. \\
+\hline
+\end{tabular}
+\caption{Vai trò các thành phần chính trong Rasa}
+\label{tab:rasa-components-role}
+\end{table}
+
+Thiết kế này giúp chatbot không chỉ là một bộ phân loại intent. Rasa là một hệ thống hội thoại gồm nhiều lớp, trong đó NLU hiểu câu hỏi, Core chọn hành động, NLG sinh phản hồi, còn Tracker duy trì trạng thái để xử lý hội thoại nhiều lượt.
+

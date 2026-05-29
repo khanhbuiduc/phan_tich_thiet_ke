@@ -1,0 +1,49 @@
+\subsection{Phân hệ quản lý người dùng}
+
+Phân hệ quản lý người dùng được truy cập thông qua route \texttt{/users}. Màn hình này hiển thị danh sách tài khoản trong hệ thống với các thông tin như tên, email, ngày sinh, giới tính, trạng thái xác thực, trạng thái tài khoản và các thao tác quản trị.
+
+Các trạng thái người dùng quan sát được gồm ACTIVE, PENDING và BANNED. Cách phân loại này cho thấy hệ thống có cơ chế quản lý vòng đời tài khoản, từ chờ duyệt, đang hoạt động đến bị cấm truy cập.
+
+\subsubsection{Danh sách người dùng}
+
+Danh sách người dùng giúp Admin theo dõi toàn bộ tài khoản đang tồn tại trong hệ thống. Các thông tin cần hiển thị gồm:
+
+\begin{itemize}
+    \item Họ tên người dùng.
+    \item Email.
+    \item Ngày sinh.
+    \item Giới tính.
+    \item Trạng thái xác thực email hoặc tài khoản.
+    \item Trạng thái hoạt động.
+    \item Vai trò được gán.
+    \item Các thao tác quản trị.
+\end{itemize}
+
+Màn hình cần hỗ trợ tìm kiếm theo tên hoặc email, lọc theo trạng thái và phân trang để dễ quản lý khi số lượng người dùng tăng.
+
+\subsubsection{Trạng thái tài khoản}
+
+Các trạng thái tài khoản có ý nghĩa như sau:
+
+\begin{itemize}
+    \item \textbf{ACTIVE}: tài khoản đang hoạt động và có thể sử dụng hệ thống.
+    \item \textbf{PENDING}: tài khoản đang chờ xác nhận hoặc chờ duyệt.
+    \item \textbf{BANNED}: tài khoản bị cấm hoặc bị khóa quyền truy cập.
+\end{itemize}
+
+Việc phân biệt trạng thái giúp Admin kiểm soát truy cập tốt hơn. Ví dụ, tài khoản PENDING có thể chưa được phép truy cập đầy đủ, còn tài khoản BANNED cần bị chặn đăng nhập hoặc chặn thao tác trong hệ thống.
+
+\subsubsection{Thao tác quản trị người dùng}
+
+Các thao tác quản trị người dùng cần có gồm:
+
+\begin{itemize}
+    \item Tạo tài khoản mới.
+    \item Cập nhật thông tin tài khoản.
+    \item Gán hoặc thay đổi vai trò.
+    \item Khóa hoặc mở khóa tài khoản.
+    \item Đặt lại mật khẩu nếu cần.
+    \item Xóa mềm tài khoản.
+\end{itemize}
+
+Mọi thao tác quan trọng trên tài khoản cần được ghi log để phục vụ truy vết. Đặc biệt, các thao tác như gán quyền Admin, khóa tài khoản hoặc xóa tài khoản cần yêu cầu quyền cao và có hộp thoại xác nhận.

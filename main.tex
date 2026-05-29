@@ -15,6 +15,7 @@
 \usepackage{xurl}
 \usepackage{xparse}
 \usepackage{hyperref}
+\usepackage{tikz}
 
 \geometry{
     left=3cm,
@@ -48,12 +49,62 @@
 \begin{document}
 
 \begin{titlepage}
+    \newgeometry{left=2cm,right=2cm,top=2cm,bottom=2cm}
+    \thispagestyle{empty}
+    \begingroup
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{0pt}
+    \renewcommand{\baselinestretch}{1.0}\selectfont
+    \begin{tikzpicture}[remember picture, overlay]
+        \draw[line width=0.8pt]
+            ([xshift=1cm,yshift=-1cm]current page.north west)
+            rectangle
+            ([xshift=-1cm,yshift=1cm]current page.south east);
+        \draw[line width=0.4pt]
+            ([xshift=1.15cm,yshift=-1.15cm]current page.north west)
+            rectangle
+            ([xshift=-1.15cm,yshift=1.15cm]current page.south east);
+    \end{tikzpicture}
+
     \centering
-    {\Large BÁO CÁO PHÂN TÍCH KỸ THUẬT\par}
-    \vspace{3cm}
-    {\LARGE\bfseries Hệ thống trợ lý ảo tư vấn tuyển sinh\par}
+    \vspace*{1.0cm}
+
+    {\normalsize BAN CƠ YẾU CHÍNH PHỦ\par}
+    {\bfseries\large HỌC VIỆN KỸ THUẬT MẬT MÃ\par}
+    \vspace{0.25cm}
+    {\rule{5.6cm}{0.45pt}\par}
+
+    \vspace{4.9cm}
+    {\bfseries\LARGE TÀI LIỆU PHÂN TÍCH KỸ THUẬT\par}
+
+    \vspace{3.0cm}
+    {\bfseries NHIỆM VỤ: }
+    { ``Nghiên cứu, xây dựng hệ thống trợ lý ảo ứng dụng trong\par
+    Ban Cơ yếu Chính phủ''\par}
+    \vspace{0.25cm}
+    \noindent MÃ SỐ: ……………………..\par
+
+    \vspace{2.8cm}
+    {\bfseries Cơ quan chủ trì: Học viện Kỹ thuật Mật mã\par}
+    {\bfseries Chủ nhiệm: ThS.\ Lê Bá Cường\par}
+
+    \vspace{2.9cm}
+    \noindent
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        {\bfseries Người thực hiện chuyên đề\par}
+        {\itshape (Họ tên và chữ ký)\par}
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.45\textwidth}
+        \centering
+        {\bfseries Chủ nhiệm nhiệm vụ\par}
+        {\itshape (Họ tên và chữ ký)\par}
+    \end{minipage}
+
     \vfill
-    {\large \today\par}
+    {\bfseries Hà Nội -- 2026\par}
+    \endgroup
+    \restoregeometry
 \end{titlepage}
 
 \tableofcontents

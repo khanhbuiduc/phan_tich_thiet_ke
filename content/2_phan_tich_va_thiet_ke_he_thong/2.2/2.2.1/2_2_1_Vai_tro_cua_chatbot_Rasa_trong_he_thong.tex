@@ -1,0 +1,16 @@
+\subsection{Vai trò của chatbot Rasa trong hệ thống}
+
+Trong hệ thống trợ lý ảo ứng dụng trong Ban Cơ yếu Chính phủ, chatbot Rasa đóng vai trò là phân hệ xử lý hội thoại chính, tiếp nhận câu hỏi từ người dùng, phân tích ý định, trích xuất thông tin cần thiết và trả về phản hồi phù hợp. Phân hệ này giúp tự động hóa quá trình hỏi đáp, hỗ trợ tra cứu thông tin và giảm tải cho cán bộ phụ trách trong các tình huống tư vấn lặp lại.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{\detokenize{content/source/screen/chat_with_rasa.png}}
+    \caption{Giao diện tương tác với chatbot Rasa}
+    \label{fig:chat-with-rasa}
+\end{figure}
+
+Rasa được sử dụng để xử lý các câu hỏi phổ biến, các nghiệp vụ có cấu trúc rõ ràng và các kịch bản hội thoại đã được thiết kế trước. Ví dụ, người dùng có thể hỏi về thủ tục, biểu mẫu, quy trình xử lý hồ sơ, thông tin đào tạo, văn bản hướng dẫn hoặc các câu hỏi thường gặp trong phạm vi nghiệp vụ của đơn vị. Với các trường hợp này, hệ thống có thể xây dựng intent, entity, rule, story và custom action để phản hồi nhanh, nhất quán và dễ kiểm soát.
+
+Trong tổng thể hệ thống, Rasa và RAG có vai trò bổ trợ cho nhau. Rasa phù hợp với các luồng hội thoại có cấu trúc, câu hỏi thường gặp và nghiệp vụ đã biết trước. Trong khi đó, RAG được sử dụng cho các câu hỏi cần truy xuất thông tin từ kho tài liệu nội bộ, chẳng hạn văn bản quy định, tài liệu hướng dẫn, biểu mẫu hoặc tài liệu nghiệp vụ đã được đưa vào hệ thống. Sự kết hợp này giúp trợ lý ảo vừa xử lý tốt các tình huống hội thoại cố định, vừa có khả năng trả lời các câu hỏi cần căn cứ theo tài liệu nguồn.
+
+Nhờ có Rasa, hệ thống trợ lý ảo không chỉ là một công cụ hỏi đáp đơn giản mà còn là thành phần điều phối hội thoại, giúp phân loại yêu cầu người dùng, lựa chọn hướng xử lý phù hợp và chuyển tiếp sang các phân hệ khác khi cần thiết. Đây là nền tảng quan trọng để xây dựng trợ lý ảo có khả năng phục vụ trong môi trường nghiệp vụ của Ban Cơ yếu Chính phủ.

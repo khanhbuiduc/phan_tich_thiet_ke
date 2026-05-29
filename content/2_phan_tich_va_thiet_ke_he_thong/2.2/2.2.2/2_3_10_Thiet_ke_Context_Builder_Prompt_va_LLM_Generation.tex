@@ -1,0 +1,34 @@
+\subsection{Thiết kế Context Builder, Prompt và LLM Generation}
+
+Context Builder là lớp chọn và sắp xếp bằng chứng trước khi gửi cho LLM. Đây là bước rất quan trọng vì LLM chỉ nên trả lời dựa trên context đã được cung cấp.
+
+Đầu vào của Context Builder gồm câu hỏi đã chuẩn hóa, danh sách chunk truy hồi, danh sách entity liên quan, danh sách relation liên quan, metadata tài liệu, điểm similarity và trạng thái hiệu lực tài liệu. Đầu ra cần là context ngắn gọn, ít trùng lặp, đủ bằng chứng, có metadata nguồn và phù hợp với giới hạn token.
+
+Nguyên tắc chọn context:
+
+\begin{itemize}
+    \item Ưu tiên tài liệu đúng năm tuyển sinh.
+    \item Ưu tiên tài liệu có trạng thái processed/active.
+    \item Ưu tiên chunk có similarity cao.
+    \item Ưu tiên chunk có metadata khớp entity trong câu hỏi.
+    \item Loại bỏ chunk trùng hoặc gần trùng.
+    \item Không đưa tài liệu failed/needs\_review vào context chính thức.
+    \item Giữ nguồn \texttt{chunk\_id}/\texttt{document\_id} để citation.
+\end{itemize}
+
+Ví dụ với câu hỏi ``Công nghệ thông tin năm 2025 lấy bao nhiêu điểm?'', context nên gồm chunk từ tài liệu điểm chuẩn, dòng chứa ngành Công nghệ thông tin, mã ngành, tổ hợp xét tuyển, điểm chuẩn năm 2025 và nguồn tài liệu. Không nên đưa thêm các chunk nói về học phí, chương trình đào tạo hoặc quy chế thi nếu chúng không trực tiếp trả lời câu hỏi.
+
+Sau khi context được xây dựng, hệ thống tạo prompt để gọi LLM. Trong RAG, LLM không được xem là nguồn tri thức độc lập. LLM chỉ có nhiệm vụ diễn đạt câu trả lời dựa trên bằng chứng đã truy hồi.
+
+Prompt nên có cấu trúc:
+
+\begin{itemize}
+    \item System instruction: chatbot tư vấn tuyển sinh, chỉ trả lời dựa trên context được cung cấp.
+    \item User question: câu hỏi gốc hoặc câu hỏi đã chuẩn hóa.
+    \item Retrieved context: các chunk, entity, relation và metadata đã chọn.
+    \item Yêu cầu trả lời: ngắn gọn, rõ ràng, nêu đúng năm áp dụng, trích dẫn nguồn nếu có và nói chưa đủ dữ liệu nếu context không đủ.
+\end{itemize}
+
+Nếu context có đủ dữ liệu, hệ thống có thể trả lời: ``Ngành Công nghệ thông tin năm 2025 có điểm chuẩn là ... theo tài liệu điểm chuẩn của Học viện.'' Nếu context không đủ dữ liệu, hệ thống nên trả lời: ``Mình chưa tìm thấy thông tin đủ rõ trong kho tài liệu hiện tại về nội dung này. Bạn có thể cho biết thêm năm tuyển sinh hoặc ngành cụ thể không?''
+
+Tài liệu tổng hợp cũng nhấn mạnh Query Flow cần biết khi nào đủ bằng chứng để trả lời, khi nào cần hỏi lại và khi nào phải thừa nhận thiếu dữ liệu. Đây là nguyên tắc quan trọng trong chatbot tuyển sinh để giữ độ tin cậy của thông tin về ngành, phương thức xét tuyển, tổ hợp môn, học phí, điểm chuẩn và mốc thời gian.

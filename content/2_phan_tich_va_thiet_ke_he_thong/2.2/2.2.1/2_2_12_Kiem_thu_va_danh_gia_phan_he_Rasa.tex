@@ -1,0 +1,34 @@
+\subsection{Kiểm thử và đánh giá phân hệ Rasa}
+
+Kiểm thử phân hệ Rasa cần tách thành nhiều lớp thay vì chỉ kiểm tra câu trả lời cuối cùng. Mỗi lớp kiểm thử giúp phát hiện một nhóm lỗi khác nhau trong quá trình vận hành chatbot.
+
+Thứ nhất là kiểm thử NLU. Mục tiêu là đánh giá mô hình có nhận đúng intent và entity hay không. Các chỉ số có thể dùng gồm accuracy, precision, recall, F1-score, top-k accuracy và confusion matrix.
+
+Thứ hai là kiểm thử rule/story. Mục tiêu là xác định khi NLU đúng thì Core có chọn đúng action hay không. Ví dụ, intent \texttt{hoi\_hoc\_phi} phải dẫn đến action trả lời học phí, không được dẫn sang action hỏi điểm chuẩn.
+
+Thứ ba là kiểm thử fallback. Cần kiểm tra các câu hỏi mơ hồ, câu ngoài phạm vi, câu thiếu thông tin và câu có confidence thấp. Kết quả mong đợi là bot hỏi lại hoặc ghi log, không trả lời bừa.
+
+Thứ tư là kiểm thử custom action. Cần kiểm tra action có đọc đúng slot, trả đúng message và cập nhật đúng event hay không.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{3.5cm}|p{4.5cm}|p{5cm}|}
+\hline
+\textbf{Nhóm kiểm thử} & \textbf{Kịch bản} & \textbf{Kết quả mong đợi} \\
+\hline
+NLU & Hỏi học phí, điểm chuẩn, phương thức tuyển sinh & Nhận đúng intent và entity \\
+\hline
+Dialogue Management & Intent đúng nhưng cần chọn action phù hợp & Core chọn đúng utterance hoặc custom action \\
+\hline
+Slot & Người dùng hỏi thiếu ngành hoặc thiếu năm & Bot hỏi bổ sung thông tin \\
+\hline
+Fallback & Câu hỏi mơ hồ hoặc ngoài phạm vi & Bot hỏi lại hoặc ghi log \\
+\hline
+Custom Action & Gọi action fallback hoặc ghi log câu hỏi lỗi & Action trả đúng message và cập nhật đúng event \\
+\hline
+\end{tabular}
+\caption{Bảng kiểm thử đề xuất cho phân hệ Rasa}
+\label{tab:rasa-testing-plan}
+\end{table}
+
+Ngoài kiểm thử kỹ thuật, cần đánh giá theo góc nhìn nghiệp vụ tuyển sinh. Các câu trả lời về điểm chuẩn, học phí, hồ sơ, thời gian và điều kiện xét tuyển phải chính xác, nhất quán và không gây hiểu nhầm cho người dùng.

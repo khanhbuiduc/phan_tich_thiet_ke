@@ -1,6 +1,6 @@
 \section{Phân tích yêu cầu chức năng}
 
-Yêu cầu chức năng mô tả các nhóm chức năng chính mà hệ thống cần cung cấp cho người dùng và người quản trị. Trong phạm vi hệ thống trợ lý ảo tuyển sinh, các chức năng được tổ chức xoay quanh hai mục tiêu chính: hỗ trợ người dùng hỏi đáp thông tin tuyển sinh và hỗ trợ quản trị viên duy trì, kiểm soát dữ liệu phục vụ chatbot.
+Yêu cầu chức năng mô tả các nhóm chức năng chính mà hệ thống cần cung cấp cho người dùng và người quản trị. Trong phạm vi hệ thống trợ lý ảo ứng dụng trong Ban Cơ yếu Chính phủ, các chức năng được tổ chức xoay quanh hai mục tiêu chính: hỗ trợ người dùng hỏi đáp, tra cứu thông tin nghiệp vụ và hỗ trợ quản trị viên duy trì, kiểm soát dữ liệu phục vụ chatbot.
 
 \begin{figure}[H]
     \centering
@@ -11,8 +11,8 @@ Yêu cầu chức năng mô tả các nhóm chức năng chính mà hệ thống
 
 Từ biểu đồ phân rã chức năng, hệ thống gồm các nhóm chức năng chính như hỏi đáp với chatbot, khai thác thông tin từ tài liệu, quản lý tài liệu và biểu mẫu, quản lý dữ liệu ngữ cảnh cho RAG, quản lý người dùng, phân quyền và theo dõi báo cáo thống kê. Các nhóm chức năng này liên kết với nhau để tạo thành một hệ thống vừa phục vụ hỏi đáp tự động, vừa hỗ trợ vận hành và cập nhật dữ liệu thường xuyên.
 
-Đối với người dùng cuối, chức năng quan trọng nhất là đặt câu hỏi và nhận phản hồi từ chatbot. Người dùng có thể hỏi các nội dung liên quan đến ngành học, học phí, điểm chuẩn, phương thức tuyển sinh, thủ tục, biểu mẫu hoặc các thông tin chung về học viện. Với các câu hỏi phổ biến, hệ thống có thể xử lý bằng Rasa; với các câu hỏi cần dựa trên tài liệu dài hoặc văn bản đã upload, hệ thống có thể sử dụng RAG để truy xuất thông tin và tạo câu trả lời phù hợp.
+Đối với người dùng cuối, chức năng quan trọng nhất là đặt câu hỏi và nhận phản hồi từ chatbot. Người dùng có thể hỏi các nội dung liên quan đến thủ tục, quy trình, văn bản hướng dẫn, biểu mẫu, đầu mối hỗ trợ hoặc các thông tin chung trong phạm vi nghiệp vụ của đơn vị. Với các câu hỏi phổ biến, hệ thống có thể xử lý bằng Rasa; với các câu hỏi cần dựa trên tài liệu dài hoặc văn bản đã upload, hệ thống có thể sử dụng RAG để truy xuất thông tin và tạo câu trả lời phù hợp.
 
 Đối với nhóm quản trị, hệ thống cần hỗ trợ quản lý nguồn dữ liệu phục vụ chatbot. Các chức năng quản trị bao gồm cập nhật tài liệu, biểu mẫu, tài liệu ngữ cảnh, dữ liệu huấn luyện, câu hỏi gợi ý và theo dõi trạng thái xử lý tài liệu. Bên cạnh đó, hệ thống cũng cần có chức năng quản lý tài khoản, vai trò, quyền truy cập và báo cáo thống kê để bảo đảm quá trình vận hành được kiểm soát.
 
-Nhìn chung, yêu cầu chức năng của hệ thống không chỉ dừng lại ở việc trả lời câu hỏi tuyển sinh, mà còn bao gồm các công cụ quản trị cần thiết để duy trì chất lượng dữ liệu, theo dõi hoạt động và phân quyền sử dụng. Đây là cơ sở để hệ thống có thể vận hành ổn định trong môi trường thực tế, nơi thông tin tuyển sinh và tài liệu liên quan thường xuyên thay đổi.
+Nhìn chung, yêu cầu chức năng của hệ thống không chỉ dừng lại ở việc trả lời câu hỏi của người dùng, mà còn bao gồm các công cụ quản trị cần thiết để duy trì chất lượng dữ liệu, theo dõi hoạt động và phân quyền sử dụng. Đây là cơ sở để hệ thống có thể vận hành ổn định trong môi trường thực tế, nơi tài liệu nghiệp vụ và thông tin hướng dẫn có thể thay đổi theo thời gian.

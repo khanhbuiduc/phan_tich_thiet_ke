@@ -1,0 +1,80 @@
+\subsection{Phân hệ báo cáo thống kê}
+
+Phân hệ báo cáo thống kê được tổ chức trong nhóm route \texttt{/statistics/*}. Các màn hình đã xác minh gồm User Report, Conversation Report, Chatbot Report và Document Report. Mục tiêu của phân hệ này là cung cấp số liệu phục vụ quản trị, đánh giá mức độ sử dụng và theo dõi tình trạng dữ liệu.
+
+\subsubsection{Thống kê người dùng}
+
+Thống kê người dùng cho phép Admin theo dõi số lượng người dùng trong hệ thống, tình trạng tài khoản và mức độ hoạt động. Các chỉ số cần có gồm:
+
+\begin{itemize}
+    \item Tổng số người dùng.
+    \item Số người dùng đang hoạt động.
+    \item Số người dùng chờ duyệt.
+    \item Số người dùng bị khóa hoặc bị cấm.
+    \item Số người dùng mới theo thời gian.
+\end{itemize}
+
+Nhóm thống kê này giúp Admin phát hiện bất thường trong hệ thống tài khoản, đồng thời hỗ trợ đánh giá quy mô người dùng thực tế.
+
+\subsubsection{Thống kê hội thoại}
+
+Thống kê hội thoại giúp theo dõi hoạt động tương tác giữa người dùng và chatbot. Các chỉ số cần có gồm:
+
+\begin{itemize}
+    \item Tổng số hội thoại.
+    \item Tổng số tin nhắn.
+    \item Số tin nhắn trung bình trên mỗi hội thoại.
+    \item Số người dùng đang hội thoại.
+    \item Xu hướng hội thoại theo ngày hoặc theo tháng.
+\end{itemize}
+
+Đây là nhóm thống kê quan trọng để đánh giá mức độ sử dụng chatbot trong từng giai đoạn tuyển sinh. Nếu số lượng hội thoại tăng mạnh ở một thời điểm, nhà trường có thể dự đoán đó là giai đoạn người dùng có nhu cầu tư vấn cao.
+
+\subsubsection{Thống kê chatbot}
+
+Thống kê chatbot cho phép theo dõi số lượng chatbot và các chỉ số liên quan đến chatbot đang hoạt động. Trong hệ thống hiện tại, thống kê chatbot có ý nghĩa đặc biệt vì nhiều màn hình quản trị đều gắn với trường chọn chatbot.
+
+Các chỉ số cần có gồm:
+
+\begin{itemize}
+    \item Tổng số chatbot.
+    \item Chatbot đang hoạt động.
+    \item Số người dùng liên quan đến từng chatbot.
+    \item Số intent hoặc nghiệp vụ được cấu hình.
+    \item Trạng thái hoạt động của chatbot.
+\end{itemize}
+
+\subsubsection{Thống kê tài liệu}
+
+Thống kê tài liệu giúp Admin đánh giá quy mô và cấu trúc kho tài liệu. Các chỉ số đã quan sát gồm tổng số tài liệu, số tài liệu public, số tài liệu private và tổng dung lượng file.
+
+Ngoài ra, hệ thống nên thống kê thêm:
+
+\begin{itemize}
+    \item Phân bố tài liệu theo loại file.
+    \item Phân bố tài liệu theo dung lượng.
+    \item Danh sách tài liệu có dung lượng lớn.
+    \item Danh sách tài liệu mới được upload.
+    \item Tỷ lệ tài liệu public/private.
+\end{itemize}
+
+Các số liệu này hỗ trợ việc kiểm soát kho tài liệu và đánh giá khả năng mở rộng lưu trữ của hệ thống.
+
+\subsubsection{Thống kê NLP và RAG}
+
+Route \texttt{/statistics/nlp} trong phiên quan sát hiện tại chưa tải xong, do đó chưa có số liệu NLP chi tiết. Tuy nhiên, về mặt thiết kế, đây là nhóm thống kê nên được bổ sung vì nó phản ánh chất lượng hiểu ngôn ngữ và chất lượng trả lời của chatbot.
+
+Các chỉ số NLP/RAG nên có gồm:
+
+\begin{itemize}
+    \item Tỷ lệ intent được nhận diện chính xác.
+    \item Intent phổ biến nhất.
+    \item Các câu hỏi có confidence thấp.
+    \item Số lượt fallback.
+    \item Số lượt gọi RAG.
+    \item Tài liệu được truy hồi nhiều nhất.
+    \item Câu hỏi không tìm thấy ngữ cảnh phù hợp.
+    \item Tỷ lệ câu trả lời có nguồn trích dẫn.
+\end{itemize}
+
+Các chỉ số này giúp người quản trị biết chatbot đang yếu ở nhóm câu hỏi nào và cần bổ sung dữ liệu huấn luyện hoặc tài liệu ngữ cảnh nào.

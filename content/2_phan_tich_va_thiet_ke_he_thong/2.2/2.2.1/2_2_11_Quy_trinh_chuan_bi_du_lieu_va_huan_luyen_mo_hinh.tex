@@ -1,0 +1,36 @@
+\subsection{Quy trình chuẩn bị dữ liệu và huấn luyện mô hình}
+
+Quy trình huấn luyện trong hệ thống hiện tại gồm ba lớp công việc liên tiếp: chuẩn bị dữ liệu nghiệp vụ thành bộ file Rasa, huấn luyện \texttt{PhoBERTIntentClassifier} với cơ chế tự tối ưu tham số, và điều phối train ở mức hệ thống để sinh model mới rồi nạp lại vào chatbot. Vì vậy ba hình trong mục này cần phản ánh đúng luồng code thay vì tách riêng thành ``train intent'' và ``train NER'' như mô hình tổng quát thông thường.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{\detokenize{content/source/rasa/training/train_2_2_11_data_prep.png}}
+    \caption{Quy trình chuẩn bị dữ liệu huấn luyện cho Rasa PhoBERT}
+    \label{fig:rasa-phobert-data-process}
+\end{figure}
+
+Hình~\ref{fig:rasa-phobert-data-process} mô tả lớp chuẩn bị dữ liệu. Ở đầu vào, dữ liệu đến từ FAQ, đề án tuyển sinh, kịch bản tư vấn và lịch sử hội thoại đã được chắt lọc. Backend tổng hợp các nội dung này thành \texttt{nlu.yml}, \texttt{stories.yml}, \texttt{rules.yml} và \texttt{domain.yml}, sau đó gửi sang Flask API qua \texttt{POST /train}. Trong \texttt{PhoBERTIntentClassifier}, từng câu hỏi tiếp tục được chuẩn hóa, loại bớt một số ký tự, tách từ bằng VnCoreNLP và ánh xạ sang \texttt{intent\_id}. Nếu đang ở chế độ fresh training và dữ liệu còn ít, bộ tăng cường dữ liệu sẽ tạo thêm paraphrase có kiểm soát để mở rộng biên phân loại.
+
+Điểm quan trọng là hệ thống không huấn luyện một NER model độc lập trong luồng hiện tại. Entity chủ yếu được xử lý bằng \texttt{RegexEntityExtractor} và \texttt{EntitySynonymMapper}, còn trọng tâm của quá trình train là intent classification với PhoBERT. Vì vậy đầu ra của bước chuẩn bị dữ liệu là một tập huấn luyện intent đã được segment đúng tiếng Việt và lưu lại để dùng cho EWC ở các lần fine-tune sau.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.82\textheight,keepaspectratio]{\detokenize{content/source/rasa/training/train_2_2_11_phobert_train.png}}
+    \caption{Quy trình huấn luyện PhoBERTIntentClassifier trong code hiện tại}
+    \label{fig:rasa-train-intent}
+\end{figure}
+
+Hình~\ref{fig:rasa-train-intent} thể hiện lõi huấn luyện của \texttt{PhoBERTIntentClassifier}. Trước khi chạy vòng lặp train, \texttt{AutoParameterTuner} phân tích số lượng mẫu, số lớp intent, mức mất cân bằng, độ dài trung bình của câu và tình trạng fine-tune để tự chọn batch size, số epoch, learning rate, max sequence length, warmup ratio và nhiều tham số regularization khác. Nếu phát hiện đã tồn tại model cũ trong ModelStorage hoặc trong file \texttt{models/*.tar.gz}, hệ thống chuyển sang fine-tuning, bật adapter và EWC để giữ tri thức cũ; nếu không có model trước đó thì tạo mới toàn bộ \texttt{EnhancedPhoBERTClassifier}.
+
+Bên trong vòng train, dữ liệu được chia train/validation theo stratified split để mỗi intent đều xuất hiện ở cả hai tập. Nếu bật contrastive learning, dataloader dùng \texttt{ClassBalancedBatchSampler} để mỗi batch có đủ positive pair cùng lớp. Hàm mất mát cuối cùng là tổ hợp của loss phân loại, contrastive loss và EWC loss; đồng thời code còn dùng FP16, gradient accumulation, gradient clipping, learning-rate scheduler có warmup và cơ chế tự giảm batch size khi GPU bị hết VRAM. Sau mỗi epoch, model được đo \texttt{val\_accuracy}, lưu best checkpoint và dừng sớm nếu không còn cải thiện. Kết thúc train, mô hình tốt nhất được phục hồi, sau đó tiếp tục hiệu chỉnh confidence bằng temperature scaling và tính class centroids để hỗ trợ phát hiện out-of-domain ở giai đoạn suy luận.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth,height=0.8\textheight,keepaspectratio]{\detokenize{content/source/rasa/training/train_2_2_11_train_orchestration.png}}
+    \caption{Quy trình điều phối train, đóng gói và kích hoạt model mới}
+    \label{fig:rasa-train-ner}
+\end{figure}
+
+Hình cuối cùng mô tả quy trình điều phối train ở mức hệ thống. Khi backend hoặc admin gửi \texttt{POST /train}, Flask API kiểm tra xem đã có phiên train nào đang chạy hay chưa, ghi các file YAML mới ra đĩa, cập nhật lại \texttt{actions.py} nếu có custom action mới rồi khởi động lệnh \texttt{python -m rasa train} ở background thread. Nếu yêu cầu bật \texttt{firetune}, lệnh train sẽ thêm \texttt{--epoch-fraction 0.5} để rút ngắn thời gian hội tụ vì \texttt{PhoBERTIntentClassifier} đã tự nhận biết model cũ và chuyển sang fine-tune.
+
+Sau khi lệnh train hoàn tất, hệ thống tìm file model \texttt{.tar.gz} trong thư mục \texttt{models/}, upload model đó lên MinIO, cập nhật thông tin model vào MongoDB và trả trạng thái qua API \texttt{/training-status}. Backend sau đó có thể poll trạng thái này và gọi tiếp \texttt{POST /run-model} để nạp model mới vào Rasa runtime. Cách tổ chức này cho phép tách riêng ba pha: chuẩn bị dữ liệu, huấn luyện mô hình và triển khai model sau huấn luyện, từ đó giúp quản trị viên kiểm soát rõ hơn quá trình cập nhật chatbot.
